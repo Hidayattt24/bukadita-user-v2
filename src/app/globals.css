@@ -201,3 +201,34 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #578fca 0%, #27548a 100%);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #27548a 0%, #578fca 100%);
+}
+
+::-webkit-scrollbar-corner {
+  background: #f1f5f9;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #578fca #f1f5f9;
+}
