@@ -6,51 +6,62 @@ import React from "react";
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
 
-  // Tentukan konten branding berdasarkan halaman
-  const isLoginPage = pathname === "/login";
-  const isRegisterPage = pathname === "/register";
-  const isResetPasswordPage = pathname === "/reset-password";
-  const isCallbackPage = pathname === "/callback";
-
   return (
-    <div className="min-h-screen flex flex-col md:grid md:grid-cols-2">
-      {/* Kolom Kiri - Branding */}
-      <div className="bg-gradient-to-br from-[#27548A] to-[#578FCA] flex flex-col justify-center items-center p-4 sm:p-6 lg:p-8 text-white min-h-[200px] md:min-h-screen">
-        {/* Logo */}
-        <div className="mb-4 md:mb-8 text-center">
-          <div className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-2 md:mb-4 font-poppins">
-            Bukadita
-          </div>
-          <div className="text-sm sm:text-base md:text-lg lg:text-xl text-blue-100 text-center max-w-sm md:max-w-md px-2">
-            {isLoginPage &&
-              "Selamat datang kembali! Masuk ke akun Anda untuk melanjutkan."}
-            {isRegisterPage &&
-              "Bergabunglah dengan platform pembelajaran kader posyandu terdepan."}
-            {isResetPasswordPage &&
-              "Atur ulang password Anda dengan mudah dan aman."}
-            {isCallbackPage &&
-              "Memproses autentikasi Anda, mohon tunggu sebentar."}
-            {!isLoginPage &&
-              !isRegisterPage &&
-              !isResetPasswordPage &&
-              !isCallbackPage &&
-              "Platform digital untuk kader posyandu Indonesia."}
-          </div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute top-20 left-20 w-96 h-96 bg-[#578FCA]/10 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+        <div className="absolute top-40 right-20 w-80 h-80 bg-[#27548A]/10 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-40 w-72 h-72 bg-violet-300/10 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-blue-100/20 to-indigo-100/20 rounded-full filter blur-3xl animate-pulse"></div>
+      </div>
 
-        {/* Additional branding content */}
-        <div className="text-center max-w-sm md:max-w-md text-blue-200 px-2">
-          <p className="text-xs sm:text-sm font-poppins">
-            Bukadita (Buku Kader Digital) - Sistem Pembelajaran Mandiri Kader
-            Posyandu Kopelma Darussalam
-          </p>
+      {/* Geometric Decorations */}
+      <div className="absolute top-16 left-16 w-6 h-6 bg-[#578FCA]/20 rounded-full animate-bounce delay-100"></div>
+      <div className="absolute top-32 right-32 w-4 h-4 bg-[#27548A]/30 rounded-square rotate-45 animate-pulse"></div>
+      <div className="absolute bottom-24 left-24 w-8 h-8 bg-violet-400/20 rounded-full animate-bounce delay-300"></div>
+      <div className="absolute bottom-32 right-16 w-5 h-5 bg-blue-400/25 rounded-square rotate-12 animate-pulse delay-500"></div>
+
+      {/* Main Content Container */}
+      <div className="flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
+        <div className="relative z-10 w-full max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto">
+          {/* Card Container */}
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl lg:rounded-[2rem] shadow-2xl shadow-blue-500/10 border border-white/30 overflow-hidden">
+            {/* Inner content with proper padding for different screen sizes */}
+            <div className="p-6 sm:p-8 lg:p-12 xl:p-16">{children}</div>
+          </div>
         </div>
       </div>
 
-      {/* Kolom Kanan - Form */}
-      <div className="bg-white flex items-center justify-center px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 flex-1">
-        <div className="w-full max-w-sm sm:max-w-md">{children}</div>
-      </div>
+      {/* CSS for animations */}
+      <style jsx>{`
+        @keyframes blob {
+          0% {
+            transform: translate(0px, 0px) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
+          100% {
+            transform: translate(0px, 0px) scale(1);
+          }
+        }
+        .animate-blob {
+          animation: blob 8s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+        .rounded-square {
+          border-radius: 2px;
+        }
+      `}</style>
     </div>
   );
 };
