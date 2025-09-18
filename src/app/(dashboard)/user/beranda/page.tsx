@@ -56,7 +56,7 @@ export default function BerandaUser() {
                   background: "#FFF",
                 }}
               >
-                <span className="text-sm sm:text-base">
+                <span className="text-sm sm:text-base ">
                   Mulai Belajar Sekarang
                 </span>
                 <div

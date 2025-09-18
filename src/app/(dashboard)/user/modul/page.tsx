@@ -1,0 +1,670 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import {
+  BookOpen,
+  Clock,
+  Users,
+  Play,
+  CheckCircle,
+  Star,
+  Trophy,
+  Lock,
+  ArrowRight,
+  Filter,
+  Search,
+  Calendar,
+  BarChart3,
+  ChevronDown,
+  X,
+} from "lucide-react";
+import { UserNavbar, MobileBottomNavbar } from "@/components/User/Beranda";
+
+interface ModulData {
+  id: number;
+  title: string;
+  description: string;
+  duration: string;
+  lessons: number;
+  difficulty: "Pemula" | "Menengah" | "Lanjutan";
+  category:
+    | "Bayi & Balita"
+    | "Hamil & Menyusui"
+    | "Dewasa & Lansia"
+    | "Sekolah & Remaja";
+  status: "not-started" | "in-progress" | "completed";
+  progress: number;
+  rating: number;
+  students: number;
+  thumbnail: string;
+  instructor: string;
+  estimatedCompletion: string;
+}
+
+export default function ModulPage() {
+  const [activeTab, setActiveTab] = useState<
+    "all" | "not-started" | "in-progress" | "completed"
+  >("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [showMobileDropdown, setShowMobileDropdown] = useState(false);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+
+  // Format number consistently for SSR/Client
+  const formatNumber = (num: number): string => {
+    // Use simple formatting to avoid locale differences
+    if (num >= 1000) {
+      return (num / 1000).toFixed(num % 1000 === 0 ? 0 : 1) + "K";
+    }
+    return num.toString();
+  };
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest(".dropdown-container")) {
+        setShowMobileDropdown(false);
+        setShowCategoryDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Sample data untuk modul pembelajaran
+  const modules: ModulData[] = [
+    {
+      id: 1,
+      title: "Nutrisi Dasar untuk Bayi 0-6 Bulan",
+      description:
+        "Pelajari pentingnya ASI eksklusif dan nutrisi yang tepat untuk pertumbuhan optimal bayi.",
+      duration: "2 jam 30 menit",
+      lessons: 8,
+      difficulty: "Pemula",
+      category: "Bayi & Balita",
+      status: "completed",
+      progress: 100,
+      rating: 4.8,
+      students: 1250,
+      thumbnail: "/dummy/dummy-fotoprofil.png",
+      instructor: "Dr. Sarah Indira",
+      estimatedCompletion: "3 hari",
+    },
+    {
+      id: 2,
+      title: "Stimulasi Motorik Halus Balita",
+      description:
+        "Teknik-teknik sederhana untuk mengembangkan kemampuan motorik halus pada balita 1-3 tahun.",
+      duration: "3 jam 15 menit",
+      lessons: 12,
+      difficulty: "Menengah",
+      category: "Bayi & Balita",
+      status: "in-progress",
+      progress: 65,
+      rating: 4.9,
+      students: 890,
+      thumbnail: "/dummy/dummy-fotoprofil.png",
+      instructor: "Ns. Maya Putri",
+      estimatedCompletion: "5 hari",
+    },
+    {
+      id: 3,
+      title: "Persiapan Persalinan yang Aman",
+      description:
+        "Panduan lengkap persiapan fisik dan mental menjelang persalinan untuk ibu hamil.",
+      duration: "4 jam 20 menit",
+      lessons: 15,
+      difficulty: "Menengah",
+      category: "Hamil & Menyusui",
+      status: "not-started",
+      progress: 0,
+      rating: 4.7,
+      students: 2100,
+      thumbnail: "/dummy/dummy-fotoprofil.png",
+      instructor: "Dr. Budi Santoso",
+      estimatedCompletion: "7 hari",
+    },
+    {
+      id: 4,
+      title: "Manajemen Diabetes untuk Lansia",
+      description:
+        "Strategi mengelola diabetes mellitus pada lansia dengan pendekatan holistik.",
+      duration: "3 jam 45 menit",
+      lessons: 10,
+      difficulty: "Lanjutan",
+      category: "Dewasa & Lansia",
+      status: "not-started",
+      progress: 0,
+      rating: 4.6,
+      students: 750,
+      thumbnail: "/dummy/dummy-fotoprofil.png",
+      instructor: "Dr. Andi Wijaya",
+      estimatedCompletion: "6 hari",
+    },
+    {
+      id: 5,
+      title: "Kesehatan Reproduksi Remaja",
+      description:
+        "Edukasi komprehensif tentang kesehatan reproduksi untuk remaja usia 13-18 tahun.",
+      duration: "2 jam 50 menit",
+      lessons: 9,
+      difficulty: "Pemula",
+      category: "Sekolah & Remaja",
+      status: "in-progress",
+      progress: 30,
+      rating: 4.8,
+      students: 1560,
+      thumbnail: "/dummy/dummy-fotoprofil.png",
+      instructor: "Dr. Lisa Kartika",
+      estimatedCompletion: "4 hari",
+    },
+    {
+      id: 6,
+      title: "Gizi Seimbang untuk Ibu Menyusui",
+      description:
+        "Panduan nutrisi optimal untuk mendukung produksi ASI berkualitas.",
+      duration: "3 jam 10 menit",
+      lessons: 11,
+      difficulty: "Menengah",
+      category: "Hamil & Menyusui",
+      status: "completed",
+      progress: 100,
+      rating: 4.9,
+      students: 1890,
+      thumbnail: "/dummy/dummy-fotoprofil.png",
+      instructor: "Ns. Rina Sari",
+      estimatedCompletion: "5 hari",
+    },
+  ];
+
+  // Filter modules berdasarkan tab, search, dan category
+  const filteredModules = modules.filter((module) => {
+    const matchesTab = activeTab === "all" || module.status === activeTab;
+    const matchesSearch =
+      module.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      module.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "all" || module.category === selectedCategory;
+
+    return matchesTab && matchesSearch && matchesCategory;
+  });
+
+  // Statistics
+  const stats = {
+    total: modules.length,
+    completed: modules.filter((m) => m.status === "completed").length,
+    inProgress: modules.filter((m) => m.status === "in-progress").length,
+    notStarted: modules.filter((m) => m.status === "not-started").length,
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case "Pemula":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "Menengah":
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "Lanjutan":
+        return "bg-red-100 text-red-700 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-700 border-gray-200";
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "completed":
+        return <CheckCircle className="w-5 h-5 text-emerald-500" />;
+      case "in-progress":
+        return <Play className="w-5 h-5 text-[#578FCA]" />;
+      case "not-started":
+        return <Lock className="w-5 h-5 text-slate-400" />;
+      default:
+        return null;
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "Selesai";
+      case "in-progress":
+        return "Sedang Dipelajari";
+      case "not-started":
+        return "Belum Dipelajari";
+      default:
+        return "";
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#578FCA]/5 via-[#27548A]/5 to-slate-50/90">
+      {/* Navbar */}
+      <UserNavbar activeMenu="modul" />
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 lg:py-12 pb-28 md:pb-8">
+        {/* Header Section */}
+        <div className="mb-8 md:mb-12">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-[#27548A] to-[#578FCA] bg-clip-text text-transparent mb-4">
+              Modul Pembelajaran
+            </h1>
+            <p className="text-base md:text-lg text-[#27548A]/80 max-w-3xl mx-auto leading-relaxed font-medium">
+              Jelajahi berbagai modul pembelajaran kesehatan yang dirancang
+              khusus untuk meningkatkan pengetahuan Anda
+            </p>
+          </div>
+
+          {/* Statistics Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
+            <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-4 md:p-6 shadow-xl border border-[#578FCA]/20 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 group">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-[#578FCA] to-[#27548A] rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <BarChart3 className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#27548A] to-[#578FCA] bg-clip-text text-transparent">
+                    {stats.total}
+                  </div>
+                  <div className="text-sm md:text-base text-[#27548A]/70 font-semibold">
+                    Total Modul
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-4 md:p-6 shadow-xl border border-[#578FCA]/20 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 group">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <CheckCircle className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#27548A] to-[#578FCA] bg-clip-text text-transparent">
+                    {stats.completed}
+                  </div>
+                  <div className="text-sm md:text-base text-[#27548A]/70 font-semibold">
+                    Selesai
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-4 md:p-6 shadow-xl border border-[#578FCA]/20 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 group">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <Play className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#27548A] to-[#578FCA] bg-clip-text text-transparent">
+                    {stats.inProgress}
+                  </div>
+                  <div className="text-sm md:text-base text-[#27548A]/70 font-semibold">
+                    Berlangsung
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-4 md:p-6 shadow-xl border border-[#578FCA]/20 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 group">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-r from-slate-500 to-gray-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <Lock className="w-6 h-6 md:w-7 md:h-7 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#27548A] to-[#578FCA] bg-clip-text text-transparent">
+                    {stats.notStarted}
+                  </div>
+                  <div className="text-sm md:text-base text-[#27548A]/70 font-semibold">
+                    Belum Mulai
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter Section */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-4 sm:p-6 md:p-8 shadow-xl border border-[#578FCA]/20 mb-8 max-w-6xl mx-auto">
+          {/* Search Bar */}
+          <div className="relative mb-6 max-w-2xl mx-auto">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#578FCA]/60" />
+            <input
+              type="text"
+              placeholder="Cari modul pembelajaran..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 sm:py-4 border-2 border-[#578FCA]/20 rounded-2xl focus:border-[#27548A] focus:outline-none transition-colors bg-white/80 text-[#27548A] placeholder-[#578FCA]/60 text-sm sm:text-base"
+            />
+          </div>
+
+          {/* Mobile Filter Dropdown */}
+          <div className="sm:hidden mb-6">
+            <div className="relative dropdown-container">
+              <button
+                onClick={() => setShowMobileDropdown(!showMobileDropdown)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white rounded-2xl font-semibold shadow-lg"
+              >
+                <span className="text-sm">
+                  {activeTab === "all" && "Semua Modul"}
+                  {activeTab === "not-started" && "Belum Dipelajari"}
+                  {activeTab === "in-progress" && "Sedang Dipelajari"}
+                  {activeTab === "completed" && "Sudah Selesai"}
+                </span>
+                <ChevronDown
+                  className={`w-5 h-5 transition-transform duration-300 ${
+                    showMobileDropdown ? "rotate-180" : "rotate-0"
+                  }`}
+                />
+              </button>
+
+              {showMobileDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-[#578FCA]/20 overflow-hidden z-10">
+                  {[
+                    { key: "all", label: "Semua Modul", count: stats.total },
+                    {
+                      key: "not-started",
+                      label: "Belum Dipelajari",
+                      count: stats.notStarted,
+                    },
+                    {
+                      key: "in-progress",
+                      label: "Sedang Dipelajari",
+                      count: stats.inProgress,
+                    },
+                    {
+                      key: "completed",
+                      label: "Sudah Selesai",
+                      count: stats.completed,
+                    },
+                  ].map((tab) => (
+                    <button
+                      key={tab.key}
+                      onClick={() => {
+                        setActiveTab(tab.key as any);
+                        setShowMobileDropdown(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
+                        activeTab === tab.key
+                          ? "bg-[#578FCA]/10 text-[#27548A] border-l-4 border-[#578FCA]"
+                          : "text-[#27548A] hover:bg-[#578FCA]/5"
+                      }`}
+                    >
+                      <span className="text-sm font-medium">{tab.label}</span>
+                      <span className="text-xs px-2 py-1 rounded-full bg-[#578FCA]/10 text-[#27548A] font-bold">
+                        {tab.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Desktop Tabs */}
+          <div className="hidden sm:flex flex-wrap justify-center gap-2 sm:gap-3 mb-6">
+            {[
+              { key: "all", label: "Semua Modul", count: stats.total },
+              {
+                key: "not-started",
+                label: "Belum Dipelajari",
+                count: stats.notStarted,
+              },
+              {
+                key: "in-progress",
+                label: "Sedang Dipelajari",
+                count: stats.inProgress,
+              },
+              {
+                key: "completed",
+                label: "Sudah Selesai",
+                count: stats.completed,
+              },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key as any)}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-semibold transition-all duration-300 text-xs sm:text-sm md:text-base ${
+                  activeTab === tab.key
+                    ? "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white shadow-lg hover:shadow-xl"
+                    : "bg-white/80 text-[#27548A] hover:bg-white hover:shadow-md border border-[#578FCA]/20"
+                }`}
+              >
+                <span className="whitespace-nowrap">{tab.label}</span>
+                <span
+                  className={`text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full font-bold ${
+                    activeTab === tab.key
+                      ? "bg-white/20 text-white"
+                      : "bg-[#578FCA]/10 text-[#27548A]"
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Mobile Category Dropdown */}
+          <div className="sm:hidden mb-4">
+            <div className="relative dropdown-container">
+              <button
+                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-white border border-[#578FCA]/20 text-[#27548A] rounded-2xl font-semibold"
+              >
+                <span className="text-sm">
+                  {selectedCategory === "all"
+                    ? "Semua Kategori"
+                    : selectedCategory}
+                </span>
+                <ChevronDown
+                  className={`w-5 h-5 transition-transform duration-300 ${
+                    showCategoryDropdown ? "rotate-180" : "rotate-0"
+                  }`}
+                />
+              </button>
+
+              {showCategoryDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-[#578FCA]/20 overflow-hidden z-10">
+                  {[
+                    "all",
+                    "Bayi & Balita",
+                    "Hamil & Menyusui",
+                    "Dewasa & Lansia",
+                    "Sekolah & Remaja",
+                  ].map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => {
+                        setSelectedCategory(category);
+                        setShowCategoryDropdown(false);
+                      }}
+                      className={`w-full px-4 py-3 text-left text-sm font-medium transition-colors ${
+                        selectedCategory === category
+                          ? "bg-[#578FCA]/10 text-[#27548A] border-l-4 border-[#578FCA]"
+                          : "text-[#27548A] hover:bg-[#578FCA]/5"
+                      }`}
+                    >
+                      {category === "all" ? "Semua Kategori" : category}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Desktop Category Filter */}
+          <div className="hidden sm:flex flex-wrap justify-center gap-2 sm:gap-3">
+            {[
+              "all",
+              "Bayi & Balita",
+              "Hamil & Menyusui",
+              "Dewasa & Lansia",
+              "Sekolah & Remaja",
+            ].map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap ${
+                  selectedCategory === category
+                    ? "bg-gradient-to-r from-[#27548A] to-[#578FCA] text-white shadow-lg"
+                    : "bg-[#578FCA]/10 text-[#27548A] hover:bg-[#578FCA]/20 border border-[#578FCA]/20"
+                }`}
+              >
+                {category === "all" ? "Semua Kategori" : category}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Modules Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {filteredModules.map((module) => (
+            <div
+              key={module.id}
+              className="group bg-white/95 backdrop-blur-sm rounded-3xl overflow-hidden shadow-xl border border-[#578FCA]/20 hover:shadow-2xl hover:scale-[1.02] transition-all duration-500"
+            >
+              {/* Thumbnail */}
+              <div className="relative h-48 md:h-52 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#578FCA] via-[#4A7BC8] to-[#27548A]"></div>
+                <div className="absolute inset-0 bg-black/10"></div>
+
+                {/* Status Badge */}
+                <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-xl">
+                  {getStatusIcon(module.status)}
+                  <span className="text-sm font-medium">
+                    {getStatusText(module.status)}
+                  </span>
+                </div>
+
+                {/* Difficulty Badge */}
+                <div
+                  className={`absolute top-4 right-4 px-3 py-1 rounded-lg text-xs font-semibold border ${getDifficultyColor(
+                    module.difficulty
+                  )}`}
+                >
+                  {module.difficulty}
+                </div>
+
+                {/* Progress Bar untuk in-progress */}
+                {module.status === "in-progress" && (
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <div className="bg-white/20 rounded-full h-2">
+                      <div
+                        className="bg-white rounded-full h-2 transition-all duration-500"
+                        style={{ width: `${module.progress}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-white text-xs mt-1">
+                      {module.progress}% selesai
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Content */}
+              <div className="p-6">
+                <div className="mb-3">
+                  <span className="text-xs font-semibold px-3 py-1 bg-[#578FCA]/15 text-[#27548A] rounded-full border border-[#578FCA]/20">
+                    {module.category}
+                  </span>
+                </div>
+
+                <h3 className="text-lg md:text-xl font-bold text-[#27548A] mb-3 group-hover:text-[#578FCA] transition-colors">
+                  {module.title}
+                </h3>
+
+                <p className="text-[#27548A]/70 text-sm md:text-base mb-4 leading-relaxed">
+                  {module.description}
+                </p>
+
+                {/* Module Stats */}
+                <div className="flex items-center justify-between mb-4 text-sm text-[#578FCA]">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      <span className="font-medium">{module.duration}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <BookOpen className="w-4 h-4" />
+                      <span className="font-medium">
+                        {module.lessons} pelajaran
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rating & Students */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm font-semibold text-[#27548A]">
+                        {module.rating}
+                      </span>
+                    </div>
+                    <span className="text-[#578FCA]/40">•</span>
+                    <div className="flex items-center gap-1">
+                      <Users className="w-4 h-4 text-[#578FCA]" />
+                      <span className="text-sm text-[#27548A] font-medium">
+                        {formatNumber(module.students)}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-xs text-[#578FCA] font-medium">
+                    {module.instructor}
+                  </span>
+                </div>
+
+                {/* Action Button */}
+                <button className="w-full bg-gradient-to-r from-[#578FCA] to-[#27548A] hover:from-[#27548A] hover:to-[#578FCA] text-white font-semibold py-4 px-6 rounded-2xl transition-all duration-300 group-hover:shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+                  {module.status === "completed" && (
+                    <>
+                      <Trophy className="w-5 h-5" />
+                      <span>Ulangi Modul</span>
+                    </>
+                  )}
+                  {module.status === "in-progress" && (
+                    <>
+                      <Play className="w-5 h-5" />
+                      <span>Lanjutkan Belajar</span>
+                    </>
+                  )}
+                  {module.status === "not-started" && (
+                    <>
+                      <ArrowRight className="w-5 h-5" />
+                      <span>Mulai Belajar</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {filteredModules.length === 0 && (
+          <div className="text-center py-16">
+            <div className="w-24 h-24 bg-gradient-to-r from-[#578FCA]/10 to-[#27548A]/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-[#578FCA]/20">
+              <BookOpen className="w-12 h-12 text-[#578FCA]" />
+            </div>
+            <h3 className="text-xl font-semibold text-[#27548A] mb-2">
+              Tidak ada modul ditemukan
+            </h3>
+            <p className="text-[#578FCA]/70">
+              Coba ubah filter atau kata kunci pencarian Anda
+            </p>
+          </div>
+        )}
+      </main>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNavbar activeMenu="modul" />
+    </div>
+  );
+}

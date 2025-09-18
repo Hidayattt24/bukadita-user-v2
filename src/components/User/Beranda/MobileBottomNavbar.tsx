@@ -40,10 +40,23 @@ const navItems: NavItem[] = [
 
 export default function MobileBottomNavbar({
   className,
-  activeMenu = "beranda",
+  activeMenu,
 }: MobileBottomNavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
+
+  // Auto-detect active menu from pathname if not provided
+  const getActiveMenu = () => {
+    if (activeMenu) return activeMenu;
+
+    if (pathname.includes("/user/beranda")) return "beranda";
+    if (pathname.includes("/user/modul")) return "modul";
+    if (pathname.includes("/user/pengaturan")) return "pengaturan";
+
+    return "beranda"; // default
+  };
+
+  const currentActiveMenu = getActiveMenu();
 
   const handleNavClick = (path: string) => {
     router.push(path);
@@ -65,7 +78,7 @@ export default function MobileBottomNavbar({
       >
         <div className="flex items-center justify-between px-6 py-3">
           {navItems.map((item) => {
-            const isActive = activeMenu === item.id;
+            const isActive = currentActiveMenu === item.id;
 
             return (
               <button
