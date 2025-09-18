@@ -201,3 +201,114 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #578fca 0%, #27548a 100%);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #27548a 0%, #578fca 100%);
+}
+
+::-webkit-scrollbar-corner {
+  background: #f1f5f9;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #578fca #f1f5f9;
+}
+
+/* Custom Animations */
+@keyframes slideInFromTop {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideInFromTop {
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+/* Dropdown animations */
+@keyframes dropdownFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-dropdownFadeIn {
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+/* Height expansion animation */
+@keyframes expandHeight {
+  0% {
+    max-height: 0;
+    opacity: 0;
+  }
+  100% {
+    max-height: 400px;
+    opacity: 1;
+  }
+}
+
+.animate-expandHeight {
+  animation: expandHeight 0.3s ease-out;
+}
+
+/* Collapse animation */
+@keyframes collapseHeight {
+  0% {
+    max-height: 400px;
+    opacity: 1;
+  }
+  100% {
+    max-height: 0;
+    opacity: 0;
+  }
+}
+
+.animate-collapseHeight {
+  animation: collapseHeight 0.3s ease-in;
+}
+
+/* Ripple effect for buttons */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: ripple 0.6s linear;
+}
