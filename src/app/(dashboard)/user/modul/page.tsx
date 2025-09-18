@@ -20,27 +20,12 @@ import {
   X,
 } from "lucide-react";
 import { UserNavbar, MobileBottomNavbar } from "@/components/User/Beranda";
-
-interface ModulData {
-  id: number;
-  title: string;
-  description: string;
-  duration: string;
-  lessons: number;
-  difficulty: "Pemula" | "Menengah" | "Lanjutan";
-  category:
-    | "Bayi & Balita"
-    | "Hamil & Menyusui"
-    | "Dewasa & Lansia"
-    | "Sekolah & Remaja";
-  status: "not-started" | "in-progress" | "completed";
-  progress: number;
-  rating: number;
-  students: number;
-  thumbnail: string;
-  instructor: string;
-  estimatedCompletion: string;
-}
+import {
+  modulPosyanduData,
+  getModulStatsByCategory,
+  getCategories,
+  type ModulData,
+} from "@/data/modulData";
 
 export default function ModulPage() {
   const [activeTab, setActiveTab] = useState<
@@ -48,8 +33,9 @@ export default function ModulPage() {
   >("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [showMobileDropdown, setShowMobileDropdown] = useState(false);
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<
+    "none" | "status" | "category"
+  >("none");
 
   // Format number consistently for SSR/Client
   const formatNumber = (num: number): string => {
@@ -67,8 +53,7 @@ export default function ModulPage() {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       if (!target.closest(".dropdown-container")) {
-        setShowMobileDropdown(false);
-        setShowCategoryDropdown(false);
+        setActiveDropdown("none");
       }
     };
 
@@ -78,111 +63,8 @@ export default function ModulPage() {
     };
   }, []);
 
-  // Sample data untuk modul pembelajaran
-  const modules: ModulData[] = [
-    {
-      id: 1,
-      title: "Nutrisi Dasar untuk Bayi 0-6 Bulan",
-      description:
-        "Pelajari pentingnya ASI eksklusif dan nutrisi yang tepat untuk pertumbuhan optimal bayi.",
-      duration: "2 jam 30 menit",
-      lessons: 8,
-      difficulty: "Pemula",
-      category: "Bayi & Balita",
-      status: "completed",
-      progress: 100,
-      rating: 4.8,
-      students: 1250,
-      thumbnail: "/dummy/dummy-fotoprofil.png",
-      instructor: "Dr. Sarah Indira",
-      estimatedCompletion: "3 hari",
-    },
-    {
-      id: 2,
-      title: "Stimulasi Motorik Halus Balita",
-      description:
-        "Teknik-teknik sederhana untuk mengembangkan kemampuan motorik halus pada balita 1-3 tahun.",
-      duration: "3 jam 15 menit",
-      lessons: 12,
-      difficulty: "Menengah",
-      category: "Bayi & Balita",
-      status: "in-progress",
-      progress: 65,
-      rating: 4.9,
-      students: 890,
-      thumbnail: "/dummy/dummy-fotoprofil.png",
-      instructor: "Ns. Maya Putri",
-      estimatedCompletion: "5 hari",
-    },
-    {
-      id: 3,
-      title: "Persiapan Persalinan yang Aman",
-      description:
-        "Panduan lengkap persiapan fisik dan mental menjelang persalinan untuk ibu hamil.",
-      duration: "4 jam 20 menit",
-      lessons: 15,
-      difficulty: "Menengah",
-      category: "Hamil & Menyusui",
-      status: "not-started",
-      progress: 0,
-      rating: 4.7,
-      students: 2100,
-      thumbnail: "/dummy/dummy-fotoprofil.png",
-      instructor: "Dr. Budi Santoso",
-      estimatedCompletion: "7 hari",
-    },
-    {
-      id: 4,
-      title: "Manajemen Diabetes untuk Lansia",
-      description:
-        "Strategi mengelola diabetes mellitus pada lansia dengan pendekatan holistik.",
-      duration: "3 jam 45 menit",
-      lessons: 10,
-      difficulty: "Lanjutan",
-      category: "Dewasa & Lansia",
-      status: "not-started",
-      progress: 0,
-      rating: 4.6,
-      students: 750,
-      thumbnail: "/dummy/dummy-fotoprofil.png",
-      instructor: "Dr. Andi Wijaya",
-      estimatedCompletion: "6 hari",
-    },
-    {
-      id: 5,
-      title: "Kesehatan Reproduksi Remaja",
-      description:
-        "Edukasi komprehensif tentang kesehatan reproduksi untuk remaja usia 13-18 tahun.",
-      duration: "2 jam 50 menit",
-      lessons: 9,
-      difficulty: "Pemula",
-      category: "Sekolah & Remaja",
-      status: "in-progress",
-      progress: 30,
-      rating: 4.8,
-      students: 1560,
-      thumbnail: "/dummy/dummy-fotoprofil.png",
-      instructor: "Dr. Lisa Kartika",
-      estimatedCompletion: "4 hari",
-    },
-    {
-      id: 6,
-      title: "Gizi Seimbang untuk Ibu Menyusui",
-      description:
-        "Panduan nutrisi optimal untuk mendukung produksi ASI berkualitas.",
-      duration: "3 jam 10 menit",
-      lessons: 11,
-      difficulty: "Menengah",
-      category: "Hamil & Menyusui",
-      status: "completed",
-      progress: 100,
-      rating: 4.9,
-      students: 1890,
-      thumbnail: "/dummy/dummy-fotoprofil.png",
-      instructor: "Ns. Rina Sari",
-      estimatedCompletion: "5 hari",
-    },
-  ];
+  // Sample data untuk modul pembelajaran - menggunakan data dari file terpisah
+  const modules: ModulData[] = modulPosyanduData;
 
   // Filter modules berdasarkan tab, search, dan category
   const filteredModules = modules.filter((module) => {
@@ -250,19 +132,44 @@ export default function ModulPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 lg:py-12 pb-28 md:pb-8">
-        {/* Header Section */}
-        <div className="mb-8 md:mb-12">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-[#27548A] to-[#578FCA] bg-clip-text text-transparent mb-4">
-              Modul Pembelajaran
-            </h1>
-            <p className="text-base md:text-lg text-[#27548A]/80 max-w-3xl mx-auto leading-relaxed font-medium">
-              Jelajahi berbagai modul pembelajaran kesehatan yang dirancang
-              khusus untuk meningkatkan pengetahuan Anda
-            </p>
-          </div>
+        {/* Welcome Card - Module Learning */}
+        <div
+          className="relative overflow-hidden mb-6 sm:mb-8 mx-auto shadow-2xl hover:shadow-3xl transition-all duration-500 group"
+          style={{
+            width: "min(1200px, 100%)",
+            height: "auto",
+            minHeight: "220px",
+            borderRadius: "20px",
+            background:
+              "linear-gradient(95deg, #27548A -17.04%, #578FCA 147.01%)",
+          }}
+        >
+          {/* Background Pattern */}
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIgZmlsbD0id2hpdGUiIGZpbGwtb3BhY2l0eT0iMC4xIi8+Cjwvc3ZnPgo=')] opacity-30 group-hover:opacity-40 transition-opacity duration-500"></div>
 
-          {/* Statistics Cards */}
+          {/* Hover Shimmer Effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+          <div className="absolute inset-0 p-6 sm:p-8 md:p-10 lg:p-12 flex flex-col justify-center items-center text-center min-h-[220px] sm:min-h-[240px] md:min-h-[260px]">
+            {/* Content - Centered */}
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8">
+              <h1 className="text-white text-lg sm:text-xl md:text-2xl font-medium mb-3 sm:mb-4">
+                Modul Pembelajaran Kesehatan
+              </h1>
+              <h2 className="text-white text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-4 sm:mb-5 leading-tight">
+                Tingkatkan Pengetahuanmu, Hidayat!
+              </h2>
+              <p className="text-white/90 text-sm sm:text-base md:text-lg opacity-90 leading-relaxed max-w-3xl mx-auto px-2 sm:px-4">
+                Temukan berbagai modul pembelajaran kesehatan yang telah
+                dirancang khusus untuk berbagai kelompok usia. Mulai dari bayi,
+                balita, hingga lansia.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="mb-8 md:mb-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
             <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-4 md:p-6 shadow-xl border border-[#578FCA]/20 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 group">
               <div className="flex items-center space-x-3">
@@ -346,10 +253,18 @@ export default function ModulPage() {
 
           {/* Mobile Filter Dropdown */}
           <div className="sm:hidden mb-6">
-            <div className="relative dropdown-container">
+            <div className="dropdown-container">
               <button
-                onClick={() => setShowMobileDropdown(!showMobileDropdown)}
-                className="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white rounded-2xl font-semibold shadow-lg"
+                onClick={() =>
+                  setActiveDropdown(
+                    activeDropdown === "status" ? "none" : "status"
+                  )
+                }
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl font-semibold shadow-lg transition-all duration-300 ${
+                  activeDropdown === "status"
+                    ? "bg-gradient-to-r from-[#27548A] to-[#578FCA] text-white shadow-xl"
+                    : "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white hover:shadow-xl"
+                }`}
               >
                 <span className="text-sm">
                   {activeTab === "all" && "Semua Modul"}
@@ -359,13 +274,20 @@ export default function ModulPage() {
                 </span>
                 <ChevronDown
                   className={`w-5 h-5 transition-transform duration-300 ${
-                    showMobileDropdown ? "rotate-180" : "rotate-0"
+                    activeDropdown === "status" ? "rotate-180" : "rotate-0"
                   }`}
                 />
               </button>
 
-              {showMobileDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-[#578FCA]/20 overflow-hidden z-10">
+              {/* Dropdown content - pushes content down */}
+              <div
+                className={`overflow-hidden transition-all duration-500 ease-out ${
+                  activeDropdown === "status"
+                    ? "max-h-96 opacity-100 mt-3"
+                    : "max-h-0 opacity-0 mt-0"
+                }`}
+              >
+                <div className="bg-white rounded-2xl shadow-xl border border-[#578FCA]/20 overflow-hidden backdrop-blur-sm transform transition-transform duration-300">
                   {[
                     { key: "all", label: "Semua Modul", count: stats.total },
                     {
@@ -383,27 +305,43 @@ export default function ModulPage() {
                       label: "Sudah Selesai",
                       count: stats.completed,
                     },
-                  ].map((tab) => (
+                  ].map((tab, index) => (
                     <button
                       key={tab.key}
                       onClick={() => {
                         setActiveTab(tab.key as any);
-                        setShowMobileDropdown(false);
+                        setActiveDropdown("none");
                       }}
-                      className={`w-full flex items-center justify-between px-4 py-3 text-left transition-colors ${
+                      style={{
+                        animationDelay:
+                          activeDropdown === "status"
+                            ? `${index * 50}ms`
+                            : "0ms",
+                      }}
+                      className={`w-full flex items-center justify-between px-4 py-3 text-left transition-all duration-200 ${
+                        activeDropdown === "status"
+                          ? "animate-slideInFromTop"
+                          : ""
+                      } ${
                         activeTab === tab.key
                           ? "bg-[#578FCA]/10 text-[#27548A] border-l-4 border-[#578FCA]"
-                          : "text-[#27548A] hover:bg-[#578FCA]/5"
+                          : "text-[#27548A] hover:bg-[#578FCA]/5 active:bg-[#578FCA]/10"
                       }`}
                     >
                       <span className="text-sm font-medium">{tab.label}</span>
-                      <span className="text-xs px-2 py-1 rounded-full bg-[#578FCA]/10 text-[#27548A] font-bold">
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full font-bold transition-colors ${
+                          activeTab === tab.key
+                            ? "bg-[#578FCA]/20 text-[#27548A]"
+                            : "bg-[#578FCA]/10 text-[#27548A]"
+                        }`}
+                      >
                         {tab.count}
                       </span>
                     </button>
                   ))}
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
@@ -452,10 +390,18 @@ export default function ModulPage() {
 
           {/* Mobile Category Dropdown */}
           <div className="sm:hidden mb-4">
-            <div className="relative dropdown-container">
+            <div className="dropdown-container">
               <button
-                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                className="w-full flex items-center justify-between px-4 py-3 bg-white border border-[#578FCA]/20 text-[#27548A] rounded-2xl font-semibold"
+                onClick={() =>
+                  setActiveDropdown(
+                    activeDropdown === "category" ? "none" : "category"
+                  )
+                }
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl font-semibold transition-all duration-300 ${
+                  activeDropdown === "category"
+                    ? "bg-white border-2 border-[#578FCA] text-[#27548A] shadow-xl"
+                    : "bg-white border border-[#578FCA]/20 text-[#27548A] shadow-md hover:shadow-lg hover:border-[#578FCA]/40"
+                }`}
               >
                 <span className="text-sm">
                   {selectedCategory === "all"
@@ -464,49 +410,54 @@ export default function ModulPage() {
                 </span>
                 <ChevronDown
                   className={`w-5 h-5 transition-transform duration-300 ${
-                    showCategoryDropdown ? "rotate-180" : "rotate-0"
+                    activeDropdown === "category" ? "rotate-180" : "rotate-0"
                   }`}
                 />
               </button>
 
-              {showCategoryDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-[#578FCA]/20 overflow-hidden z-10">
-                  {[
-                    "all",
-                    "Bayi & Balita",
-                    "Hamil & Menyusui",
-                    "Dewasa & Lansia",
-                    "Sekolah & Remaja",
-                  ].map((category) => (
+              {/* Dropdown content - pushes content down */}
+              <div
+                className={`overflow-hidden transition-all duration-500 ease-out ${
+                  activeDropdown === "category"
+                    ? "max-h-80 opacity-100 mt-3"
+                    : "max-h-0 opacity-0 mt-0"
+                }`}
+              >
+                <div className="bg-white rounded-2xl shadow-xl border border-[#578FCA]/20 overflow-hidden backdrop-blur-sm transform transition-transform duration-300">
+                  {getCategories().map((category, index) => (
                     <button
                       key={category}
                       onClick={() => {
                         setSelectedCategory(category);
-                        setShowCategoryDropdown(false);
+                        setActiveDropdown("none");
                       }}
-                      className={`w-full px-4 py-3 text-left text-sm font-medium transition-colors ${
+                      style={{
+                        animationDelay:
+                          activeDropdown === "category"
+                            ? `${index * 50}ms`
+                            : "0ms",
+                      }}
+                      className={`w-full px-4 py-3 text-left text-sm font-medium transition-all duration-200 ${
+                        activeDropdown === "category"
+                          ? "animate-slideInFromTop"
+                          : ""
+                      } ${
                         selectedCategory === category
                           ? "bg-[#578FCA]/10 text-[#27548A] border-l-4 border-[#578FCA]"
-                          : "text-[#27548A] hover:bg-[#578FCA]/5"
+                          : "text-[#27548A] hover:bg-[#578FCA]/5 active:bg-[#578FCA]/10"
                       }`}
                     >
                       {category === "all" ? "Semua Kategori" : category}
                     </button>
                   ))}
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
           {/* Desktop Category Filter */}
           <div className="hidden sm:flex flex-wrap justify-center gap-2 sm:gap-3">
-            {[
-              "all",
-              "Bayi & Balita",
-              "Hamil & Menyusui",
-              "Dewasa & Lansia",
-              "Sekolah & Remaja",
-            ].map((category) => (
+            {getCategories().map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}

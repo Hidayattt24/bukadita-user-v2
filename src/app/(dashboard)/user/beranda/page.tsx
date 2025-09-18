@@ -84,7 +84,7 @@ export default function BerandaUser() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-2xl sm:text-2xl md:text-3xl font-bold text-[#27548A] mb-0.5 sm:mb-1">
-                    12
+                    1
                   </div>
                   <div className="text-xs sm:text-sm text-slate-600 font-medium leading-tight">
                     Modul Selesai
@@ -157,10 +157,10 @@ export default function BerandaUser() {
                   </span>
                 </div>
                 <h4 className="text-white font-bold text-lg sm:text-xl mb-2">
-                  Nutrisi dan Tumbuh Kembang Bayi
+                  Modul Bayi & Balita
                 </h4>
                 <p className="text-white/80 text-sm mb-4">
-                  Modul 3: Makanan Pendamping ASI (MPASI)
+                  Tumbuh kembang, ASI eksklusif, dan MPASI
                 </p>
 
                 {/* Progress */}
@@ -233,7 +233,7 @@ export default function BerandaUser() {
                   ></div>
                 </div>
                 <p className="text-xs text-slate-500 mt-2">
-                  Modul 2 dari 6 selesai
+                  Modul 2 dari 5 selesai
                 </p>
               </div>
             </div>
