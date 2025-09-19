@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 interface UserNavbarProps {
   activeMenu?: string;
@@ -10,6 +11,71 @@ interface UserNavbarProps {
 export default function UserNavbar({
   activeMenu = "beranda",
 }: UserNavbarProps) {
+  const [currentTime, setCurrentTime] = useState<{
+    greeting: string;
+    date: string;
+  }>({ greeting: "", date: "" });
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const hour = now.getHours();
+
+      // Determine greeting based on hour
+      let greeting = "";
+      if (hour >= 5 && hour < 12) {
+        greeting = "Selamat pagi";
+      } else if (hour >= 12 && hour < 15) {
+        greeting = "Selamat siang";
+      } else if (hour >= 15 && hour < 18) {
+        greeting = "Selamat sore";
+      } else {
+        greeting = "Selamat malam";
+      }
+
+      // Format date in Indonesian
+      const days = [
+        "Minggu",
+        "Senin",
+        "Selasa",
+        "Rabu",
+        "Kamis",
+        "Jumat",
+        "Sabtu",
+      ];
+      const months = [
+        "Januari",
+        "Februari",
+        "Maret",
+        "April",
+        "Mei",
+        "Juni",
+        "Juli",
+        "Agustus",
+        "September",
+        "Oktober",
+        "November",
+        "Desember",
+      ];
+
+      const dayName = days[now.getDay()];
+      const date = now.getDate();
+      const month = months[now.getMonth()];
+      const year = now.getFullYear();
+
+      const formattedDate = `${dayName}, ${date} ${month} ${year}`;
+
+      setCurrentTime({ greeting, date: formattedDate });
+    };
+
+    // Update immediately
+    updateTime();
+
+    // Update every minute
+    const interval = setInterval(updateTime, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
   return (
     <nav className="bg-gradient-to-r from-[#578FCA] to-[#27548A] shadow-xl px-4 md:px-6 py-4 md:py-5 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -62,12 +128,20 @@ export default function UserNavbar({
 
         {/* Profile Section - Mobile Optimized */}
         <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
-          {/* Time display - Hidden on mobile */}
-          <div className="hidden lg:flex flex-col items-end">
-            <span className="text-white text-sm font-medium">Selamat pagi</span>
-            <span className="text-white/80 text-xs">
-              Selasa, 17 September 2025
+          {/* Mobile Time display - Show on mobile, hide on desktop */}
+          <div className="md:hidden lg:hidden flex flex-col items-end mr-2">
+            <span className="text-white text-xs font-medium">
+              {currentTime.greeting}
             </span>
+            <span className="text-white/80 text-xs">{currentTime.date}</span>
+          </div>
+
+          {/* Desktop Time display - Hidden on mobile */}
+          <div className="hidden lg:flex flex-col items-end">
+            <span className="text-white text-sm font-medium">
+              {currentTime.greeting}
+            </span>
+            <span className="text-white/80 text-xs">{currentTime.date}</span>
           </div>
 
           {/* Profile Card - Mobile First Design */}
