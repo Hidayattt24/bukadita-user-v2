@@ -32,7 +32,8 @@ const navItems: NavItem[] = [
   },
   {
     id: "pengaturan",
-    label: "Pengaturan",
+    //Di singkat menjadi setelan karena di mobile space nya terbatas
+    label: "Setelan",
     path: "/user/pengaturan",
     icon: <Settings className="w-[20px] h-[20px]" />,
   },
