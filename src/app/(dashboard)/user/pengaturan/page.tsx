@@ -178,7 +178,7 @@ export default function PengaturanPage() {
 
           {/* Dropdown Navigation */}
           {/* Mobile Dropdown */}
-          <div className="sm:hidden mb-8">
+          <div className="sm:hidden mb-8 mt-4 px-2">
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-[#578FCA]/20">
               {/* Dropdown Button */}
               <button
@@ -245,7 +245,7 @@ export default function PengaturanPage() {
           </div>
 
           {/* Desktop Navigation - Original Grid */}
-          <div className="hidden sm:block bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-2 shadow-xl border border-[#578FCA]/20 max-w-4xl mx-auto mb-8">
+          <div className="hidden sm:block bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-2 shadow-xl border border-[#578FCA]/20 max-w-4xl mx-auto mb-8  mt-4 px-2">
             <div className="grid grid-cols-4 gap-2">
               {tabs.map((tab) => {
                 const IconComponent = tab.icon;

@@ -134,11 +134,10 @@ export default function ModulPage() {
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 lg:py-12 pb-28 md:pb-8">
         {/* Welcome Card - Module Learning */}
         <div
-          className="relative overflow-hidden mb-8 sm:mb-12 mx-auto shadow-2xl hover:shadow-3xl transition-all duration-500 group"
+          className="relative overflow-hidden mb-8 sm:mb-12 mx-auto shadow-2xl hover:shadow-3xl transition-all duration-500 group min-h-[420px] sm:min-h-[440px] md:min-h-[460px] lg:min-h-[500px] xl:min-h-[520px]"
           style={{
             width: "min(1200px, 100%)",
             height: "auto",
-            minHeight: "380px",
             borderRadius: "32px",
             background:
               "linear-gradient(135deg, #27548A -10%, #4A7BC8 30%, #578FCA 70%, #6B9BD6 110%)",
@@ -154,17 +153,17 @@ export default function ModulPage() {
           {/* Hover Shimmer Effect */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 transform -skew-x-12"></div>
 
-          <div className="absolute inset-0 p-6 sm:p-12 md:p-16 lg:p-20 flex flex-col justify-center items-center text-center min-h-[380px] sm:min-h-[380px] md:min-h-[420px]">
+          <div className="absolute inset-0 p-6 sm:p-12 md:p-16 lg:p-20 xl:p-24 flex flex-col justify-center items-center text-center min-h-[420px] sm:min-h-[440px] md:min-h-[460px] lg:min-h-[500px] xl:min-h-[520px]">
             {/* Content - Centered with better spacing */}
-            <div className="max-w-5xl mx-auto space-y-5 sm:space-y-6 md:space-y-8 px-2 sm:px-4">
+            <div className="max-w-5xl mx-auto space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-7 px-2 sm:px-4">
               {/* Badge */}
-              <div className="mt-8 inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
+              <div className="mt-6 sm:mt-8 inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
                 <span className="text-white/90 text-xs sm:text-sm md:text-base font-medium">
                   ✨ Platform Pembelajaran Terpercaya
                 </span>
               </div>
 
-              <div className="space-y-3 sm:space-y-4 md:space-y-6">
+              <div className="space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-5">
                 <h1 className="text-white text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold leading-relaxed">
                   Modul Pembelajaran Kesehatan
                 </h1>
@@ -172,7 +171,7 @@ export default function ModulPage() {
                   Tingkatkan Pengetahuanmu,{" "}
                   <span className="text-white font-bold">Hidayat!</span>
                 </h2>
-                <div className="pb-1 sm:pb-2 md:pb-4">
+                <div className="pb-1 sm:pb-2 md:pb-3 lg:pb-4">
                   <p className="text-white/95 text-sm sm:text-base md:text-lg lg:text-xl leading-relaxed max-w-4xl mx-auto font-light px-2 sm:px-0">
                     Temukan berbagai modul pembelajaran kesehatan yang telah
                     dirancang khusus untuk berbagai kelompok usia. Mulai dari
@@ -183,7 +182,7 @@ export default function ModulPage() {
               </div>
 
               {/* CTA Button */}
-              <div className="pt-3 sm:pt-4 md:pt-6 pb-6 sm:pb-4 md:pb-0">
+              <div className="pt-2 sm:pt-3 md:pt-4 lg:pt-5 pb-4 sm:pb-6 md:pb-8 lg:pb-6">
                 <button className="inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 rounded-xl sm:rounded-2xl text-white font-semibold text-sm sm:text-base md:text-lg transition-all duration-300 hover:scale-105 hover:shadow-xl group">
                   <span>Mulai Eksplorasi</span>
                   <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300" />
