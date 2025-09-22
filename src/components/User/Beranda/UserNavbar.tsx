@@ -2,7 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { LogOut } from "lucide-react";
 
 interface UserNavbarProps {
   activeMenu?: string;
@@ -11,10 +14,38 @@ interface UserNavbarProps {
 export default function UserNavbar({
   activeMenu = "beranda",
 }: UserNavbarProps) {
+  const router = useRouter();
+  const { user, logout } = useAuth();
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const [currentTime, setCurrentTime] = useState<{
     greeting: string;
     date: string;
   }>({ greeting: "", date: "" });
+
+  const [showLogoutMenu, setShowLogoutMenu] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowLogoutMenu(false);
+      }
+    };
+
+    if (showLogoutMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showLogoutMenu]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -95,31 +126,28 @@ export default function UserNavbar({
           <div className="hidden md:flex items-center space-x-3">
             <Link
               href="/user/beranda"
-              className={`px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${
-                activeMenu === "beranda"
+              className={`px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${activeMenu === "beranda"
                   ? "text-[#27548A] bg-white/95 shadow-lg"
                   : "text-white/90 hover:text-white hover:bg-white/20"
-              }`}
+                }`}
             >
               Beranda
             </Link>
             <Link
               href="/user/modul"
-              className={`px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${
-                activeMenu === "modul"
+              className={`px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${activeMenu === "modul"
                   ? "text-[#27548A] bg-white/95 shadow-lg"
                   : "text-white/90 hover:text-white hover:bg-white/20"
-              }`}
+                }`}
             >
               Modul
             </Link>
             <Link
               href="/user/pengaturan"
-              className={`px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${
-                activeMenu === "pengaturan"
+              className={`px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${activeMenu === "pengaturan"
                   ? "text-[#27548A] bg-white/95 shadow-lg"
                   : "text-white/90 hover:text-white hover:bg-white/20"
-              }`}
+                }`}
             >
               Pengaturan
             </Link>
@@ -145,10 +173,13 @@ export default function UserNavbar({
           </div>
 
           {/* Profile Card - Mobile First Design */}
-          <div className="flex items-center">
+          <div ref={menuRef} className="flex items-center relative">
             {/* Mobile: Just profile image, larger size, cleaner look */}
             <div className="md:hidden">
-              <div className="w-11 h-11 rounded-full overflow-hidden shadow-lg border-2 border-white/50 hover:border-white/70 transition-all duration-300 hover:scale-105">
+              <button
+                onClick={() => setShowLogoutMenu(!showLogoutMenu)}
+                className="w-11 h-11 rounded-full overflow-hidden shadow-lg border-2 border-white/50 hover:border-white/70 transition-all duration-300 hover:scale-105"
+              >
                 <Image
                   src="/dummy/dummy-fotoprofil.png"
                   alt="Foto Profil"
@@ -157,28 +188,50 @@ export default function UserNavbar({
                   className="w-full h-full object-cover"
                   priority
                 />
-              </div>
+              </button>
             </div>
 
             {/* Desktop: Full profile card */}
             <div className="hidden md:flex items-center space-x-3 bg-white/15 backdrop-blur-sm rounded-2xl px-5 py-3 shadow-lg border border-white/30 hover:bg-white/20 transition-all duration-300">
-              <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-white/40 shadow-lg flex-shrink-0 hover:ring-white/60 transition-all duration-300">
+              <button
+                onClick={() => setShowLogoutMenu(!showLogoutMenu)}
+                className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-white/40 shadow-lg flex-shrink-0 hover:ring-white/60 transition-all duration-300"
+              >
                 <Image
                   src="/dummy/dummy-fotoprofil.png"
-                  alt="Foto Profil Hidayat"
+                  alt={`Foto Profil ${user?.profile?.full_name || 'User'}`}
                   width={56}
                   height={56}
                   className="w-full h-full object-cover"
                   priority
                 />
-              </div>
+              </button>
               <div className="flex flex-col">
                 <span className="text-white font-bold text-base truncate max-w-[120px] lg:max-w-none">
-                  Hidayat Nur Hakim
+                  {user?.profile?.full_name || user?.email || 'User'}
                 </span>
                 <span className="text-white/80 text-sm">Peserta Aktif</span>
               </div>
             </div>
+
+            {/* Logout Dropdown Menu */}
+            {showLogoutMenu && (
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-200 py-2 z-50">
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <p className="text-sm font-semibold text-gray-800">
+                    {user?.profile?.full_name || user?.email || 'User'}
+                  </p>
+                  <p className="text-xs text-gray-500">{user?.email}</p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="text-sm font-medium">Keluar</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

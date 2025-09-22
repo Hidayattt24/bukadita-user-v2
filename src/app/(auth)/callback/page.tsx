@@ -1,84 +1,93 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
+import { googleAuthService } from "@/lib/supabase";
 
 export default function CallbackPage() {
   const router = useRouter();
+  const { setUser } = useAuth();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const processedRef = useRef(false);
 
   useEffect(() => {
-    // Simulasi proses login/callback
+    // Prevent double processing
+    if (processedRef.current) return;
+    processedRef.current = true;
+
     const processCallback = async () => {
       try {
-        // Simulasi delay untuk proses authentication
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+        // Get session immediately
+        const { session, error } = await googleAuthService.getSession();
 
-        // Redirect ke dashboard atau home setelah berhasil
-        router.push("/");
+        if (error || !session?.user) {
+          console.error("Session error:", error);
+          setIsRedirecting(true);
+          router.replace("/login?error=session_failed");
+          return;
+        }
+
+        // Extract user data from session
+        const userData = {
+          id: session.user.id,
+          email: session.user.email || "",
+          profile: {
+            full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "",
+            phone: session.user.user_metadata?.phone || ""
+          }
+        };
+
+        // Update AuthContext
+        setUser(userData, session.access_token || "google_oauth_token");
+
+        // Set redirecting state and navigate
+        setIsRedirecting(true);
+        router.replace("/user/beranda");
+
       } catch (error) {
-        console.error("Callback error:", error);
-        // Redirect ke login jika gagal
-        router.push("/login");
+        console.error("Callback processing error:", error);
+        setIsRedirecting(true);
+        router.replace("/login?error=callback_failed");
       }
     };
 
+    // Process callback immediately
     processCallback();
-  }, [router]);
+  }, [router, setUser]);
+
+  if (isRedirecting) {
+    return null; // Don't show anything during redirect
+  }
 
   return (
-    <div className="w-full text-center">
-      {/* Logo */}
-      <div className="flex justify-center mb-6 sm:mb-8">
-        <Image
-          src="/images/logo-default.svg"
-          alt="BukaDita Logo"
-          width={80}
-          height={80}
-          className="w-16 h-16 sm:w-20 sm:h-20"
-        />
-      </div>
-
-      {/* Loading Content */}
-      <div className="space-y-4 sm:space-y-6">
-        {/* Loading Spinner */}
-        <div className="flex justify-center">
-          <div className="relative">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-[#578FCA]/20 border-t-[#27548A] rounded-full animate-spin"></div>
-            <div className="absolute inset-0 w-12 h-12 sm:w-16 sm:h-16 border-4 border-transparent border-r-[#578FCA] rounded-full animate-spin animation-delay-150"></div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+      <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
+        <div className="text-center">
+          {/* Logo */}
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/images/logo-default.svg"
+              alt="BukaDita Logo"
+              width={60}
+              height={60}
+              className="w-15 h-15"
+            />
           </div>
-        </div>
 
-        {/* Loading Text */}
-        <div className="space-y-2">
-          <h1 className="text-xl sm:text-2xl font-bold text-[#27548A] font-poppins">
-            Sedang memproses login...
-          </h1>
-          <p className="text-sm sm:text-base text-[#578FCA] font-medium font-poppins px-4">
-            Mohon tunggu sebentar, kami sedang mengatur akun Anda
+          {/* Loading Spinner */}
+          <div className="flex justify-center mb-4">
+            <div className="w-8 h-8 border-3 border-[#578FCA]/20 border-t-[#27548A] rounded-full animate-spin"></div>
+          </div>
+
+          {/* Status Text */}
+          <h2 className="text-lg font-semibold text-[#27548A] mb-2 font-poppins">
+            Mengarahkan ke Dashboard...
+          </h2>
+          <p className="text-sm text-[#578FCA] font-poppins">
+            Sedang memproses login Anda
           </p>
-        </div>
-
-        {/* Progress Steps */}
-        <div className="space-y-2 sm:space-y-3 max-w-xs mx-auto">
-          <div className="flex items-center space-x-2 text-[#27548A]">
-            <div className="w-2 h-2 bg-[#27548A] rounded-full animate-pulse"></div>
-            <span className="text-xs sm:text-sm font-medium font-poppins">
-              Memverifikasi kredensial
-            </span>
-          </div>
-          <div className="flex items-center space-x-2 text-[#578FCA]">
-            <div className="w-2 h-2 bg-[#578FCA] rounded-full animate-pulse animation-delay-300"></div>
-            <span className="text-xs sm:text-sm font-medium font-poppins">
-              Menyiapkan dashboard
-            </span>
-          </div>
-          <div className="flex items-center space-x-2 text-gray-400">
-            <div className="w-2 h-2 bg-gray-300 rounded-full animate-pulse animation-delay-500"></div>
-            <span className="text-xs sm:text-sm font-medium font-poppins">
-              Hampir selesai
-            </span>
-          </div>
         </div>
       </div>
     </div>

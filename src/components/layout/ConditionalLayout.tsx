@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import ResizableNavbar from "../shared/resizable-navbar";
 
 export default function ConditionalLayout({
@@ -10,6 +11,7 @@ export default function ConditionalLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { isLoading } = useAuth();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -26,7 +28,7 @@ export default function ConditionalLayout({
     pathname?.includes("admin") || pathname?.includes("user");
 
   // Prevent hydration mismatch by rendering consistent content until client-side
-  if (!isClient) {
+  if (!isClient || isLoading) {
     return <>{children}</>;
   }
 
@@ -36,6 +38,7 @@ export default function ConditionalLayout({
   }
 
   // Jika bukan halaman auth/dashboard, return dengan navbar dan footer
+  // Navbar bisa menampilkan tombol login/logout berdasarkan status auth
   return (
     <>
       <ResizableNavbar />
