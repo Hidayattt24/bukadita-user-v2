@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   User,
   Lock,
@@ -12,7 +13,6 @@ import {
   EyeOff,
   Edit3,
   Check,
-  X,
   Upload,
   Shield,
   Mail,
@@ -27,15 +27,20 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { UserNavbar, MobileBottomNavbar } from "@/components/User/Beranda";
+import { useAuth } from "@/context/AuthContext";
 
 export default function PengaturanPage() {
-  // Profile state
+  const router = useRouter();
+  const { user, logout, isLoading } = useAuth();
+
+  // All hooks must be declared first before any conditional logic
+  // Profile state - Initialize with user data
   const [profileData, setProfileData] = useState({
-    name: "Hidayat Nur Hakim",
-    email: "hidayat.nurhakim@email.com",
-    phone: "+62 812 3456 7890",
-    birthDate: "1995-08-15",
-    joinDate: "2023-01-15",
+    name: "",
+    email: "",
+    phone: "",
+    birthDate: "",
+    joinDate: "",
   });
 
   // Password state
@@ -68,6 +73,43 @@ export default function PengaturanPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Initialize profile data when user data is available
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        name: user.profile?.full_name || user.email || "",
+        email: user.email || "",
+        phone: user.profile?.phone || "",
+        birthDate: "", // Add birthday to user profile if needed
+        joinDate: new Date().toISOString().split('T')[0], // Default to today, should come from API
+      });
+    }
+  }, [user]);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, isLoading, router]);
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#578FCA]/5 via-[#27548A]/5 to-slate-50/90 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#578FCA]/20 border-t-[#27548A] rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-[#27548A] font-semibold">Memuat data pengguna...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Return null if no user (will redirect)
+  if (!user) {
+    return null;
+  }
+
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -79,27 +121,66 @@ export default function PengaturanPage() {
     }
   };
 
-  const handleSaveProfile = () => {
-    // Save profile logic here
-    setEditMode({ ...editMode, profile: false });
-    // Show success toast
+  const handleSaveProfile = async () => {
+    try {
+      // TODO: Implement API call to update profile
+      console.log("Saving profile:", profileData);
+
+      // For now, just update local state
+      setEditMode({ ...editMode, profile: false });
+
+      // Show success message (you can add toast notification here)
+      alert("Profil berhasil disimpan!");
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      alert("Gagal menyimpan profil. Silakan coba lagi.");
+    }
   };
 
-  const handleChangePassword = () => {
-    // Change password logic here
-    setPasswordData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
-    setEditMode({ ...editMode, password: false });
-    // Show success toast
+  const handleChangePassword = async () => {
+    try {
+      // TODO: Implement API call to change password
+      console.log("Changing password");
+
+      // Validate passwords
+      if (passwordData.newPassword !== passwordData.confirmPassword) {
+        alert("Password baru dan konfirmasi password tidak cocok!");
+        return;
+      }
+
+      if (passwordData.newPassword.length < 6) {
+        alert("Password baru minimal 6 karakter!");
+        return;
+      }
+
+      // Reset form
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setEditMode({ ...editMode, password: false });
+
+      // Show success message
+      alert("Password berhasil diubah!");
+    } catch (error) {
+      console.error("Error changing password:", error);
+      alert("Gagal mengubah password. Silakan coba lagi.");
+    }
   };
 
-  const handleLogout = () => {
-    // Logout logic here
-    setShowLogoutModal(false);
-    // Redirect to login
+  const handleLogout = async () => {
+    try {
+      // Call logout from AuthContext
+      logout();
+      setShowLogoutModal(false);
+
+      // Redirect to login page
+      router.push("/login");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      alert("Gagal logout. Silakan coba lagi.");
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -227,11 +308,10 @@ export default function PengaturanPage() {
                           setActiveTab(tab.id);
                           setShowDropdown(false);
                         }}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-300 text-sm ${
-                          isActive
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-300 text-sm ${isActive
                             ? "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white shadow-lg"
                             : "text-[#27548A] hover:bg-[#578FCA]/10 bg-gray-50"
-                        }`}
+                          }`}
                       >
                         <IconComponent className="w-5 h-5" />
                         <span>{tab.label}</span>
@@ -253,11 +333,10 @@ export default function PengaturanPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center justify-center gap-2 px-4 py-4 rounded-2xl font-semibold transition-all duration-300 text-sm ${
-                      activeTab === tab.id
+                    className={`flex items-center justify-center gap-2 px-4 py-4 rounded-2xl font-semibold transition-all duration-300 text-sm ${activeTab === tab.id
                         ? "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white shadow-lg"
                         : "text-[#27548A] hover:bg-[#578FCA]/10"
-                    }`}
+                      }`}
                   >
                     <IconComponent className="w-5 h-5" />
                     <span>{tab.label}</span>
@@ -301,13 +380,11 @@ export default function PengaturanPage() {
 
                   <div className="flex-1 text-center sm:text-left">
                     <h3 className="text-lg sm:text-xl font-bold text-[#27548A] mb-2">
-                      {profileData.name}
+                      {user?.profile?.full_name || user?.email || "User"}
                     </h3>
                     <p className="text-[#578FCA]/70 mb-4">
                       Bergabung sejak{" "}
-                      {new Date(profileData.joinDate).toLocaleDateString(
-                        "id-ID"
-                      )}
+                      {profileData.joinDate ? new Date(profileData.joinDate).toLocaleDateString("id-ID") : "Baru saja"}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3">
                       <button
@@ -354,11 +431,10 @@ export default function PengaturanPage() {
                         setEditMode({ ...editMode, profile: true });
                       }
                     }}
-                    className={`flex items-center gap-2 px-4 sm:px-4 py-3 sm:py-2 rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base min-h-[44px] ${
-                      editMode.profile
+                    className={`flex items-center gap-2 px-4 sm:px-4 py-3 sm:py-2 rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base min-h-[44px] ${editMode.profile
                         ? "bg-green-500 text-white hover:bg-green-600"
                         : "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white hover:shadow-lg"
-                    }`}
+                      }`}
                   >
                     {editMode.profile ? (
                       <Save className="w-4 h-4 sm:w-4 sm:h-4" />
@@ -386,11 +462,10 @@ export default function PengaturanPage() {
                           })
                         }
                         disabled={!editMode.profile}
-                        className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${
-                          editMode.profile
+                        className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile
                             ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
                             : "border-gray-200 bg-gray-50"
-                        } focus:outline-none`}
+                          } focus:outline-none`}
                       />
                     </div>
                   </div>
@@ -411,11 +486,10 @@ export default function PengaturanPage() {
                           })
                         }
                         disabled={!editMode.profile}
-                        className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${
-                          editMode.profile
+                        className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile
                             ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
                             : "border-gray-200 bg-gray-50"
-                        } focus:outline-none`}
+                          } focus:outline-none`}
                       />
                     </div>
                   </div>
@@ -436,11 +510,10 @@ export default function PengaturanPage() {
                           })
                         }
                         disabled={!editMode.profile}
-                        className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${
-                          editMode.profile
+                        className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile
                             ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
                             : "border-gray-200 bg-gray-50"
-                        } focus:outline-none`}
+                          } focus:outline-none`}
                       />
                     </div>
                   </div>
@@ -461,11 +534,10 @@ export default function PengaturanPage() {
                           })
                         }
                         disabled={!editMode.profile}
-                        className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${
-                          editMode.profile
+                        className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile
                             ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
                             : "border-gray-200 bg-gray-50"
-                        } focus:outline-none`}
+                          } focus:outline-none`}
                       />
                     </div>
                   </div>
@@ -492,11 +564,10 @@ export default function PengaturanPage() {
                         setEditMode({ ...editMode, password: true });
                       }
                     }}
-                    className={`flex items-center gap-2 px-4 sm:px-4 py-3 sm:py-2 rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base min-h-[44px] ${
-                      editMode.password
+                    className={`flex items-center gap-2 px-4 sm:px-4 py-3 sm:py-2 rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base min-h-[44px] ${editMode.password
                         ? "bg-green-500 text-white hover:bg-green-600"
                         : "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white hover:shadow-lg"
-                    }`}
+                      }`}
                   >
                     {editMode.password ? (
                       <Save className="w-4 h-4 sm:w-4 sm:h-4" />
@@ -524,11 +595,10 @@ export default function PengaturanPage() {
                           })
                         }
                         disabled={!editMode.password}
-                        className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${
-                          editMode.password
+                        className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.password
                             ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
                             : "border-gray-200 bg-gray-50"
-                        } focus:outline-none`}
+                          } focus:outline-none`}
                         placeholder="Masukkan password saat ini"
                       />
                       <button
@@ -566,11 +636,10 @@ export default function PengaturanPage() {
                           })
                         }
                         disabled={!editMode.password}
-                        className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${
-                          editMode.password
+                        className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.password
                             ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
                             : "border-gray-200 bg-gray-50"
-                        } focus:outline-none`}
+                          } focus:outline-none`}
                         placeholder="Masukkan password baru"
                       />
                       <button
@@ -608,11 +677,10 @@ export default function PengaturanPage() {
                           })
                         }
                         disabled={!editMode.password}
-                        className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${
-                          editMode.password
+                        className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.password
                             ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
                             : "border-gray-200 bg-gray-50"
-                        } focus:outline-none`}
+                          } focus:outline-none`}
                         placeholder="Konfirmasi password baru"
                       />
                       <button
@@ -657,29 +725,27 @@ export default function PengaturanPage() {
                         {key === "email"
                           ? "Email"
                           : key === "push"
-                          ? "Push Notification"
-                          : "SMS"}
+                            ? "Push Notification"
+                            : "SMS"}
                       </h3>
                       <p className="text-sm text-[#578FCA]/70">
                         {key === "email"
                           ? "Terima notifikasi melalui email"
                           : key === "push"
-                          ? "Terima notifikasi push"
-                          : "Terima notifikasi SMS"}
+                            ? "Terima notifikasi push"
+                            : "Terima notifikasi SMS"}
                       </p>
                     </div>
                     <button
                       onClick={() =>
                         setNotifications({ ...notifications, [key]: !value })
                       }
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        value ? "bg-[#578FCA]" : "bg-gray-300"
-                      }`}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${value ? "bg-[#578FCA]" : "bg-gray-300"
+                        }`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          value ? "translate-x-6" : "translate-x-1"
-                        }`}
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${value ? "translate-x-6" : "translate-x-1"
+                          }`}
                       />
                     </button>
                   </div>

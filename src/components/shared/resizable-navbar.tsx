@@ -4,6 +4,72 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, useMotionValueEvent, useScroll } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
+
+// Auth Buttons Component
+function AuthButtons({ isMobile = false, isScrolled = false }: { isMobile?: boolean; isScrolled?: boolean }) {
+  const { isAuthenticated, logout } = useAuth();
+
+  if (isAuthenticated) {
+    return (
+      <>
+        <Link
+          href="/user/beranda"
+          className={`${isMobile
+              ? "w-full text-center px-4 py-3 rounded-md text-sm font-medium text-white border border-white/20 hover:bg-white/10 transition-all"
+              : `px-4 py-2 text-sm font-medium transition-colors ${isScrolled
+                ? "text-white/80 hover:text-white"
+                : "text-[#578FCA]/80 hover:text-[#578FCA]"
+              }`
+            }`}
+        >
+          Dashboard
+        </Link>
+        <button
+          onClick={logout}
+          className={`${isMobile
+              ? "w-full text-center px-4 py-3 rounded-md text-sm font-medium text-[#27548A] bg-white hover:bg-white/90 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
+              : `px-4 py-2 rounded-full text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${isScrolled
+                ? "text-[#27548A] bg-white hover:bg-white/90 focus:ring-white"
+                : "text-white bg-[#578FCA] hover:bg-[#578FCA]/90 focus:ring-[#578FCA]"
+              }`
+            }`}
+        >
+          Keluar
+        </button>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Link
+        href="/login"
+        className={`${isMobile
+            ? "w-full text-center px-4 py-3 rounded-md text-sm font-medium text-white border border-white/20 hover:bg-white/10 transition-all"
+            : `px-4 py-2 text-sm font-medium transition-colors ${isScrolled
+              ? "text-white/80 hover:text-white"
+              : "text-[#578FCA]/80 hover:text-[#578FCA]"
+            }`
+          }`}
+      >
+        Masuk
+      </Link>
+      <Link
+        href="/register"
+        className={`${isMobile
+            ? "w-full text-center px-4 py-3 rounded-md text-sm font-medium text-[#27548A] bg-white hover:bg-white/90 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
+            : `px-4 py-2 rounded-full text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${isScrolled
+              ? "text-[#27548A] bg-white hover:bg-white/90 focus:ring-white"
+              : "text-white bg-[#578FCA] hover:bg-[#578FCA]/90 focus:ring-[#578FCA]"
+            }`
+          }`}
+      >
+        Daftar
+      </Link>
+    </>
+  );
+}
 
 // Mobile Menu Component
 function MobileMenu({
@@ -132,11 +198,10 @@ function MobileMenu({
                       handleSmoothScroll(item.href);
                       onClose();
                     }}
-                    className={`block text-base font-medium py-3 px-4 rounded-md transition-all w-full text-left ${
-                      isActive
+                    className={`block text-base font-medium py-3 px-4 rounded-md transition-all w-full text-left ${isActive
                         ? "text-white bg-white/20 border-l-4 border-white"
                         : "text-white/80 hover:bg-white/10 hover:text-white"
-                    }`}
+                      }`}
                   >
                     {item.name}
                   </button>
@@ -147,19 +212,7 @@ function MobileMenu({
         </nav>
 
         <div className="mt-8 flex flex-col gap-3">
-          <Link
-            href="/login"
-            className="w-full text-center px-4 py-3 rounded-md text-sm font-medium text-white border border-white/20 hover:bg-white/10 transition-all"
-          >
-            Masuk
-          </Link>
-
-          <Link
-            href="/register"
-            className="w-full text-center px-4 py-3 rounded-md text-sm font-medium text-[#27548A] bg-white hover:bg-white/90 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
-          >
-            Daftar
-          </Link>
+          <AuthButtons isMobile={true} />
         </div>
       </motion.div>
     </div>
@@ -288,11 +341,10 @@ export default function ResizableNavbar() {
           duration: 0.3,
           ease: "easeInOut",
         }}
-        className={`fixed top-0 left-1/2 transform -translate-x-1/2 z-50 w-full transition-all will-change-transform ${
-          isScrolled
+        className={`fixed top-0 left-1/2 transform -translate-x-1/2 z-50 w-full transition-all will-change-transform ${isScrolled
             ? "mt-4 rounded-full bg-[#27548A]/95 backdrop-blur-md shadow-lg border border-white/10"
             : "bg-transparent"
-        }`}
+          }`}
         style={{
           backfaceVisibility: "hidden",
           perspective: 1000,
@@ -300,9 +352,8 @@ export default function ResizableNavbar() {
       >
         <div className={`${isScrolled ? "px-6 lg:px-8" : "px-6 lg:px-8"}`}>
           <div
-            className={`flex items-center justify-between ${
-              isScrolled ? "h-16" : "h-20"
-            }`}
+            className={`flex items-center justify-between ${isScrolled ? "h-16" : "h-20"
+              }`}
           >
             {/* Logo */}
             <motion.div
@@ -317,9 +368,8 @@ export default function ResizableNavbar() {
                   alt="Logo Bukadita"
                   width={isScrolled ? 60 : 75}
                   height={isScrolled ? 18 : 22}
-                  className={`transition-all duration-200 ${
-                    isScrolled ? "hidden" : "block"
-                  }`}
+                  className={`transition-all duration-200 ${isScrolled ? "hidden" : "block"
+                    }`}
                 />
                 {/* Logo ketika di-scroll (putih) */}
                 <Image
@@ -327,9 +377,8 @@ export default function ResizableNavbar() {
                   alt="Logo Bukadita"
                   width={isScrolled ? 60 : 75}
                   height={isScrolled ? 18 : 22}
-                  className={`transition-all duration-200 ${
-                    isScrolled ? "block" : "hidden"
-                  }`}
+                  className={`transition-all duration-200 ${isScrolled ? "block" : "hidden"
+                    }`}
                 />
               </Link>
             </motion.div>
@@ -346,23 +395,21 @@ export default function ResizableNavbar() {
                       e.preventDefault();
                       handleSmoothScroll(item.href);
                     }}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all relative z-10 ${
-                      isActive
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all relative z-10 ${isActive
                         ? isScrolled
                           ? "text-white bg-white/20 relative z-20"
                           : "text-[#578FCA] bg-[#578FCA]/10 relative z-20"
                         : isScrolled
-                        ? "text-white/80 hover:text-white hover:bg-white/10"
-                        : "text-[#578FCA]/80 hover:text-[#578FCA] hover:bg-[#578FCA]/10"
-                    }`}
+                          ? "text-white/80 hover:text-white hover:bg-white/10"
+                          : "text-[#578FCA]/80 hover:text-[#578FCA] hover:bg-[#578FCA]/10"
+                      }`}
                   >
                     {item.name}
                     {isActive && (
                       <motion.div
                         layoutId="navbar-active"
-                        className={`absolute inset-0 rounded-full z-0 ${
-                          isScrolled ? "bg-white/20" : "bg-[#578FCA]/10"
-                        }`}
+                        className={`absolute inset-0 rounded-full z-0 ${isScrolled ? "bg-white/20" : "bg-[#578FCA]/10"
+                          }`}
                         transition={{
                           type: "spring",
                           bounce: 0.2,
@@ -379,36 +426,16 @@ export default function ResizableNavbar() {
             <div className="flex items-center space-x-4">
               {/* Desktop Action Buttons */}
               <div className="hidden md:flex items-center space-x-3">
-                <Link
-                  href="/login"
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
-                    isScrolled
-                      ? "text-white/80 hover:text-white"
-                      : "text-[#578FCA]/80 hover:text-[#578FCA]"
-                  }`}
-                >
-                  Masuk
-                </Link>
-                <Link
-                  href="/register"
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                    isScrolled
-                      ? "text-[#27548A] bg-white hover:bg-white/90 focus:ring-white"
-                      : "text-white bg-[#578FCA] hover:bg-[#578FCA]/90 focus:ring-[#578FCA]"
-                  }`}
-                >
-                  Daftar
-                </Link>
+                <AuthButtons isMobile={false} isScrolled={isScrolled} />
               </div>
 
               {/* Mobile Menu Button */}
               <button
                 ref={triggerRef}
-                className={`md:hidden p-2 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                  isScrolled
+                className={`md:hidden p-2 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${isScrolled
                     ? "text-white hover:bg-white/10 focus:ring-white"
                     : "text-[#578FCA] hover:bg-[#578FCA]/10 focus:ring-[#578FCA]"
-                }`}
+                  }`}
                 aria-controls="mobile-menu"
                 aria-expanded={open}
                 aria-label="Buka menu"
