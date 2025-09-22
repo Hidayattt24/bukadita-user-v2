@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { googleAuthService } from "@/lib/supabase";
+import { ProfileService } from "@/services/profileService";
 
 export default function CallbackPage() {
   const router = useRouter();
@@ -29,13 +30,23 @@ export default function CallbackPage() {
           return;
         }
 
-        // Extract user data from session
+        // Use ProfileService to handle Google OAuth callback and backend sync
+        const result = await ProfileService.handleGoogleOAuthCallback(session);
+
+        if (!result.success || !result.userData) {
+          console.error("Profile processing error:", result.error);
+          setIsRedirecting(true);
+          router.replace("/login?error=profile_failed");
+          return;
+        }
+
+        // Prepare user data for AuthContext
         const userData = {
-          id: session.user.id,
-          email: session.user.email || "",
+          id: result.userData.id,
+          email: result.userData.email,
           profile: {
-            full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "",
-            phone: session.user.user_metadata?.phone || ""
+            full_name: result.userData.full_name || "",
+            phone: result.userData.phone || ""
           }
         };
 
@@ -55,9 +66,7 @@ export default function CallbackPage() {
 
     // Process callback immediately
     processCallback();
-  }, [router, setUser]);
-
-  if (isRedirecting) {
+  }, [router, setUser]); if (isRedirecting) {
     return null; // Don't show anything during redirect
   }
 
