@@ -84,7 +84,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Login function
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await fetch(process.env.LOGIN_URL || 'http://localhost:4000/api/auth/login', {
+      const apiUrl = process.env.NEXT_PUBLIC_LOGIN_URL ||
+        process.env.NEXT_PUBLIC_BACKEND_URL + '/api/auth/login' ||
+        'http://localhost:4000/api/auth/login';
+
+      console.log('Login attempt to:', apiUrl); // Debug log
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,9 +98,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
 
-      if (response.ok && data.data) {
+      if (data.data) {
         const { access_token, refresh_token, user } = data.data;
 
         // Store tokens and user data
@@ -119,14 +129,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('Login error:', error);
-      return { success: false, error: 'Network error occurred' };
+
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        return {
+          success: false,
+          error: 'Tidak dapat terhubung ke server. Pastikan backend sudah running di http://localhost:4000'
+        };
+      }
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Network error occurred'
+      };
     }
   };
 
   // Register function
   const register = async (registerData: RegisterData): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await fetch(process.env.REG_URL || 'http://localhost:4000/api/auth/register', {
+      const apiUrl = process.env.NEXT_PUBLIC_REG_URL ||
+        process.env.NEXT_PUBLIC_BACKEND_URL + '/api/auth/register' ||
+        'http://localhost:4000/api/auth/register';
+
+      console.log('Register attempt to:', apiUrl); // Debug log
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -134,9 +161,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify(registerData),
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
 
-      if (response.ok && data.data) {
+      if (data.data) {
         const { access_token, refresh_token, user } = data.data;
 
         // Store tokens and user data
@@ -161,7 +192,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('Register error:', error);
-      return { success: false, error: 'Network error occurred' };
+
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        return {
+          success: false,
+          error: 'Tidak dapat terhubung ke server. Pastikan backend sudah running di http://localhost:4000'
+        };
+      }
+
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Network error occurred'
+      };
     }
   };
 
@@ -210,7 +252,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       if (!authState.refreshToken) return false;
 
-      const response = await fetch(`${process.env.BE_URL || 'http://localhost:4000'}/api/auth/refresh`, {
+      const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
+
+      const response = await fetch(`${apiUrl}/api/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -218,9 +262,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({ refresh_token: authState.refreshToken }),
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
 
-      if (response.ok && data.data) {
+      if (data.data) {
         const { access_token } = data.data;
 
         if (typeof window !== 'undefined') {

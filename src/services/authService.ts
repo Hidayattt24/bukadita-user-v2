@@ -35,10 +35,19 @@ export interface ApiError {
 
 // API Configuration
 const API_CONFIG = {
-  baseURL: process.env.BE_URL || "http://localhost:4000",
+  baseURL:
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_BE_URL ||
+    "http://localhost:4000",
   endpoints: {
-    register: process.env.REG_URL || "http://localhost:4000/api/auth/register",
-    login: process.env.LOGIN_URL || "http://localhost:4000/api/auth/login",
+    register:
+      process.env.NEXT_PUBLIC_REG_URL ||
+      process.env.NEXT_PUBLIC_BACKEND_URL + "/api/auth/register" ||
+      "http://localhost:4000/api/auth/register",
+    login:
+      process.env.NEXT_PUBLIC_LOGIN_URL ||
+      process.env.NEXT_PUBLIC_BACKEND_URL + "/api/auth/login" ||
+      "http://localhost:4000/api/auth/login",
     profile: "/api/auth/profile",
     refresh: "/api/auth/refresh",
   },
