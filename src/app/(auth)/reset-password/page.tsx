@@ -77,26 +77,21 @@ export default function ResetPasswordPage() {
 
   if (isSuccess) {
     return (
-      <div className="w-full space-y-6 lg:space-y-8">
+      <div className="w-full space-y-5">
         {/* Success Header */}
-        <div className="text-center space-y-4 lg:space-y-6">
+        <div className="text-center space-y-3">
           <div className="flex justify-center">
-            <div className="relative">
-              <div className="w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center shadow-xl shadow-emerald-500/25">
-                <CheckCircle className="w-10 h-10 lg:w-12 lg:h-12 text-white" />
-              </div>
-              <div className="absolute -top-1 -right-1 w-6 h-6 lg:w-7 lg:h-7 bg-white rounded-full border-4 border-emerald-500 flex items-center justify-center shadow-lg">
-                <Mail className="h-3 w-3 lg:h-4 lg:w-4 text-emerald-500" />
-              </div>
+            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+              <CheckCircle className="w-8 h-8 text-white" />
             </div>
           </div>
 
-          <div className="space-y-3 lg:space-y-4">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent font-poppins leading-tight">
+          <div className="space-y-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-emerald-600 font-poppins">
               Email Terkirim!
             </h1>
-            <p className="text-gray-600 font-medium font-poppins text-sm sm:text-base lg:text-lg max-w-md mx-auto">
-              Kami telah mengirim instruksi reset password ke email{" "}
+            <p className="text-gray-600 text-sm font-medium font-poppins">
+              Instruksi reset password telah dikirim ke{" "}
               <span className="font-semibold text-[#27548A]">
                 {formData.email}
               </span>
@@ -105,18 +100,16 @@ export default function ResetPasswordPage() {
         </div>
 
         {/* Success Message */}
-        <div className="relative p-4 lg:p-6 bg-emerald-50 border border-emerald-200 rounded-2xl lg:rounded-3xl shadow-sm">
-          <div className="flex items-start space-x-3 lg:space-x-4">
-            <div className="flex-shrink-0">
-              <div className="w-6 h-6 lg:w-7 lg:h-7 bg-emerald-500 rounded-full flex items-center justify-center shadow-sm">
-                <CheckCircle className="h-4 w-4 lg:h-5 lg:w-5 text-white" />
-              </div>
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+          <div className="flex items-start space-x-2">
+            <div className="w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center mt-0.5">
+              <CheckCircle className="h-3 w-3 text-white" />
             </div>
-            <div className="space-y-2">
-              <p className="text-emerald-800 font-semibold text-sm lg:text-base">
+            <div className="space-y-1">
+              <p className="text-emerald-800 font-semibold text-sm">
                 Periksa Email Anda
               </p>
-              <p className="text-emerald-700 text-sm lg:text-base leading-relaxed">
+              <p className="text-emerald-700 text-xs leading-relaxed">
                 Silakan buka email Anda dan klik tautan yang kami kirimkan untuk
                 mereset password. Tautan akan expired dalam 1 jam.
               </p>
@@ -125,25 +118,24 @@ export default function ResetPasswordPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="space-y-4 lg:space-y-5">
+        <div className="space-y-4">
           <button
             onClick={handleTryAgain}
-            className="group relative w-full py-4 lg:py-5 px-4 lg:px-6 bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white font-semibold rounded-2xl lg:rounded-3xl hover:from-[#4681c4] hover:to-[#1e3f6f] focus:ring-4 focus:ring-[#578FCA]/30 focus:outline-none transition-all duration-300 font-poppins shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 text-sm lg:text-base"
+            className="w-full py-2.5 px-4 bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white font-semibold rounded-lg hover:from-[#4681c4] hover:to-[#1e3f6f] focus:ring-2 focus:ring-[#578FCA]/30 focus:outline-none transition-all duration-200 font-poppins shadow-md text-sm"
           >
-            <div className="flex items-center justify-center space-x-2 lg:space-x-3">
-              <Send className="h-5 w-5 lg:h-6 lg:w-6" />
+            <div className="flex items-center justify-center space-x-2">
+              <Send className="h-4 w-4" />
               <span>Kirim Ulang Email</span>
             </div>
-            <div className="absolute inset-0 rounded-2xl lg:rounded-3xl bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
           </button>
 
-          <div className="text-center">
+          <div className="text-center pt-2">
             <Link
               href="/login"
-              className="inline-flex items-center justify-center space-x-2 text-[#578FCA] hover:text-[#27548A] transition-colors font-medium font-poppins text-sm lg:text-base hover:underline"
+              className="inline-flex items-center space-x-1 text-[#578FCA] hover:text-[#27548A] transition-colors font-medium font-poppins text-sm hover:underline"
             >
-              <ArrowLeft className="h-4 w-4 lg:h-5 lg:w-5" />
-              <span>Kembali ke Halaman Login</span>
+              <ArrowLeft className="h-4 w-4" />
+              <span>Kembali ke Login</span>
             </Link>
           </div>
         </div>
@@ -152,68 +144,56 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="w-full space-y-6 lg:space-y-8">
+    <div className="w-full space-y-5">
       {/* Header Section */}
-      <div className="text-center space-y-4 lg:space-y-6">
+      <div className="text-center space-y-3">
         <div className="flex justify-center">
-          <div className="relative">
-            <div className="w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-[#578FCA] to-[#27548A] rounded-full flex items-center justify-center shadow-xl shadow-blue-500/25">
-              <Image
-                src="/images/logo-default.svg"
-                alt="BukaDita Logo"
-                width={40}
-                height={40}
-                className="w-10 h-10 lg:w-12 lg:h-12 filter brightness-0 invert"
-              />
-            </div>
-            <div className="absolute -top-1 -right-1 w-6 h-6 lg:w-7 lg:h-7 bg-orange-500 rounded-full border-4 border-white flex items-center justify-center shadow-lg">
-              <Mail className="h-3 w-3 lg:h-4 lg:w-4 text-white" />
-            </div>
+          <div className="w-16 h-16 bg-gradient-to-br from-[#578FCA] to-[#27548A] rounded-xl flex items-center justify-center shadow-lg">
+            <Image
+              src="/images/logo-default.svg"
+              alt="BukaDita Logo"
+              width={32}
+              height={32}
+              className="w-8 h-8 filter brightness-0 invert"
+            />
           </div>
         </div>
 
-        <div className="space-y-3 lg:space-y-4">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-[#27548A] to-[#578FCA] bg-clip-text text-transparent font-poppins leading-tight">
+        <div className="space-y-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#27548A] font-poppins">
             Reset Password
           </h1>
-          <p className="text-gray-600 font-medium font-poppins text-sm sm:text-base lg:text-lg max-w-md mx-auto">
-            Masukkan email Anda dan kami akan mengirim instruksi untuk mereset
-            password
+          <p className="text-gray-600 text-sm font-medium font-poppins">
+            Masukkan email Anda untuk menerima instruksi reset password
           </p>
         </div>
       </div>
 
       {/* Error Message */}
       {errors.general && (
-        <div className="relative p-4 lg:p-5 bg-red-50 border border-red-200 rounded-2xl lg:rounded-3xl shadow-sm">
-          <div className="flex items-center space-x-3">
-            <div className="flex-shrink-0">
-              <div className="w-5 h-5 lg:w-6 lg:h-6 bg-red-500 rounded-full flex items-center justify-center shadow-sm">
-                <span className="text-white text-xs lg:text-sm font-bold">
-                  !
-                </span>
-              </div>
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs font-bold">!</span>
             </div>
-            <p className="text-red-700 text-sm lg:text-base font-medium">
-              {errors.general}
-            </p>
+            <p className="text-red-700 text-sm font-medium">{errors.general}</p>
           </div>
         </div>
       )}
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-5 lg:space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {/* Email Input */}
-        <div className="space-y-2 lg:space-y-3">
+        <div className="space-y-2">
           <label
             htmlFor="email"
-            className="block text-sm lg:text-base font-semibold text-[#27548A] font-poppins"
+            className="block text-sm font-semibold text-[#27548A] font-poppins"
           >
-            Email Address
+            Email
           </label>
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 lg:pl-5 flex items-center pointer-events-none transition-colors group-focus-within:text-[#578FCA]">
-              <Mail className="h-5 w-5 lg:h-6 lg:w-6 text-gray-400 group-focus-within:text-[#578FCA] transition-colors" />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Mail className="h-4 w-4 text-gray-400 group-focus-within:text-[#578FCA] transition-colors" />
             </div>
             <input
               type="email"
@@ -222,7 +202,7 @@ export default function ResetPasswordPage() {
               value={formData.email}
               onChange={handleChange}
               required
-              className={`w-full pl-12 lg:pl-14 pr-4 lg:pr-5 py-3.5 lg:py-4 bg-gray-50 border-2 rounded-2xl lg:rounded-3xl focus:bg-white focus:ring-4 focus:ring-[#578FCA]/10 focus:border-[#578FCA] outline-none transition-all duration-300 font-poppins placeholder:text-gray-400 text-gray-700 text-sm lg:text-base hover:shadow-md ${
+              className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border rounded-lg focus:bg-white focus:ring-2 focus:ring-[#578FCA]/20 focus:border-[#578FCA] outline-none transition-all duration-200 font-poppins placeholder:text-gray-400 text-gray-700 text-sm ${
                 errors.email
                   ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-red-100"
                   : "border-gray-200 hover:border-[#578FCA]/50"
@@ -231,12 +211,12 @@ export default function ResetPasswordPage() {
             />
           </div>
           {errors.email && (
-            <div className="flex items-center space-x-2 mt-2">
-              <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs">!</span>
-              </div>
-              <p className="text-red-600 text-sm font-medium">{errors.email}</p>
-            </div>
+            <p className="text-red-600 text-xs font-medium flex items-center gap-1">
+              <span className="w-3 h-3 bg-red-500 rounded-full flex items-center justify-center text-white text-xs">
+                !
+              </span>
+              {errors.email}
+            </p>
           )}
         </div>
 
@@ -244,22 +224,21 @@ export default function ResetPasswordPage() {
         <button
           type="submit"
           disabled={isLoading}
-          className="group relative w-full py-4 lg:py-5 px-4 lg:px-6 bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white font-semibold rounded-2xl lg:rounded-3xl hover:from-[#4681c4] hover:to-[#1e3f6f] focus:ring-4 focus:ring-[#578FCA]/30 focus:outline-none transition-all duration-300 font-poppins disabled:opacity-70 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 text-sm lg:text-base"
+          className="w-full py-2.5 px-4 bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white font-semibold rounded-lg hover:from-[#4681c4] hover:to-[#1e3f6f] focus:ring-2 focus:ring-[#578FCA]/30 focus:outline-none transition-all duration-200 font-poppins disabled:opacity-70 disabled:cursor-not-allowed shadow-md text-sm"
         >
-          <div className="flex items-center justify-center space-x-2 lg:space-x-3">
+          <div className="flex items-center justify-center space-x-2">
             {isLoading ? (
               <>
-                <div className="animate-spin rounded-full h-5 w-5 lg:h-6 lg:w-6 border-2 border-white border-t-transparent"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
                 <span>Mengirim Email...</span>
               </>
             ) : (
               <>
-                <Send className="h-5 w-5 lg:h-6 lg:w-6" />
+                <Send className="h-4 w-4" />
                 <span>Kirim Instruksi Reset</span>
               </>
             )}
           </div>
-          <div className="absolute inset-0 rounded-2xl lg:rounded-3xl bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
         </button>
       </form>
 
@@ -268,27 +247,23 @@ export default function ResetPasswordPage() {
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-gray-200"></div>
         </div>
-        <div className="relative flex justify-center text-sm lg:text-base">
-          <span className="px-4 lg:px-6 bg-white text-gray-500 font-poppins">
-            atau
-          </span>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-3 bg-white text-gray-500 font-poppins">atau</span>
         </div>
       </div>
 
       {/* Back to Login */}
-      <div className="text-center">
-        <div className="inline-flex items-center justify-center w-full p-4 lg:p-5 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl lg:rounded-3xl border border-gray-200 hover:shadow-md transition-all duration-300">
-          <p className="text-gray-600 font-poppins text-sm lg:text-base">
-            Ingat password Anda?{" "}
-            <Link
-              href="/login"
-              className="font-semibold text-[#578FCA] hover:text-[#27548A] transition-colors hover:underline inline-flex items-center space-x-1"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Kembali ke Login</span>
-            </Link>
-          </p>
-        </div>
+      <div className="text-center pt-2">
+        <p className="text-gray-600 font-poppins text-sm">
+          Ingat password Anda?{" "}
+          <Link
+            href="/login"
+            className="font-semibold text-[#578FCA] hover:text-[#27548A] transition-colors hover:underline inline-flex items-center space-x-1"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Kembali ke Login</span>
+          </Link>
+        </p>
       </div>
     </div>
   );
