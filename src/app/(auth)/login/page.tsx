@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { validators } from "@/services/authService";
 
@@ -37,7 +37,10 @@ export default function LoginPage() {
       newErrors.email = "Format email tidak valid";
     }
 
-    const passwordValidation = validators.required(formData.password, "Password");
+    const passwordValidation = validators.required(
+      formData.password,
+      "Password"
+    );
     if (!passwordValidation.isValid) {
       newErrors.password = passwordValidation.message!;
     }
@@ -52,8 +55,11 @@ export default function LoginPage() {
       const result = await login(formData.email, formData.password);
 
       if (result.success) {
-        // Redirect ke dashboard setelah berhasil login
-        router.push("/user/beranda");
+        if (result.pendingProfile) {
+          router.push("/user/pengaturan?complete=1");
+        } else {
+          router.push("/user/beranda");
+        }
       } else {
         setErrors({ general: result.error || "Login gagal" });
       }
@@ -97,66 +103,58 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full space-y-6 lg:space-y-8">
+    <div className="w-full space-y-5">
       {/* Header Section */}
-      <div className="text-center space-y-4 lg:space-y-6">
+      <div className="text-center space-y-3">
         <div className="flex justify-center">
           <div className="relative">
-            <div className="w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br from-[#578FCA] to-[#27548A] rounded-full flex items-center justify-center shadow-xl shadow-blue-500/25">
+            <div className="w-16 h-16 bg-gradient-to-br from-[#578FCA] to-[#27548A] rounded-xl flex items-center justify-center shadow-lg">
               <Image
                 src="/images/logo-default.svg"
                 alt="BukaDita Logo"
-                width={40}
-                height={40}
-                className="w-10 h-10 lg:w-12 lg:h-12 filter brightness-0 invert"
+                width={32}
+                height={32}
+                className="w-8 h-8 filter brightness-0 invert"
               />
             </div>
-            <div className="absolute -top-1 -right-1 w-6 h-6 lg:w-7 lg:h-7 bg-emerald-500 rounded-full border-4 border-white shadow-lg"></div>
           </div>
         </div>
 
-        <div className="space-y-3 lg:space-y-4">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold bg-gradient-to-r from-[#27548A] to-[#578FCA] bg-clip-text text-transparent font-poppins leading-tight">
-            Selamat Datang Kembali
+        <div className="space-y-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#27548A] font-poppins">
+            Masuk ke Akun
           </h1>
-          <p className="text-gray-600 font-medium font-poppins text-sm sm:text-base lg:text-lg max-w-md mx-auto">
-            Masuk untuk melanjutkan pembelajaran dan perkembangan Anda di
-            platform BukaDita
+          <p className="text-gray-600 text-sm font-medium font-poppins">
+            Selamat datang kembali di BukaDita
           </p>
         </div>
       </div>
 
       {/* Error Message */}
       {errors.general && (
-        <div className="relative p-4 lg:p-5 bg-red-50 border border-red-200 rounded-2xl shadow-sm">
-          <div className="flex items-center space-x-3">
-            <div className="flex-shrink-0">
-              <div className="w-5 h-5 lg:w-6 lg:h-6 bg-red-500 rounded-full flex items-center justify-center shadow-sm">
-                <span className="text-white text-xs lg:text-sm font-bold">
-                  !
-                </span>
-              </div>
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs font-bold">!</span>
             </div>
-            <p className="text-red-700 text-sm lg:text-base font-medium">
-              {errors.general}
-            </p>
+            <p className="text-red-700 text-sm font-medium">{errors.general}</p>
           </div>
         </div>
       )}
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-5 lg:space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {/* Email Input */}
-        <div className="space-y-2 lg:space-y-3">
+        <div className="space-y-2">
           <label
             htmlFor="email"
-            className="block text-sm lg:text-base font-semibold text-[#27548A] font-poppins"
+            className="block text-sm font-semibold text-[#27548A] font-poppins"
           >
-            Email Address
+            Email
           </label>
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 lg:pl-5 flex items-center pointer-events-none transition-colors group-focus-within:text-[#578FCA]">
-              <Mail className="h-5 w-5 lg:h-6 lg:w-6 text-gray-400 group-focus-within:text-[#578FCA] transition-colors" />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Mail className="h-4 w-4 text-gray-400 group-focus-within:text-[#578FCA] transition-colors" />
             </div>
             <input
               type="email"
@@ -165,34 +163,34 @@ export default function LoginPage() {
               value={formData.email}
               onChange={handleChange}
               required
-              className={`w-full pl-12 lg:pl-14 pr-4 lg:pr-5 py-3.5 lg:py-4 bg-gray-50 border-2 rounded-2xl lg:rounded-3xl focus:bg-white focus:ring-4 focus:ring-[#578FCA]/10 focus:border-[#578FCA] outline-none transition-all duration-300 font-poppins placeholder:text-gray-400 text-gray-700 text-sm lg:text-base hover:shadow-md ${errors.email
-                  ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-red-100"
-                  : "border-gray-200 hover:border-[#578FCA]/50"
+              className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border rounded-lg focus:bg-white focus:ring-2 focus:ring-[#578FCA]/20 focus:border-[#578FCA] outline-none transition-all duration-200 font-poppins placeholder:text-gray-400 text-gray-700 text-sm ${errors.email
+                ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                : "border-gray-200 hover:border-[#578FCA]/50"
                 }`}
               placeholder="Masukkan email Anda"
             />
           </div>
           {errors.email && (
-            <div className="flex items-center space-x-2 mt-2">
-              <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs">!</span>
-              </div>
-              <p className="text-red-600 text-sm font-medium">{errors.email}</p>
-            </div>
+            <p className="text-red-600 text-xs font-medium flex items-center gap-1">
+              <span className="w-3 h-3 bg-red-500 rounded-full flex items-center justify-center text-white text-xs">
+                !
+              </span>
+              {errors.email}
+            </p>
           )}
         </div>
 
         {/* Password Input */}
-        <div className="space-y-2 lg:space-y-3">
+        <div className="space-y-2">
           <label
             htmlFor="password"
-            className="block text-sm lg:text-base font-semibold text-[#27548A] font-poppins"
+            className="block text-sm font-semibold text-[#27548A] font-poppins"
           >
             Password
           </label>
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 lg:pl-5 flex items-center pointer-events-none transition-colors group-focus-within:text-[#578FCA]">
-              <Lock className="h-5 w-5 lg:h-6 lg:w-6 text-gray-400 group-focus-within:text-[#578FCA] transition-colors" />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Lock className="h-4 w-4 text-gray-400 group-focus-within:text-[#578FCA] transition-colors" />
             </div>
             <input
               type={showPassword ? "text" : "password"}
@@ -201,38 +199,36 @@ export default function LoginPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              className={`w-full pl-12 lg:pl-14 pr-12 lg:pr-14 py-3.5 lg:py-4 bg-gray-50 border-2 rounded-2xl lg:rounded-3xl focus:bg-white focus:ring-4 focus:ring-[#578FCA]/10 focus:border-[#578FCA] outline-none transition-all duration-300 font-poppins placeholder:text-gray-400 text-gray-700 text-sm lg:text-base hover:shadow-md ${errors.password
-                  ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-red-100"
-                  : "border-gray-200 hover:border-[#578FCA]/50"
+              className={`w-full pl-10 pr-10 py-2.5 bg-gray-50 border rounded-lg focus:bg-white focus:ring-2 focus:ring-[#578FCA]/20 focus:border-[#578FCA] outline-none transition-all duration-200 font-poppins placeholder:text-gray-400 text-gray-700 text-sm ${errors.password
+                ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                : "border-gray-200 hover:border-[#578FCA]/50"
                 }`}
               placeholder="Masukkan password Anda"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-4 lg:pr-5 flex items-center hover:bg-gray-50 rounded-r-2xl lg:rounded-r-3xl transition-colors"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center hover:bg-gray-50 rounded-r-lg transition-colors"
             >
               {showPassword ? (
-                <EyeOff className="h-5 w-5 lg:h-6 lg:w-6 text-gray-400 hover:text-[#578FCA] transition-colors" />
+                <EyeOff className="h-4 w-4 text-gray-400 hover:text-[#578FCA] transition-colors" />
               ) : (
-                <Eye className="h-5 w-5 lg:h-6 lg:w-6 text-gray-400 hover:text-[#578FCA] transition-colors" />
+                <Eye className="h-4 w-4 text-gray-400 hover:text-[#578FCA] transition-colors" />
               )}
             </button>
           </div>
           {errors.password && (
-            <div className="flex items-center space-x-2 mt-2">
-              <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs">!</span>
-              </div>
-              <p className="text-red-600 text-sm font-medium">
-                {errors.password}
-              </p>
-            </div>
+            <p className="text-red-600 text-xs font-medium flex items-center gap-1">
+              <span className="w-3 h-3 bg-red-500 rounded-full flex items-center justify-center text-white text-xs">
+                !
+              </span>
+              {errors.password}
+            </p>
           )}
         </div>
 
         {/* Remember Me & Forgot Password */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+        <div className="flex items-center justify-between text-sm">
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -240,18 +236,18 @@ export default function LoginPage() {
               name="rememberMe"
               checked={formData.rememberMe}
               onChange={handleChange}
-              className="h-4 w-4 lg:h-5 lg:w-5 text-[#578FCA] focus:ring-[#578FCA] border-gray-300 rounded transition-colors"
+              className="h-4 w-4 text-[#578FCA] focus:ring-[#578FCA] border-gray-300 rounded"
             />
             <label
               htmlFor="rememberMe"
-              className="ml-3 block text-sm lg:text-base text-gray-700 font-medium font-poppins select-none cursor-pointer"
+              className="ml-2 text-gray-600 font-medium font-poppins cursor-pointer"
             >
               Ingat saya
             </label>
           </div>
           <Link
             href="/reset-password"
-            className="text-sm lg:text-base text-[#578FCA] hover:text-[#27548A] transition-colors font-medium font-poppins hover:underline"
+            className="text-[#578FCA] hover:text-[#27548A] transition-colors font-medium font-poppins hover:underline"
           >
             Lupa password?
           </Link>
@@ -261,22 +257,18 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={isLoading}
-          className="group relative w-full py-4 lg:py-5 px-4 lg:px-6 bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white font-semibold rounded-2xl lg:rounded-3xl hover:from-[#4681c4] hover:to-[#1e3f6f] focus:ring-4 focus:ring-[#578FCA]/30 focus:outline-none transition-all duration-300 font-poppins disabled:opacity-70 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 text-sm lg:text-base"
+          className="w-full py-2.5 px-4 bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white font-semibold rounded-lg hover:from-[#4681c4] hover:to-[#1e3f6f] focus:ring-2 focus:ring-[#578FCA]/30 focus:outline-none transition-all duration-200 font-poppins disabled:opacity-70 disabled:cursor-not-allowed shadow-md text-sm"
         >
-          <div className="flex items-center justify-center space-x-2 lg:space-x-3">
+          <div className="flex items-center justify-center space-x-2">
             {isLoading ? (
               <>
-                <div className="animate-spin rounded-full h-5 w-5 lg:h-6 lg:w-6 border-2 border-white border-t-transparent"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
                 <span>Memproses...</span>
               </>
             ) : (
-              <>
-                <User className="h-5 w-5 lg:h-6 lg:w-6" />
-                <span>Masuk ke Akun</span>
-              </>
+              <span>Masuk</span>
             )}
           </div>
-          <div className="absolute inset-0 rounded-2xl lg:rounded-3xl bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
         </button>
       </form>
 
@@ -285,10 +277,8 @@ export default function LoginPage() {
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-gray-200"></div>
         </div>
-        <div className="relative flex justify-center text-sm lg:text-base">
-          <span className="px-4 lg:px-6 bg-white text-gray-500 font-poppins">
-            atau
-          </span>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-3 bg-white text-gray-500 font-poppins">atau</span>
         </div>
       </div>
 
@@ -296,10 +286,10 @@ export default function LoginPage() {
       <button
         type="button"
         onClick={handleGoogleLogin}
-        className="group relative w-full py-4 lg:py-5 px-4 lg:px-6 bg-white border-2 border-gray-200 text-gray-700 font-semibold rounded-2xl lg:rounded-3xl hover:border-gray-300 hover:shadow-md focus:ring-4 focus:ring-gray-100 focus:outline-none transition-all duration-300 font-poppins shadow-sm transform hover:-translate-y-0.5 active:translate-y-0 text-sm lg:text-base"
+        className="w-full py-2.5 px-4 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 focus:ring-2 focus:ring-gray-200 focus:outline-none transition-all duration-200 font-poppins text-sm"
       >
-        <div className="flex items-center justify-center space-x-3">
-          <svg className="w-5 h-5 lg:w-6 lg:h-6" viewBox="0 0 24 24">
+        <div className="flex items-center justify-center space-x-2">
+          <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
               fill="#4285f4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -319,34 +309,19 @@ export default function LoginPage() {
           </svg>
           <span>Masuk dengan Google</span>
         </div>
-        <div className="absolute inset-0 rounded-2xl lg:rounded-3xl bg-gray-50 opacity-0 group-hover:opacity-50 transition-opacity duration-300"></div>
       </button>
 
-      {/* Divider */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200"></div>
-        </div>
-        <div className="relative flex justify-center text-sm lg:text-base">
-          <span className="px-4 lg:px-6 bg-white text-gray-500 font-poppins">
-            atau
-          </span>
-        </div>
-      </div>
-
       {/* Register Link */}
-      <div className="text-center">
-        <div className="inline-flex items-center justify-center w-full p-4 lg:p-5 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl lg:rounded-3xl border border-gray-200 hover:shadow-md transition-all duration-300">
-          <p className="text-gray-600 font-poppins text-sm lg:text-base">
-            Belum punya akun?{" "}
-            <Link
-              href="/register"
-              className="font-semibold text-[#578FCA] hover:text-[#27548A] transition-colors hover:underline"
-            >
-              Daftar sekarang
-            </Link>
-          </p>
-        </div>
+      <div className="text-center pt-2">
+        <p className="text-gray-600 font-poppins text-sm">
+          Belum punya akun?{" "}
+          <Link
+            href="/register"
+            className="font-semibold text-[#578FCA] hover:text-[#27548A] transition-colors hover:underline"
+          >
+            Daftar di sini
+          </Link>
+        </p>
       </div>
     </div>
   );

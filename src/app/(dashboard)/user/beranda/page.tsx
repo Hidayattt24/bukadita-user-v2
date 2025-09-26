@@ -52,7 +52,7 @@ export default function BerandaUser() {
               {/* Right Content - Mobile Optimized Button */}
               <div className="flex flex-col justify-center items-center md:items-end w-full md:w-auto mt-2 md:mt-0">
                 <button
-                  className="group inline-flex items-center justify-center gap-3 text-[#27548A] font-semibold text-sm hover:bg-gray-50 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl w-full sm:w-auto max-w-[280px]"
+                  className="group inline-flex px-4 items-center justify-center gap-3 text-[#27548A] font-semibold text-sm hover:bg-gray-50 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl w-full sm:w-auto max-w-[280px]"
                   style={{
                     width: "min(280px, 100%)",
                     height: "48px",
@@ -60,7 +60,7 @@ export default function BerandaUser() {
                     background: "#FFF",
                   }}
                 >
-                  <span className="text-sm sm:text-base ">
+                  <span className="text-sm sm:text-base">
                     Mulai Belajar Sekarang
                   </span>
                   <div

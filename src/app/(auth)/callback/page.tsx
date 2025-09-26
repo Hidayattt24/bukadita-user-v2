@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import { googleAuthService } from "@/lib/supabase";
-import { ProfileService } from "@/services/profileService";
+import { authService } from "@/services/authService";
 
 export default function CallbackPage() {
   const router = useRouter();
@@ -30,28 +30,39 @@ export default function CallbackPage() {
           return;
         }
 
-        // Use ProfileService to handle Google OAuth callback and backend sync
-        const result = await ProfileService.handleGoogleOAuthCallback(session);
-
-        if (!result.success || !result.userData) {
-          console.error("Profile processing error:", result.error);
-          setIsRedirecting(true);
-          router.replace("/login?error=profile_failed");
-          return;
-        }
-
-        // Prepare user data for AuthContext
+        // Extract minimal user data from session
         const userData = {
-          id: result.userData.id,
-          email: result.userData.email,
+          id: session.user.id,
+          email: session.user.email || "",
           profile: {
-            full_name: result.userData.full_name || "",
-            phone: result.userData.phone || ""
-          }
+            full_name:
+              session.user.user_metadata?.full_name ||
+              session.user.user_metadata?.name ||
+              (session.user.email ? session.user.email.split("@")[0] : "User"),
+            phone: session.user.user_metadata?.phone || "",
+          },
         };
 
-        // Update AuthContext
+        // Persist token and user in AuthContext (this also stores token via tokenStore)
         setUser(userData, session.access_token || "google_oauth_token");
+
+        // Prefer create-missing-profile first (RLS-safe for initial insert), then fallback to upsert
+        try {
+          await authService.createMissingProfile({
+            full_name: userData.profile.full_name || userData.email,
+            phone: userData.profile.phone || undefined,
+          });
+        } catch {
+          try {
+            await authService.upsertProfile({
+              full_name: userData.profile.full_name || userData.email,
+              phone: userData.profile.phone || undefined,
+            });
+          } catch (e2) {
+            console.warn("Profile sync after Google OAuth failed:", e2);
+            // Non-blocking: let user proceed; they can complete profile in settings
+          }
+        }
 
         // Set redirecting state and navigate
         setIsRedirecting(true);

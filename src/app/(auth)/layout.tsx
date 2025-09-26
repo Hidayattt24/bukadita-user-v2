@@ -23,12 +23,12 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
       <div className="absolute bottom-32 right-16 w-5 h-5 bg-blue-400/25 rounded-square rotate-12 animate-pulse delay-500"></div>
 
       {/* Main Content Container */}
-      <div className="flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
-        <div className="relative z-10 w-full max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto">
+      <div className="flex items-center justify-center min-h-screen p-4 sm:p-6">
+        <div className="relative z-10 w-full max-w-sm sm:max-w-md mx-auto">
           {/* Card Container */}
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl lg:rounded-[2rem] shadow-2xl shadow-blue-500/10 border border-white/30 overflow-hidden">
-            {/* Inner content with proper padding for different screen sizes */}
-            <div className="p-6 sm:p-8 lg:p-12 xl:p-16">{children}</div>
+          <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl shadow-blue-500/10 border border-white/30 overflow-hidden">
+            {/* Inner content with compact padding */}
+            <div className="p-6 sm:p-8">{children}</div>
           </div>
         </div>
       </div>

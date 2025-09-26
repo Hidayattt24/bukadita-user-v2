@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 interface ProtectedRouteProps {
@@ -10,19 +10,29 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, profilePending } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    if (!isLoading) {
-      if (!isAuthenticated) {
-        router.push('/login');
-      } else {
-        setIsChecking(false);
-      }
+    if (isLoading) return;
+
+    // Not logged in -> go login
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
     }
-  }, [isAuthenticated, isLoading, router]);
+
+    // If profile pending and not already on profile completion page, redirect
+    const isProfilePage = pathname?.startsWith('/user/pengaturan');
+    if (profilePending && !isProfilePage) {
+      router.push('/user/pengaturan?complete=1');
+      return;
+    }
+
+    setIsChecking(false);
+  }, [isAuthenticated, isLoading, profilePending, router, pathname]);
 
   // Show loading while checking authentication
   if (isLoading || isChecking) {

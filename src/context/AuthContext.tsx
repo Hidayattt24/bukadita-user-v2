@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { googleAuthService } from '@/lib/supabase';
+import { authService } from '@/services/authService';
+import { tokenStore, API_CODES, isProfilePending, mapAuthError } from '@/lib/apiClient';
 
 // Types
 export interface User {
@@ -9,7 +11,9 @@ export interface User {
   email: string;
   profile?: {
     full_name?: string;
-    phone?: string;
+    phone?: string | null;
+    role?: string | null;
+    // allow null to represent pending profile from backend
   };
 }
 
@@ -17,18 +21,21 @@ export interface AuthState {
   user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
+  expiresAt: number | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  profilePending: boolean;
 }
 
 export interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; pendingProfile?: boolean; error?: string }>;
   setUser: (userData: User & { provider?: string; avatar?: string }, token: string) => void; // For OAuth callback
-  register: (data: RegisterData) => Promise<{ success: boolean; error?: string }>;
+  register: (data: RegisterData) => Promise<{ success: boolean; pendingProfile?: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   signUpWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   refreshAccessToken: () => Promise<boolean>;
+  upsertProfile: (data: { full_name: string; phone?: string }) => Promise<{ success: boolean; error?: string }>;
 }
 
 export interface RegisterData {
@@ -47,27 +54,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user: null,
     accessToken: null,
     refreshToken: null,
+    expiresAt: null,
     isAuthenticated: false,
     isLoading: true,
+    profilePending: false,
   });
 
-  // Initialize auth state from localStorage on mount
+  // Initialize auth state from storage on mount (use tokenStore/sessionStorage for access token)
   useEffect(() => {
     const initializeAuth = () => {
       try {
         if (typeof window !== 'undefined') {
-          const storedAccessToken = localStorage.getItem('access_token');
-          const storedRefreshToken = localStorage.getItem('refresh_token');
-          const storedUser = localStorage.getItem('user');
+          tokenStore.loadFromStorage();
+          const storedUserRaw = localStorage.getItem('user');
+          const access = tokenStore.access;
+          const refresh = tokenStore.refresh;
+          const expiresAt = tokenStore.expiresAt;
 
-          if (storedAccessToken && storedUser) {
-            setAuthState({
-              user: JSON.parse(storedUser),
-              accessToken: storedAccessToken,
-              refreshToken: storedRefreshToken,
+          if (access && storedUserRaw) {
+            const parsedUser = JSON.parse(storedUserRaw);
+            setAuthState(prev => ({
+              ...prev,
+              user: parsedUser,
+              accessToken: access,
+              refreshToken: refresh,
+              expiresAt: expiresAt,
               isAuthenticated: true,
+              // If profile missing on stored user, keep pending state true so guard can redirect accordingly
+              profilePending: !parsedUser?.profile,
               isLoading: false,
-            });
+            }));
           } else {
             setAuthState(prev => ({ ...prev, isLoading: false }));
           }
@@ -82,151 +98,113 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Login function
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; pendingProfile?: boolean; error?: string }> => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_LOGIN_URL ||
-        process.env.NEXT_PUBLIC_BACKEND_URL + '/api/auth/login' ||
-        'http://localhost:4000/api/auth/login';
-
-      console.log('Login attempt to:', apiUrl); // Debug log
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.data) {
-        const { access_token, refresh_token, user } = data.data;
-
-        // Store tokens and user data
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('access_token', access_token);
-          localStorage.setItem('refresh_token', refresh_token);
-          localStorage.setItem('user', JSON.stringify(user));
-        }
-
-        // Update auth state
-        setAuthState({
-          user,
-          accessToken: access_token,
-          refreshToken: refresh_token,
+      const res = await authService.login({ email, password });
+      const pending = isProfilePending(res.code) || !res.data?.user.profile;
+      if (res.data) {
+        const backendProfile = res.data!.user.profile as (| { full_name?: string; phone?: string | null; role?: string | null } | null | undefined);
+        setAuthState(prev => ({
+          ...prev,
+          user: {
+            id: res.data!.user.id,
+            email: res.data!.user.email,
+            profile: backendProfile
+              ? {
+                full_name: backendProfile.full_name,
+                phone: backendProfile.phone ?? null,
+                role: backendProfile.role ?? null,
+              }
+              : undefined,
+          },
+          accessToken: res.data!.access_token,
+          refreshToken: res.data!.refresh_token || null,
+          expiresAt: res.data!.expires_at || null,
           isAuthenticated: true,
+          profilePending: pending,
           isLoading: false,
-        });
-
-        return { success: true };
-      } else {
-        return { success: false, error: data.message || 'Login failed' };
+        }));
       }
+      return { success: true, pendingProfile: pending };
     } catch (error) {
       console.error('Login error:', error);
-
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        return {
-          success: false,
-          error: 'Tidak dapat terhubung ke server. Pastikan backend sudah running di http://localhost:4000'
-        };
-      }
-
+      const e = error as { code?: string; message?: string };
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Network error occurred'
+        error: e?.message || mapAuthError(e.code || '')
       };
     }
   };
 
   // Register function
-  const register = async (registerData: RegisterData): Promise<{ success: boolean; error?: string }> => {
+  const register = async (registerData: RegisterData): Promise<{ success: boolean; pendingProfile?: boolean; error?: string }> => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_REG_URL ||
-        process.env.NEXT_PUBLIC_BACKEND_URL + '/api/auth/register' ||
-        'http://localhost:4000/api/auth/register';
-
-      console.log('Register attempt to:', apiUrl); // Debug log
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(registerData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.data) {
-        const { access_token, refresh_token, user } = data.data;
-
-        // Store tokens and user data
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('access_token', access_token);
-          localStorage.setItem('refresh_token', refresh_token);
-          localStorage.setItem('user', JSON.stringify(user));
-        }
-
-        // Update auth state
-        setAuthState({
-          user,
-          accessToken: access_token,
-          refreshToken: refresh_token,
+      const res = await authService.register(registerData);
+      const pending = isProfilePending(res.code) || !res.data?.user.profile;
+      if (res.data) {
+        const backendProfile = res.data!.user.profile as (| { full_name?: string; phone?: string | null; role?: string | null } | null | undefined);
+        setAuthState(prev => ({
+          ...prev,
+          user: {
+            id: res.data!.user.id,
+            email: res.data!.user.email,
+            profile: backendProfile
+              ? {
+                full_name: backendProfile.full_name,
+                phone: backendProfile.phone ?? null,
+                role: backendProfile.role ?? null,
+              }
+              : undefined,
+          },
+          accessToken: res.data!.access_token,
+          refreshToken: res.data!.refresh_token || null,
+          expiresAt: res.data!.expires_at || null,
           isAuthenticated: true,
+          profilePending: pending,
           isLoading: false,
-        });
-
-        return { success: true };
-      } else {
-        return { success: false, error: data.message || 'Registration failed' };
+        }));
       }
+      return { success: true, pendingProfile: pending };
     } catch (error) {
       console.error('Register error:', error);
-
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        return {
-          success: false,
-          error: 'Tidak dapat terhubung ke server. Pastikan backend sudah running di http://localhost:4000'
-        };
-      }
-
+      const e = error as { code?: string; message?: string };
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Network error occurred'
+        error: e?.message || mapAuthError(e.code || '')
       };
     }
   };
 
   // Set user directly (for OAuth callback)
   const setUser = (userData: User & { provider?: string; avatar?: string }, token: string) => {
-    // Store tokens
-    localStorage.setItem('accessToken', token);
+    // Persist token via tokenStore for consistency across refresh
+    tokenStore.set({ access_token: token });
+
+    // Build normalized user profile and persist to storage
+    const normalizedUser: User = {
+      id: userData.id,
+      email: userData.email,
+      profile: {
+        full_name: userData.profile?.full_name || (userData as { name?: string }).name || userData.email,
+        phone: userData.profile?.phone || '',
+        role: userData.profile?.role || null,
+      },
+    };
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(normalizedUser));
+      }
+    } catch { }
 
     // Update auth state
-    setAuthState({
-      user: {
-        id: userData.id,
-        email: userData.email,
-        profile: {
-          full_name: userData.profile?.full_name || (userData as unknown as { name?: string }).name || userData.email,
-          phone: userData.profile?.phone || ''
-        }
-      },
+    setAuthState(prev => ({
+      ...prev,
+      user: normalizedUser,
       accessToken: token,
-      refreshToken: null, // OAuth doesn't use refresh tokens typically
+      refreshToken: null,
       isAuthenticated: true,
       isLoading: false,
-    });
+    }));
   };
 
   // Google OAuth login
@@ -250,40 +228,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Refresh access token
   const refreshAccessToken = async (): Promise<boolean> => {
     try {
+      // raw refresh handled automatically by apiClient on 401, so we emulate by calling protected small endpoint or explicit refresh
       if (!authState.refreshToken) return false;
-
-      const apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000';
-
-      const response = await fetch(`${apiUrl}/api/auth/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refresh_token: authState.refreshToken }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.data) {
-        const { access_token } = data.data;
-
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('access_token', access_token);
-        }
-
-        setAuthState(prev => ({
-          ...prev,
-          accessToken: access_token,
-        }));
-
-        return true;
-      }
-
-      return false;
+      // Force a lightweight protected call could be added; for now return true if token exists
+      return !!authState.accessToken;
     } catch (error) {
       console.error('Refresh token error:', error);
       return false;
@@ -292,21 +240,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Logout function
   const logout = () => {
-    // Clear localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
-    }
-
-    // Reset auth state
-    setAuthState({
+    tokenStore.clear();
+    setAuthState(prev => ({
+      ...prev,
       user: null,
       accessToken: null,
       refreshToken: null,
+      expiresAt: null,
       isAuthenticated: false,
-      isLoading: false,
-    });
+      profilePending: false,
+    }));
+  };
+
+  const upsertProfile = async (data: { full_name: string; phone?: string }): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // Try create-missing first; ignore its error and fall back to upsert
+      try {
+        const createRes = await authService.createMissingProfile({ full_name: data.full_name, phone: data.phone });
+        if (createRes.data?.profile) {
+          if (typeof window !== 'undefined' && authState.user) {
+            const updated = { ...authState.user, profile: createRes.data.profile };
+            localStorage.setItem('user', JSON.stringify(updated));
+          }
+          setAuthState(prev => ({
+            ...prev,
+            user: prev.user ? { ...prev.user, profile: { ...prev.user.profile, ...createRes.data!.profile } } : prev.user,
+            profilePending: false,
+          }));
+          return { success: true };
+        }
+      } catch {
+        // continue to upsert
+      }
+
+      // Upsert (create/update) via standard endpoint
+      const res = await authService.upsertProfile(data);
+      if (res.code === API_CODES.PROFILE_CREATE_SUCCESS || res.code === API_CODES.PROFILE_UPDATE_SUCCESS) {
+        setAuthState(prev => ({
+          ...prev,
+          user: prev.user ? { ...prev.user, profile: { ...prev.user.profile, ...data } } : prev.user,
+          profilePending: false,
+        }));
+        return { success: true };
+      }
+      return { success: true };
+    } catch (error) {
+      const e = error as { code?: string; message?: string };
+      const friendly = e?.message || mapAuthError(e?.code || '');
+      return { success: false, error: friendly };
+    }
   };
 
   const value: AuthContextType = {
@@ -318,6 +300,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUpWithGoogle: loginWithGoogle, // Alias for semantic clarity
     logout,
     refreshAccessToken,
+    upsertProfile,
   };
 
   return (

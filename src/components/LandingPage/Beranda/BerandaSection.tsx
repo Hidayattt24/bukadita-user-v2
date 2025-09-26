@@ -3,6 +3,7 @@
 import React, { useRef } from "react";
 import Link from "next/link";
 import { DotPattern } from "@/components/magicui/dot-pattern";
+import { ArrowRight, PhoneCall } from "lucide-react";
 
 export default function BerandaSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -50,18 +51,14 @@ export default function BerandaSection() {
             className="w-full sm:w-auto px-6 sm:px-8 py-3 text-white font-medium transition-all duration-300 hover:opacity-80 hover:transform hover:scale-105 flex items-center justify-center gap-2 rounded-[20px] bg-[#27548A] min-w-[140px]"
           >
             Masuk
-            <span className="material-symbols-outlined text-lg">
-              arrow_outward
-            </span>
+            <ArrowRight className="w-4 h-4" />
           </Link>
           <Link
             href="#kontak"
             className="w-full sm:w-auto px-6 sm:px-8 py-3 text-white font-medium transition-all duration-300 hover:opacity-80 hover:transform hover:scale-105 flex items-center justify-center gap-2 rounded-[20px] bg-[#578FCA] min-w-[140px]"
           >
             Hubungi Kami
-            <span className="material-symbols-outlined text-lg">
-              arrow_outward
-            </span>
+            <PhoneCall className="w-4 h-4" />
           </Link>
         </div>
 
