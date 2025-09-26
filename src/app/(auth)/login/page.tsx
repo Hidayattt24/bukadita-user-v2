@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { validators } from "@/services/authService";
 
@@ -55,8 +55,11 @@ export default function LoginPage() {
       const result = await login(formData.email, formData.password);
 
       if (result.success) {
-        // Redirect ke dashboard setelah berhasil login
-        router.push("/user/beranda");
+        if (result.pendingProfile) {
+          router.push("/user/pengaturan?complete=1");
+        } else {
+          router.push("/user/beranda");
+        }
       } else {
         setErrors({ general: result.error || "Login gagal" });
       }
@@ -160,11 +163,10 @@ export default function LoginPage() {
               value={formData.email}
               onChange={handleChange}
               required
-              className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border rounded-lg focus:bg-white focus:ring-2 focus:ring-[#578FCA]/20 focus:border-[#578FCA] outline-none transition-all duration-200 font-poppins placeholder:text-gray-400 text-gray-700 text-sm ${
-                errors.email
-                  ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-red-100"
-                  : "border-gray-200 hover:border-[#578FCA]/50"
-              }`}
+              className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border rounded-lg focus:bg-white focus:ring-2 focus:ring-[#578FCA]/20 focus:border-[#578FCA] outline-none transition-all duration-200 font-poppins placeholder:text-gray-400 text-gray-700 text-sm ${errors.email
+                ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                : "border-gray-200 hover:border-[#578FCA]/50"
+                }`}
               placeholder="Masukkan email Anda"
             />
           </div>
@@ -197,11 +199,10 @@ export default function LoginPage() {
               value={formData.password}
               onChange={handleChange}
               required
-              className={`w-full pl-10 pr-10 py-2.5 bg-gray-50 border rounded-lg focus:bg-white focus:ring-2 focus:ring-[#578FCA]/20 focus:border-[#578FCA] outline-none transition-all duration-200 font-poppins placeholder:text-gray-400 text-gray-700 text-sm ${
-                errors.password
-                  ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-red-100"
-                  : "border-gray-200 hover:border-[#578FCA]/50"
-              }`}
+              className={`w-full pl-10 pr-10 py-2.5 bg-gray-50 border rounded-lg focus:bg-white focus:ring-2 focus:ring-[#578FCA]/20 focus:border-[#578FCA] outline-none transition-all duration-200 font-poppins placeholder:text-gray-400 text-gray-700 text-sm ${errors.password
+                ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                : "border-gray-200 hover:border-[#578FCA]/50"
+                }`}
               placeholder="Masukkan password Anda"
             />
             <button

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
-  User,
+  User as UserIcon,
   Lock,
   Camera,
   Save,
@@ -28,10 +28,14 @@ import {
 } from "lucide-react";
 import { UserNavbar, MobileBottomNavbar } from "@/components/User/Beranda";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/components/ui";
+// Profile endpoints now handled via AuthContext (authService.upsertProfile)
 
 export default function PengaturanPage() {
   const router = useRouter();
-  const { user, logout, isLoading } = useAuth();
+  const authCtx = useAuth();
+  const { user, logout, isLoading, profilePending, upsertProfile } = authCtx;
+  const toast = useToast();
 
   // All hooks must be declared first before any conditional logic
   // Profile state - Initialize with user data
@@ -41,7 +45,11 @@ export default function PengaturanPage() {
     phone: "",
     birthDate: "",
     joinDate: "",
+    role: "",
+    backendLoaded: false,
   });
+
+  // Removed backendStatus; no direct legacy fetch to backend profile endpoints
 
   // Password state
   const [passwordData, setPasswordData] = useState({
@@ -59,9 +67,13 @@ export default function PengaturanPage() {
   const [editMode, setEditMode] = useState({
     profile: false,
     password: false,
+    completeProfile: false,
   });
   const [activeTab, setActiveTab] = useState("profile");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [savingCompletion, setSavingCompletion] = useState(false);
+  const [completionError, setCompletionError] = useState<string | null>(null);
+  const [completionSuccess, setCompletionSuccess] = useState<string | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -76,15 +88,16 @@ export default function PengaturanPage() {
   // Initialize profile data when user data is available
   useEffect(() => {
     if (user) {
-      setProfileData({
+      setProfileData(prev => ({
+        ...prev,
         name: user.profile?.full_name || user.email || "",
         email: user.email || "",
         phone: user.profile?.phone || "",
-        birthDate: "", // Add birthday to user profile if needed
-        joinDate: new Date().toISOString().split('T')[0], // Default to today, should come from API
-      });
+      }));
     }
   }, [user]);
+
+  // Removed legacy fetch from ProfileService; rely on context 'user' and upsertProfile
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -122,20 +135,24 @@ export default function PengaturanPage() {
   };
 
   const handleSaveProfile = async () => {
+    if (!profileData.name?.trim()) {
+      toast.warning('Nama wajib diisi');
+      return;
+    }
     try {
-      // TODO: Implement API call to update profile
-      console.log("Saving profile:", profileData);
-
-      // For now, just update local state
-      setEditMode({ ...editMode, profile: false });
-
-      // Show success message (you can add toast notification here)
-      alert("Profil berhasil disimpan!");
+      const result = await upsertProfile({ full_name: profileData.name.trim(), phone: profileData.phone || undefined });
+      if (result.success) {
+        setEditMode({ ...editMode, profile: false });
+        toast.success('Profil berhasil diperbarui');
+      } else {
+        toast.error(result.error || 'Gagal memperbarui profil');
+      }
     } catch (error) {
-      console.error("Error saving profile:", error);
-      alert("Gagal menyimpan profil. Silakan coba lagi.");
+      console.error('Error saving profile:', error);
+      toast.error('Gagal menyimpan profil. Silakan coba lagi.');
     }
   };
+
 
   const handleChangePassword = async () => {
     try {
@@ -144,12 +161,12 @@ export default function PengaturanPage() {
 
       // Validate passwords
       if (passwordData.newPassword !== passwordData.confirmPassword) {
-        alert("Password baru dan konfirmasi password tidak cocok!");
+        toast.warning("Password baru dan konfirmasi password tidak cocok!");
         return;
       }
 
       if (passwordData.newPassword.length < 6) {
-        alert("Password baru minimal 6 karakter!");
+        toast.info("Password baru minimal 6 karakter!");
         return;
       }
 
@@ -162,10 +179,10 @@ export default function PengaturanPage() {
       setEditMode({ ...editMode, password: false });
 
       // Show success message
-      alert("Password berhasil diubah!");
+      toast.success("Password berhasil diubah!");
     } catch (error) {
       console.error("Error changing password:", error);
-      alert("Gagal mengubah password. Silakan coba lagi.");
+      toast.error("Gagal mengubah password. Silakan coba lagi.");
     }
   };
 
@@ -175,11 +192,11 @@ export default function PengaturanPage() {
       logout();
       setShowLogoutModal(false);
 
-      // Redirect to login page
-      router.push("/login");
+      // Redirect to landing page
+      router.push("/");
     } catch (error) {
       console.error("Error during logout:", error);
-      alert("Gagal logout. Silakan coba lagi.");
+      toast.error("Gagal logout. Silakan coba lagi.");
     }
   };
 
@@ -190,7 +207,7 @@ export default function PengaturanPage() {
   };
 
   const tabs = [
-    { id: "profile", label: "Profil", icon: User },
+    { id: "profile", label: profilePending ? "Lengkapi Profil" : "Profil", icon: UserIcon },
     { id: "security", label: "Keamanan", icon: Shield },
     { id: "notifications", label: "Notifikasi", icon: Bell },
     { id: "preferences", label: "Preferensi", icon: Palette },
@@ -228,7 +245,7 @@ export default function PengaturanPage() {
               <div className="flex-1 flex flex-col md:flex-row md:items-center justify-center md:justify-start text-center md:text-left max-w-lg md:max-w-none">
                 {/* Icon - Mobile center, Desktop left */}
                 <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-14 md:h-14 bg-white/20 rounded-full flex items-center justify-center mb-3 md:mb-0 md:mr-4 lg:mr-5 group-hover:scale-110 transition-transform duration-300 mx-auto md:mx-0">
-                  <User className="w-6 h-6 sm:w-7 sm:h-7 md:w-7 md:h-7 text-white" />
+                  <UserIcon className="w-6 h-6 sm:w-7 sm:h-7 md:w-7 md:h-7 text-white" />
                 </div>
 
                 {/* Text Content */}
@@ -250,7 +267,7 @@ export default function PengaturanPage() {
               <div className="hidden md:flex flex-col justify-center items-center md:items-end">
                 <div className="w-16 h-16 lg:w-18 lg:h-18 bg-white/10 rounded-full flex items-center justify-center group-hover:rotate-12 transition-transform duration-500">
                   <div className="w-10 h-10 lg:w-11 lg:h-11 bg-white/20 rounded-full flex items-center justify-center">
-                    <User className="w-5 h-5 lg:w-6 lg:h-6 text-white/80" />
+                    <UserIcon className="w-5 h-5 lg:w-6 lg:h-6 text-white/80" />
                   </div>
                 </div>
               </div>
@@ -269,7 +286,7 @@ export default function PengaturanPage() {
                 <div className="flex items-center gap-3">
                   {(() => {
                     const currentTab = tabs.find((tab) => tab.id === activeTab);
-                    const IconComponent = currentTab?.icon || User;
+                    const IconComponent = currentTab?.icon || UserIcon;
                     return (
                       <>
                         <div className="w-10 h-10 bg-gradient-to-r from-[#578FCA] to-[#27548A] rounded-xl flex items-center justify-center">
@@ -309,8 +326,8 @@ export default function PengaturanPage() {
                           setShowDropdown(false);
                         }}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-300 text-sm ${isActive
-                            ? "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white shadow-lg"
-                            : "text-[#27548A] hover:bg-[#578FCA]/10 bg-gray-50"
+                          ? "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white shadow-lg"
+                          : "text-[#27548A] hover:bg-[#578FCA]/10 bg-gray-50"
                           }`}
                       >
                         <IconComponent className="w-5 h-5" />
@@ -334,8 +351,8 @@ export default function PengaturanPage() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center justify-center gap-2 px-4 py-4 rounded-2xl font-semibold transition-all duration-300 text-sm ${activeTab === tab.id
-                        ? "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white shadow-lg"
-                        : "text-[#27548A] hover:bg-[#578FCA]/10"
+                      ? "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white shadow-lg"
+                      : "text-[#27548A] hover:bg-[#578FCA]/10"
                       }`}
                   >
                     <IconComponent className="w-5 h-5" />
@@ -352,6 +369,13 @@ export default function PengaturanPage() {
           {/* Profile Section */}
           {activeTab === "profile" && (
             <div className="space-y-6 sm:space-y-8">
+              {profilePending && (
+                <div className="bg-orange-50 border border-orange-200 text-orange-800 text-sm rounded-xl p-4">
+                  <p className="font-semibold mb-1">Profil Anda belum lengkap</p>
+                  <p>Lengkapi nama lengkap (dan opsional nomor telepon) untuk melanjutkan penggunaan penuh.</p>
+                </div>
+              )}
+
               {/* Profile Picture Card */}
               <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl border border-[#578FCA]/20">
                 <h2 className="text-xl sm:text-2xl font-bold text-[#27548A] mb-6 flex items-center gap-3">
@@ -382,9 +406,11 @@ export default function PengaturanPage() {
                     <h3 className="text-lg sm:text-xl font-bold text-[#27548A] mb-2">
                       {user?.profile?.full_name || user?.email || "User"}
                     </h3>
-                    <p className="text-[#578FCA]/70 mb-4">
-                      Bergabung sejak{" "}
-                      {profileData.joinDate ? new Date(profileData.joinDate).toLocaleDateString("id-ID") : "Baru saja"}
+                    <p className="text-[#578FCA]/70 mb-4 text-sm">
+                      {profileData.joinDate && (
+                        <>Bergabung sejak {new Date(profileData.joinDate).toLocaleDateString('id-ID')}</>
+                      )}
+                      {!profileData.joinDate && 'Profil akun Anda'}
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3">
                       <button
@@ -416,133 +442,133 @@ export default function PengaturanPage() {
                 />
               </div>
 
-              {/* Profile Information Card */}
-              <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl border border-[#578FCA]/20">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl sm:text-2xl font-bold text-[#27548A] flex items-center gap-3">
-                    <User className="w-6 h-6 text-[#578FCA]" />
-                    Informasi Profil
-                  </h2>
-                  <button
-                    onClick={() => {
-                      if (editMode.profile) {
-                        handleSaveProfile();
-                      } else {
-                        setEditMode({ ...editMode, profile: true });
-                      }
-                    }}
-                    className={`flex items-center gap-2 px-4 sm:px-4 py-3 sm:py-2 rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base min-h-[44px] ${editMode.profile
+              {/* Profile Information / Completion Card */}
+              {!profilePending && (
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl border border-[#578FCA]/20">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl sm:text-2xl font-bold text-[#27548A] flex items-center gap-3">
+                      <UserIcon className="w-6 h-6 text-[#578FCA]" />
+                      Informasi Profil
+                    </h2>
+                    <button
+                      onClick={() => {
+                        if (editMode.profile) {
+                          handleSaveProfile();
+                        } else {
+                          setEditMode({ ...editMode, profile: true });
+                        }
+                      }}
+                      className={`flex items-center gap-2 px-4 sm:px-4 py-3 sm:py-2 rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base min-h-[44px] ${editMode.profile
                         ? "bg-green-500 text-white hover:bg-green-600"
                         : "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white hover:shadow-lg"
-                      }`}
-                  >
-                    {editMode.profile ? (
-                      <Save className="w-4 h-4 sm:w-4 sm:h-4" />
-                    ) : (
-                      <Edit3 className="w-4 h-4 sm:w-4 sm:h-4" />
-                    )}
-                    {editMode.profile ? "Simpan" : "Edit"}
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-[#27548A] mb-2">
-                      Nama Lengkap
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#578FCA]/60" />
-                      <input
-                        type="text"
-                        value={profileData.name}
-                        onChange={(e) =>
-                          setProfileData({
-                            ...profileData,
-                            name: e.target.value,
-                          })
-                        }
-                        disabled={!editMode.profile}
-                        className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile
-                            ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
-                            : "border-gray-200 bg-gray-50"
-                          } focus:outline-none`}
-                      />
-                    </div>
+                        }`}
+                    >
+                      {editMode.profile ? (
+                        <Save className="w-4 h-4 sm:w-4 sm:h-4" />
+                      ) : (
+                        <Edit3 className="w-4 h-4 sm:w-4 sm:h-4" />
+                      )}
+                      {editMode.profile ? "Simpan" : "Edit"}
+                    </button>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-[#27548A] mb-2">
-                      Email
-                    </label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#578FCA]/60" />
-                      <input
-                        type="email"
-                        value={profileData.email}
-                        onChange={(e) =>
-                          setProfileData({
-                            ...profileData,
-                            email: e.target.value,
-                          })
-                        }
-                        disabled={!editMode.profile}
-                        className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile
-                            ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
-                            : "border-gray-200 bg-gray-50"
-                          } focus:outline-none`}
-                      />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-[#27548A] mb-2">Nama Lengkap</label>
+                      <div className="relative">
+                        <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#578FCA]/60" />
+                        <input
+                          type="text"
+                          value={profileData.name}
+                          onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                          disabled={!editMode.profile}
+                          className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile ? 'border-[#578FCA]/30 focus:border-[#27548A] bg-white' : 'border-gray-200 bg-gray-50'} focus:outline-none`}
+                        />
+                      </div>
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-[#27548A] mb-2">
-                      Nomor Telepon
-                    </label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#578FCA]/60" />
-                      <input
-                        type="tel"
-                        value={profileData.phone}
-                        onChange={(e) =>
-                          setProfileData({
-                            ...profileData,
-                            phone: e.target.value,
-                          })
-                        }
-                        disabled={!editMode.profile}
-                        className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile
-                            ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
-                            : "border-gray-200 bg-gray-50"
-                          } focus:outline-none`}
-                      />
+                    <div>
+                      <label className="block text-sm font-semibold text-[#27548A] mb-2">Email</label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#578FCA]/60" />
+                        <input
+                          type="email"
+                          value={profileData.email}
+                          onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                          disabled={!editMode.profile}
+                          className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile ? 'border-[#578FCA]/30 focus:border-[#27548A] bg-white' : 'border-gray-200 bg-gray-50'} focus:outline-none`}
+                        />
+                      </div>
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-[#27548A] mb-2">
-                      Tanggal Lahir
-                    </label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#578FCA]/60" />
-                      <input
-                        type="date"
-                        value={profileData.birthDate}
-                        onChange={(e) =>
-                          setProfileData({
-                            ...profileData,
-                            birthDate: e.target.value,
-                          })
-                        }
-                        disabled={!editMode.profile}
-                        className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile
-                            ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
-                            : "border-gray-200 bg-gray-50"
-                          } focus:outline-none`}
-                      />
+                    <div>
+                      <label className="block text-sm font-semibold text-[#27548A] mb-2">Nomor Telepon</label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#578FCA]/60" />
+                        <input
+                          type="tel"
+                          value={profileData.phone}
+                          onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                          disabled={!editMode.profile}
+                          className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile ? 'border-[#578FCA]/30 focus:border-[#27548A] bg-white' : 'border-gray-200 bg-gray-50'} focus:outline-none`}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-[#27548A] mb-2">Tanggal Lahir</label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#578FCA]/60" />
+                        <input
+                          type="date"
+                          value={profileData.birthDate}
+                          onChange={(e) => setProfileData({ ...profileData, birthDate: e.target.value })}
+                          disabled={!editMode.profile}
+                          className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile ? 'border-[#578FCA]/30 focus:border-[#27548A] bg-white' : 'border-gray-200 bg-gray-50'} focus:outline-none`}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
+              {profilePending && (
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl border border-[#578FCA]/20">
+                  <h2 className="text-xl sm:text-2xl font-bold text-[#27548A] mb-6 flex items-center gap-3">
+                    <UserIcon className="w-6 h-6 text-[#578FCA]" />
+                    Lengkapi Profil
+                  </h2>
+                  {completionError && <p className='text-sm text-red-600 mb-3'>{completionError}</p>}
+                  {completionSuccess && <p className='text-sm text-green-600 mb-3'>{completionSuccess}</p>}
+                  <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    setCompletionError(null);
+                    setCompletionSuccess(null);
+                    if (!profileData.name.trim()) { setCompletionError('Nama wajib diisi'); return; }
+                    try {
+                      setSavingCompletion(true);
+                      const res = await upsertProfile({ full_name: profileData.name.trim(), phone: profileData.phone || undefined });
+                      if (res.success) {
+                        setCompletionSuccess('Profil berhasil dilengkapi');
+                        setTimeout(() => { /* stay or navigate to beranda */ }, 600);
+                      } else {
+                        setCompletionError(res.error || 'Gagal menyimpan');
+                      }
+                    } catch {
+                      setCompletionError('Terjadi kesalahan tak terduga');
+                    } finally {
+                      setSavingCompletion(false);
+                    }
+                  }} className='space-y-5'>
+                    <div>
+                      <label className='block text-sm font-semibold text-[#27548A] mb-2'>Nama Lengkap</label>
+                      <input value={profileData.name} onChange={e => setProfileData({ ...profileData, name: e.target.value })} className='w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#578FCA]/30 focus:border-[#578FCA]' placeholder='Nama lengkap Anda' required />
+                    </div>
+                    <div>
+                      <label className='block text-sm font-semibold text-[#27548A] mb-2'>Nomor Telepon (opsional)</label>
+                      <input value={profileData.phone} onChange={e => setProfileData({ ...profileData, phone: e.target.value })} className='w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#578FCA]/30 focus:border-[#578FCA]' placeholder='08xxxxxxxxxx' />
+                    </div>
+                    <button disabled={savingCompletion} className='w-full py-3 rounded-xl bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white font-semibold text-sm hover:from-[#4e86c8] hover:to-[#234770] transition disabled:opacity-60'>
+                      {savingCompletion ? 'Menyimpan...' : 'Simpan Profil'}
+                    </button>
+                  </form>
+                </div>
+              )}
             </div>
           )}
 
@@ -565,8 +591,8 @@ export default function PengaturanPage() {
                       }
                     }}
                     className={`flex items-center gap-2 px-4 sm:px-4 py-3 sm:py-2 rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base min-h-[44px] ${editMode.password
-                        ? "bg-green-500 text-white hover:bg-green-600"
-                        : "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white hover:shadow-lg"
+                      ? "bg-green-500 text-white hover:bg-green-600"
+                      : "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white hover:shadow-lg"
                       }`}
                   >
                     {editMode.password ? (
@@ -596,8 +622,8 @@ export default function PengaturanPage() {
                         }
                         disabled={!editMode.password}
                         className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.password
-                            ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
-                            : "border-gray-200 bg-gray-50"
+                          ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
+                          : "border-gray-200 bg-gray-50"
                           } focus:outline-none`}
                         placeholder="Masukkan password saat ini"
                       />
@@ -637,8 +663,8 @@ export default function PengaturanPage() {
                         }
                         disabled={!editMode.password}
                         className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.password
-                            ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
-                            : "border-gray-200 bg-gray-50"
+                          ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
+                          : "border-gray-200 bg-gray-50"
                           } focus:outline-none`}
                         placeholder="Masukkan password baru"
                       />
@@ -678,8 +704,8 @@ export default function PengaturanPage() {
                         }
                         disabled={!editMode.password}
                         className={`w-full pl-10 pr-12 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.password
-                            ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
-                            : "border-gray-200 bg-gray-50"
+                          ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
+                          : "border-gray-200 bg-gray-50"
                           } focus:outline-none`}
                         placeholder="Konfirmasi password baru"
                       />

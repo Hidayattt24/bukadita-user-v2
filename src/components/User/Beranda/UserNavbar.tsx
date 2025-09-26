@@ -27,7 +27,7 @@ export default function UserNavbar({
 
   const handleLogout = () => {
     logout();
-    router.push('/login');
+    router.push('/');
   };
 
   // Close menu when clicking outside
