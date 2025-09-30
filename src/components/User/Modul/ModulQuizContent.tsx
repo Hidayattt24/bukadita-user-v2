@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Brain,
   ArrowLeft,
   Clock,
   Target,
-  BookOpen,
   CheckCircle,
   XCircle,
   Award,
 } from "lucide-react";
-import { SubMateri, QuizResult, Quiz } from "@/data/detailModulData";
+import { SubMateri, QuizResult } from "@/data/detailModulData";
 
 interface ModulQuizContentProps {
   selectedSubMateri: SubMateri;
@@ -31,10 +30,44 @@ export default function ModulQuizContent({
   const [currentState, setCurrentState] = useState<QuizState>("instruction");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
-  const [showResult, setShowResult] = useState(false);
+  const [, setShowResult] = useState(false);
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
   const [isQuizActive, setIsQuizActive] = useState(false);
+
+  const finishQuiz = useCallback(() => {
+    setIsQuizActive(false);
+    const answers = selectedAnswers.map((answer, index) => {
+      const question = selectedSubMateri.quiz[index];
+      const selectedAnswerIndex = parseInt(answer);
+      const isCorrect = selectedAnswerIndex === question.correctAnswer;
+
+      return {
+        questionId: question.id,
+        selectedAnswer: selectedAnswerIndex,
+        isCorrect,
+        correctAnswer: question.correctAnswer,
+        questionText: question.question,
+        options: question.options,
+      };
+    });
+
+    const correctAnswers = answers.filter((answer) => answer.isCorrect).length;
+    const totalQuestions = selectedSubMateri.quiz.length;
+    const score = Math.round((correctAnswers / totalQuestions) * 100);
+
+    const result: QuizResult = {
+      score,
+      totalQuestions,
+      correctAnswers,
+      passed: score >= 70,
+      answers,
+    };
+
+    setQuizResult(result);
+    setCurrentState("result");
+    onQuizComplete(result);
+  }, [selectedAnswers, selectedSubMateri.quiz, onQuizComplete, timeLeft]);
 
   // Timer effect
   useEffect(() => {
@@ -51,7 +84,7 @@ export default function ModulQuizContent({
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isQuizActive, timeLeft, currentState]);
+  }, [isQuizActive, timeLeft, currentState, finishQuiz]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -96,39 +129,6 @@ export default function ModulQuizContent({
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
-  };
-
-  const finishQuiz = () => {
-    setIsQuizActive(false);
-    const answers = selectedAnswers.map((answer, index) => {
-      const question = selectedSubMateri.quiz[index];
-      const selectedAnswerIndex = parseInt(answer);
-      const isCorrect = selectedAnswerIndex === question.correctAnswer;
-
-      return {
-        questionId: question.id,
-        selectedAnswer: selectedAnswerIndex,
-        isCorrect,
-      };
-    });
-
-    const correctCount = answers.filter((answer) => answer.isCorrect).length;
-    const score = Math.round(
-      (correctCount / selectedSubMateri.quiz.length) * 100
-    );
-    const passed = score >= 70;
-
-    const result: QuizResult = {
-      score,
-      passed,
-      totalQuestions: selectedSubMateri.quiz.length,
-      correctAnswers: correctCount,
-      answers,
-    };
-
-    setQuizResult(result);
-    setCurrentState("result");
-    onQuizComplete(result);
   };
 
   const currentQuestion = selectedSubMateri.quiz[currentQuestionIndex];

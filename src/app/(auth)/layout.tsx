@@ -1,11 +1,8 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import React from "react";
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
-  const pathname = usePathname();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
       {/* Background Pattern */}

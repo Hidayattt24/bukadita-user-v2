@@ -68,8 +68,6 @@ export default function PengaturanPage() {
     sms: false,
   });
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   // Initialize profile data when user data is available
   useEffect(() => {
     if (user) {

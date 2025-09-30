@@ -63,7 +63,7 @@ export default function BerandaUser() {
     }
 
     return null;
-  }, [refreshTrigger]);
+  }, []);
 
   const accessedModuls = useMemo(() => {
     return modulPosyanduData

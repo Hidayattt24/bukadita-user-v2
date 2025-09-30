@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import {
   BookOpen,
@@ -13,17 +12,13 @@ import {
   Trophy,
   Lock,
   ArrowRight,
-  Filter,
   Search,
-  Calendar,
   BarChart3,
   ChevronDown,
-  X,
 } from "lucide-react";
 import { UserNavbar, MobileBottomNavbar } from "@/components/User/Beranda";
 import {
   modulPosyanduData,
-  getModulStatsByCategory,
   getCategories,
   type ModulData,
 } from "@/data/modulData";
