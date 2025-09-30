@@ -1,5 +1,6 @@
 export interface ModulData {
   id: number;
+  slug: string;
   title: string;
   description: string;
   duration: string;
@@ -24,6 +25,7 @@ export const modulPosyanduData: ModulData[] = [
   // Modul Pengelolaan Posyandu
   {
     id: 1,
+    slug: "pengelolaan-posyandu",
     title: "Modul Pengelolaan Posyandu",
     description:
       "Pelajari cara mengelola posyandu dengan baik, mulai dari administrasi, koordinasi kader, hingga pelaporan kegiatan.",
@@ -43,6 +45,7 @@ export const modulPosyanduData: ModulData[] = [
   // Modul Bayi & Balita
   {
     id: 2,
+    slug: "bayi-balita",
     title: "Modul Bayi & Balita",
     description:
       "Memahami tumbuh kembang bayi dan balita, pemberian ASI eksklusif, MPASI, dan stimulasi yang tepat.",
@@ -62,6 +65,7 @@ export const modulPosyanduData: ModulData[] = [
   // Modul Ibu Hamil & Menyusui
   {
     id: 3,
+    slug: "ibu-hamil-menyusui",
     title: "Modul Ibu Hamil & Menyusui",
     description:
       "Panduan lengkap perawatan kehamilan, persiapan persalinan, dan perawatan masa nifas serta menyusui.",
@@ -81,6 +85,7 @@ export const modulPosyanduData: ModulData[] = [
   // Modul Usia Sekolah & Remaja
   {
     id: 4,
+    slug: "usia-sekolah-remaja",
     title: "Modul Usia Sekolah & Remaja",
     description:
       "Edukasi kesehatan reproduksi remaja, gizi seimbang untuk anak sekolah, dan pencegahan penyakit pada remaja.",
@@ -100,6 +105,7 @@ export const modulPosyanduData: ModulData[] = [
   // Modul Dewasa & Lansia
   {
     id: 5,
+    slug: "dewasa-lansia",
     title: "Modul Dewasa & Lansia",
     description:
       "Pengelolaan hipertensi dan diabetes, perawatan kesehatan lansia, dan pola hidup sehat pada usia dewasa.",
@@ -130,6 +136,23 @@ export const getModulStatsByCategory = (category: string) => {
     inProgress: categoryModuls.filter((m) => m.status === "in-progress").length,
     notStarted: categoryModuls.filter((m) => m.status === "not-started").length,
   };
+};
+
+// Fungsi utility untuk membuat slug
+export const createSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/modul\s+/gi, "") // Remove "Modul" prefix
+    .replace(/[&]/g, "") // Remove &
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/[^\w\-]/g, "") // Remove special characters except hyphens
+    .replace(/\-+/g, "-") // Replace multiple hyphens with single hyphen
+    .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
+};
+
+// Fungsi untuk mendapatkan modul berdasarkan slug
+export const getModulBySlug = (slug: string): ModulData | undefined => {
+  return modulPosyanduData.find((modul) => modul.slug === slug);
 };
 
 // Fungsi untuk mendapatkan semua kategori

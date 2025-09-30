@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   BookOpen,
   Clock,
@@ -333,7 +334,13 @@ export default function ModulPage() {
                     <button
                       key={tab.key}
                       onClick={() => {
-                        setActiveTab(tab.key as any);
+                        setActiveTab(
+                          tab.key as
+                            | "all"
+                            | "not-started"
+                            | "in-progress"
+                            | "completed"
+                        );
                         setActiveDropdown("none");
                       }}
                       style={{
@@ -391,7 +398,15 @@ export default function ModulPage() {
             ].map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key as any)}
+                onClick={() =>
+                  setActiveTab(
+                    tab.key as
+                      | "all"
+                      | "not-started"
+                      | "in-progress"
+                      | "completed"
+                  )
+                }
                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-semibold transition-all duration-300 text-xs sm:text-sm md:text-base ${
                   activeTab === tab.key
                     ? "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white shadow-lg hover:shadow-xl"
@@ -611,7 +626,10 @@ export default function ModulPage() {
                 </div>
 
                 {/* Action Button */}
-                <button className="w-full bg-gradient-to-r from-[#578FCA] to-[#27548A] hover:from-[#27548A] hover:to-[#578FCA] text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-300 group-hover:shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-sm sm:text-base">
+                <Link
+                  href={`/user/modul/${module.slug}`}
+                  className="w-full bg-gradient-to-r from-[#578FCA] to-[#27548A] hover:from-[#27548A] hover:to-[#578FCA] text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-300 group-hover:shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-sm sm:text-base"
+                >
                   {module.status === "completed" && (
                     <>
                       <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -630,7 +648,7 @@ export default function ModulPage() {
                       <span>Mulai Belajar</span>
                     </>
                   )}
-                </button>
+                </Link>
               </div>
             </div>
           ))}
