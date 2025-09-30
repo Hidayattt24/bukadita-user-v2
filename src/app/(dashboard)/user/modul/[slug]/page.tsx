@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
-  getDetailModulById,
+  getDetailModulBySlug,
   DetailModul,
   SubMateri,
   PoinDetail,
@@ -29,19 +29,36 @@ export default function DetailModulPage() {
   );
   const [selectedPoinIndex, setSelectedPoinIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Default false untuk mobile-first
   const [expandedSubMateris, setExpandedSubMateris] = useState<string[]>([]);
   const [pageState, setPageState] = useState<PageState>("content");
+  const [isMobile, setIsMobile] = useState(true); // Default true untuk mobile-first
+
+  // Detect screen size and adjust sidebar behavior
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const isMobileSize = window.innerWidth < 768; // md breakpoint
+      setIsMobile(isMobileSize);
+      // Di desktop, sidebar default terbuka; di mobile, default tertutup
+      if (!isMobileSize && !sidebarOpen) {
+        setSidebarOpen(true);
+      }
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
 
   useEffect(() => {
-    const modulId = parseInt(params.id as string);
-    const modulData = getDetailModulById(modulId);
+    const modulSlug = params.slug as string;
+    const modulData = getDetailModulBySlug(modulSlug);
 
     if (modulData) {
       setModul(modulData);
       // Set default ke sub materi pertama yang unlocked
       const firstUnlockedSubMateri = modulData.subMateris.find(
-        (sub) => sub.isUnlocked
+        (sub: SubMateri) => sub.isUnlocked
       );
       if (firstUnlockedSubMateri) {
         setSelectedSubMateri(firstUnlockedSubMateri);
@@ -49,7 +66,7 @@ export default function DetailModulPage() {
       }
     }
     setLoading(false);
-  }, [params.id]);
+  }, [params.slug]);
 
   const handleSubMateriSelect = (subMateri: SubMateri) => {
     if (subMateri.isUnlocked) {
@@ -60,12 +77,20 @@ export default function DetailModulPage() {
       if (!expandedSubMateris.includes(subMateri.id)) {
         setExpandedSubMateris((prev) => [...prev, subMateri.id]);
       }
+      // Close sidebar on mobile after selection
+      if (isMobile) {
+        setSidebarOpen(false);
+      }
     }
   };
 
   const handlePoinSelect = (poinIndex: number) => {
     setSelectedPoinIndex(poinIndex);
     setPageState("content");
+    // Close sidebar on mobile after selection
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
   };
 
   const toggleSidebar = () => {
@@ -233,10 +258,11 @@ export default function DetailModulPage() {
         selectedSubMateri={selectedSubMateri}
         selectedPoinIndex={selectedPoinIndex}
         toggleSidebar={toggleSidebar}
+        sidebarOpen={sidebarOpen}
         pageState={pageState}
       />
 
-      <main className="flex flex-1 relative min-h-[calc(100vh-73px)]">
+      <main className="flex flex-1 relative min-h-[calc(100vh-73px)] pb-safe">
         {pageState === "quiz" && selectedSubMateri ? (
           <ModulQuizContent
             selectedSubMateri={selectedSubMateri}
@@ -272,7 +298,10 @@ export default function DetailModulPage() {
         />
       </main>
 
-      <MobileBottomNavbar activeMenu="modul" />
+      {/* Hanya tampilkan MobileBottomNavbar di desktop/tablet, tidak di mobile untuk halaman modul */}
+      <div className="hidden sm:block">
+        <MobileBottomNavbar activeMenu="modul" />
+      </div>
     </div>
   );
 }

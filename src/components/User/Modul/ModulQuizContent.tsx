@@ -136,21 +136,23 @@ export default function ModulQuizContent({
   return (
     <div
       className={`flex-1 transition-all duration-300 ${
-        sidebarOpen ? "mr-96" : "mr-0"
+        sidebarOpen ? "md:mr-96" : "mr-0"
       }`}
     >
-      <div className="flex flex-col h-full bg-white rounded-2xl shadow-lg m-6 overflow-hidden">
+      <div className="flex flex-col h-full bg-white rounded-none md:rounded-2xl shadow-none md:shadow-lg m-0 md:m-6 overflow-hidden">
         {/* Quiz Header */}
-        <div className="bg-gradient-to-r from-[#27548A] to-[#578FCA] p-8">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-white/20 rounded-lg">
-              <Brain className="w-6 h-6 text-white" />
+        <div className="bg-gradient-to-r from-[#27548A] to-[#578FCA] p-4 sm:p-6 md:p-8">
+          <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className="p-2 sm:p-3 bg-white/20 rounded-lg">
+              <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div>
-              <div className="text-blue-100 text-sm font-medium mb-1">
-                Kuis • {selectedSubMateri.title}
+            <div className="flex-1 min-w-0">
+              <div className="text-blue-100 text-xs sm:text-sm font-medium mb-1">
+                <span className="block sm:inline">
+                  Kuis • {selectedSubMateri.title}
+                </span>
               </div>
-              <h2 className="text-2xl font-bold text-white leading-tight">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white leading-tight">
                 {currentState === "instruction" && "Petunjuk Kuis"}
                 {currentState === "playing" &&
                   `Soal ${currentQuestionIndex + 1}`}
@@ -163,22 +165,23 @@ export default function ModulQuizContent({
             <button
               onClick={onBackToContent}
               disabled={currentState === "playing"}
-              className={`flex items-center gap-2 transition-colors ${
+              className={`flex items-center gap-1 sm:gap-2 transition-colors text-sm sm:text-base ${
                 currentState === "playing"
                   ? "text-blue-200/50 cursor-not-allowed"
                   : "text-blue-100 hover:text-white"
               }`}
             >
               <ArrowLeft className="w-4 h-4" />
-              Kembali ke Materi
+              <span className="hidden sm:inline">Kembali ke Materi</span>
+              <span className="inline sm:hidden">Kembali</span>
             </button>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               {currentState === "playing" && (
-                <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg">
-                  <Clock className="w-4 h-4 text-blue-100" />
+                <div className="flex items-center gap-1 sm:gap-2 bg-white/10 px-2 sm:px-4 py-1 sm:py-2 rounded-lg">
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-blue-100" />
                   <span
-                    className={`text-sm font-mono ${
+                    className={`text-xs sm:text-sm font-mono ${
                       timeLeft < 60 ? "text-red-200" : "text-blue-100"
                     }`}
                   >
@@ -187,10 +190,9 @@ export default function ModulQuizContent({
                 </div>
               )}
               {currentState === "playing" && (
-                <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg">
-                  <span className="text-sm text-blue-100">
-                    {currentQuestionIndex + 1} dari{" "}
-                    {selectedSubMateri.quiz.length}
+                <div className="flex items-center gap-1 sm:gap-2 bg-white/10 px-2 sm:px-4 py-1 sm:py-2 rounded-lg">
+                  <span className="text-xs sm:text-sm text-blue-100">
+                    {currentQuestionIndex + 1}/{selectedSubMateri.quiz.length}
                   </span>
                 </div>
               )}
@@ -199,35 +201,35 @@ export default function ModulQuizContent({
         </div>
 
         {/* Quiz Body */}
-        <div className="flex-1 p-8 overflow-y-auto bg-gray-50">
+        <div className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto bg-gray-50">
           {currentState === "instruction" && (
             <div className="max-w-4xl mx-auto">
               {/* History Nilai */}
               {selectedSubMateri.quizResult && (
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-6">
-                  <h3 className="text-lg font-bold text-[#27548A] mb-4">
+                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-200 mb-4 sm:mb-6">
+                  <h3 className="text-base sm:text-lg font-bold text-[#27548A] mb-3 sm:mb-4">
                     📊 Riwayat Kuis Sebelumnya
                   </h3>
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                    <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-xl">
+                    <div className="flex items-center gap-3 sm:gap-4">
                       <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ${
                           selectedSubMateri.quizResult.passed
                             ? "bg-green-100"
                             : "bg-red-100"
                         }`}
                       >
                         {selectedSubMateri.quizResult.passed ? (
-                          <CheckCircle className="w-6 h-6 text-green-600" />
+                          <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                         ) : (
-                          <XCircle className="w-6 h-6 text-red-600" />
+                          <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
                         )}
                       </div>
                       <div>
-                        <p className="font-bold text-[#27548A]">
+                        <p className="font-bold text-[#27548A] text-sm sm:text-base">
                           Nilai: {selectedSubMateri.quizResult.score}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs sm:text-sm text-gray-600">
                           {selectedSubMateri.quizResult.correctAnswers}/
                           {selectedSubMateri.quizResult.totalQuestions} soal
                           benar
@@ -249,48 +251,48 @@ export default function ModulQuizContent({
                 </div>
               )}
 
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 mb-6">
-                <h3 className="text-2xl font-bold text-[#27548A] mb-6">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-gray-200 mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-[#27548A] mb-4 sm:mb-6">
                   Petunjuk Kuis
                 </h3>
 
-                <div className="grid md:grid-cols-3 gap-6 mb-8">
-                  <div className="text-center p-6 bg-blue-50 rounded-xl">
-                    <Target className="w-12 h-12 text-[#578FCA] mx-auto mb-4" />
-                    <h4 className="font-bold text-[#27548A] mb-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
+                  <div className="text-center p-3 sm:p-6 bg-blue-50 rounded-lg sm:rounded-xl">
+                    <Target className="w-8 h-8 sm:w-12 sm:h-12 text-[#578FCA] mx-auto mb-2 sm:mb-4" />
+                    <h4 className="font-bold text-[#27548A] mb-1 sm:mb-2 text-sm sm:text-base">
                       {selectedSubMateri.quiz.length} Soal
                     </h4>
-                    <p className="text-sm text-[#27548A]/70">
+                    <p className="text-xs sm:text-sm text-[#27548A]/70">
                       Pilihan ganda untuk menguji pemahaman
                     </p>
                   </div>
 
-                  <div className="text-center p-6 bg-blue-50 rounded-xl">
-                    <Clock className="w-12 h-12 text-[#578FCA] mx-auto mb-4" />
-                    <h4 className="font-bold text-[#27548A] mb-2">
+                  <div className="text-center p-3 sm:p-6 bg-blue-50 rounded-lg sm:rounded-xl">
+                    <Clock className="w-8 h-8 sm:w-12 sm:h-12 text-[#578FCA] mx-auto mb-2 sm:mb-4" />
+                    <h4 className="font-bold text-[#27548A] mb-1 sm:mb-2 text-sm sm:text-base">
                       Waktu 5 Menit
                     </h4>
-                    <p className="text-sm text-[#27548A]/70">
+                    <p className="text-xs sm:text-sm text-[#27548A]/70">
                       Kerjakan dengan cepat dan teliti
                     </p>
                   </div>
 
-                  <div className="text-center p-6 bg-blue-50 rounded-xl">
-                    <Award className="w-12 h-12 text-[#578FCA] mx-auto mb-4" />
-                    <h4 className="font-bold text-[#27548A] mb-2">
+                  <div className="text-center p-3 sm:p-6 bg-blue-50 rounded-lg sm:rounded-xl">
+                    <Award className="w-8 h-8 sm:w-12 sm:h-12 text-[#578FCA] mx-auto mb-2 sm:mb-4" />
+                    <h4 className="font-bold text-[#27548A] mb-1 sm:mb-2 text-sm sm:text-base">
                       Nilai Lulus 70
                     </h4>
-                    <p className="text-sm text-[#27548A]/70">
+                    <p className="text-xs sm:text-sm text-[#27548A]/70">
                       Minimal 70% untuk melanjutkan
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-8">
-                  <h4 className="font-bold text-amber-800 mb-3">
+                <div className="bg-amber-50 border border-amber-200 rounded-lg sm:rounded-xl p-3 sm:p-6 mb-6 sm:mb-8">
+                  <h4 className="font-bold text-amber-800 mb-2 sm:mb-3 text-sm sm:text-base">
                     📋 Aturan Kuis:
                   </h4>
-                  <ul className="space-y-2 text-amber-700">
+                  <ul className="space-y-1 sm:space-y-2 text-amber-700 text-xs sm:text-sm">
                     <li>
                       • Pilih satu jawaban yang paling tepat untuk setiap soal
                     </li>
@@ -315,7 +317,7 @@ export default function ModulQuizContent({
                       ? handleRetakeQuiz
                       : handleStartQuiz
                   }
-                  className="w-full bg-gradient-to-r from-[#27548A] to-[#578FCA] text-white font-bold py-4 px-8 rounded-xl hover:from-[#1e3f63] hover:to-[#27548A] transition-all transform hover:scale-105"
+                  className="w-full bg-gradient-to-r from-[#27548A] to-[#578FCA] text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl hover:from-[#1e3f63] hover:to-[#27548A] transition-all transform hover:scale-105 text-sm sm:text-base"
                 >
                   {selectedSubMateri.quizResult ? "Ulangi Kuis" : "Mulai Kuis"}
                 </button>
@@ -325,14 +327,14 @@ export default function ModulQuizContent({
 
           {currentState === "playing" && currentQuestion && (
             <div className="max-w-4xl mx-auto">
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-medium text-[#578FCA]">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-gray-200">
+                <div className="mb-4 sm:mb-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-4 gap-2">
+                    <span className="text-xs sm:text-sm font-medium text-[#578FCA]">
                       Soal {currentQuestionIndex + 1} dari{" "}
                       {selectedSubMateri.quiz.length}
                     </span>
-                    <div className="w-48 bg-gray-200 rounded-full h-2">
+                    <div className="w-full sm:w-48 bg-gray-200 rounded-full h-2">
                       <div
                         className="bg-gradient-to-r from-[#27548A] to-[#578FCA] h-2 rounded-full transition-all"
                         style={{
@@ -346,26 +348,26 @@ export default function ModulQuizContent({
                     </div>
                   </div>
 
-                  <h3 className="text-xl font-bold text-[#27548A] mb-6">
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-[#27548A] mb-4 sm:mb-6 leading-tight">
                     {currentQuestion.question}
                   </h3>
                 </div>
 
-                <div className="space-y-4 mb-8">
+                <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
                   {currentQuestion.options.map((option, index) => (
                     <button
                       key={index}
                       onClick={() => handleAnswerSelect(index)}
-                      className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+                      className={`w-full text-left p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
                         selectedAnswers[currentQuestionIndex] ===
                         index.toString()
                           ? "border-[#578FCA] bg-blue-50 text-[#27548A]"
                           : "border-gray-200 bg-white hover:border-[#578FCA] hover:bg-blue-50"
                       }`}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <div
-                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                          className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
                             selectedAnswers[currentQuestionIndex] ===
                             index.toString()
                               ? "border-[#578FCA] bg-[#578FCA]"
@@ -374,16 +376,52 @@ export default function ModulQuizContent({
                         >
                           {selectedAnswers[currentQuestionIndex] ===
                             index.toString() && (
-                            <div className="w-3 h-3 bg-white rounded-full"></div>
+                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white rounded-full"></div>
                           )}
                         </div>
-                        <span className="font-medium">{option}</span>
+                        <span className="font-medium text-sm sm:text-base leading-tight">
+                          {option}
+                        </span>
                       </div>
                     </button>
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between">
+                {/* Mobile Layout */}
+                <div className="flex flex-col gap-3 sm:hidden">
+                  <div className="flex justify-between gap-3">
+                    <button
+                      onClick={handlePreviousQuestion}
+                      disabled={currentQuestionIndex === 0}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center ${
+                        currentQuestionIndex === 0
+                          ? "bg-gray-50 text-gray-400 cursor-not-allowed"
+                          : "bg-gray-100 text-[#27548A] hover:bg-gray-200"
+                      }`}
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      Sebelumnya
+                    </button>
+
+                    <button
+                      onClick={handleNextQuestion}
+                      disabled={!selectedAnswers[currentQuestionIndex]}
+                      className={`px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center flex items-center ${
+                        !selectedAnswers[currentQuestionIndex]
+                          ? "bg-gray-50 text-gray-400 cursor-not-allowed"
+                          : "bg-gradient-to-r from-[#27548A] to-[#578FCA] text-white hover:from-[#1e3f63] hover:to-[#27548A]"
+                      }`}
+                    >
+                      {currentQuestionIndex ===
+                      selectedSubMateri.quiz.length - 1
+                        ? "Selesai"
+                        : "Selanjutnya"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Desktop Layout */}
+                <div className="hidden sm:flex items-center justify-between">
                   <button
                     onClick={handlePreviousQuestion}
                     disabled={currentQuestionIndex === 0}
@@ -417,67 +455,71 @@ export default function ModulQuizContent({
 
           {currentState === "result" && quizResult && (
             <div className="max-w-4xl mx-auto">
-              <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-200 text-center">
+              <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-gray-200 text-center">
                 <div
-                  className={`w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center ${
+                  className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 mx-auto mb-4 sm:mb-6 rounded-full flex items-center justify-center ${
                     quizResult.passed ? "bg-green-100" : "bg-red-100"
                   }`}
                 >
                   {quizResult.passed ? (
-                    <CheckCircle className="w-12 h-12 text-green-600" />
+                    <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-green-600" />
                   ) : (
-                    <XCircle className="w-12 h-12 text-red-600" />
+                    <XCircle className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-red-600" />
                   )}
                 </div>
 
                 <h3
-                  className={`text-3xl font-bold mb-2 ${
+                  className={`text-xl sm:text-2xl md:text-3xl font-bold mb-2 ${
                     quizResult.passed ? "text-green-600" : "text-red-600"
                   }`}
                 >
                   {quizResult.passed ? "Selamat!" : "Belum Berhasil"}
                 </h3>
 
-                <p className="text-[#27548A]/70 mb-8">
+                <p className="text-[#27548A]/70 mb-6 sm:mb-8 text-sm sm:text-base px-4 sm:px-0">
                   {quizResult.passed
                     ? "Anda telah menyelesaikan kuis dengan baik"
                     : "Jangan menyerah, coba lagi untuk hasil yang lebih baik"}
                 </p>
 
-                <div className="grid md:grid-cols-3 gap-6 mb-8">
-                  <div className="p-6 bg-blue-50 rounded-xl">
-                    <div className="text-3xl font-bold text-[#578FCA] mb-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 mb-6 sm:mb-8">
+                  <div className="p-4 sm:p-6 bg-blue-50 rounded-lg sm:rounded-xl text-center">
+                    <div className="text-2xl sm:text-3xl font-bold text-[#578FCA] mb-1 sm:mb-2">
                       {quizResult.score}
                     </div>
-                    <div className="text-sm text-[#27548A]/70">Nilai Akhir</div>
+                    <div className="text-xs sm:text-sm text-[#27548A]/70">
+                      Nilai Akhir
+                    </div>
                   </div>
 
-                  <div className="p-6 bg-blue-50 rounded-xl">
-                    <div className="text-3xl font-bold text-[#578FCA] mb-2">
+                  <div className="p-4 sm:p-6 bg-blue-50 rounded-lg sm:rounded-xl text-center">
+                    <div className="text-2xl sm:text-3xl font-bold text-[#578FCA] mb-1 sm:mb-2">
                       {quizResult.correctAnswers}/{quizResult.totalQuestions}
                     </div>
-                    <div className="text-sm text-[#27548A]/70">
+                    <div className="text-xs sm:text-sm text-[#27548A]/70">
                       Jawaban Benar
                     </div>
                   </div>
 
-                  <div className="p-6 bg-blue-50 rounded-xl">
+                  <div className="p-4 sm:p-6 bg-blue-50 rounded-lg sm:rounded-xl text-center">
                     <div
-                      className={`text-3xl font-bold mb-2 ${
+                      className={`text-2xl sm:text-3xl font-bold mb-1 sm:mb-2 ${
                         quizResult.passed ? "text-green-600" : "text-red-600"
                       }`}
                     >
                       {quizResult.passed ? "LULUS" : "GAGAL"}
                     </div>
-                    <div className="text-sm text-[#27548A]/70">Status</div>
+                    <div className="text-xs sm:text-sm text-[#27548A]/70">
+                      Status
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex gap-4 justify-center">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">
                   {!quizResult.passed && (
                     <button
                       onClick={handleRetakeQuiz}
-                      className="px-6 py-3 bg-amber-500 text-white font-medium rounded-xl hover:bg-amber-600 transition-colors"
+                      className="px-4 sm:px-6 py-2.5 sm:py-3 bg-amber-500 text-white font-medium rounded-lg sm:rounded-xl hover:bg-amber-600 transition-colors text-sm sm:text-base"
                     >
                       Ulangi Kuis
                     </button>
@@ -489,11 +531,16 @@ export default function ModulQuizContent({
                         ? onContinueToNext
                         : onBackToContent
                     }
-                    className="px-6 py-3 bg-gradient-to-r from-[#27548A] to-[#578FCA] text-white font-medium rounded-xl hover:from-[#1e3f63] hover:to-[#27548A] transition-colors"
+                    className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#27548A] to-[#578FCA] text-white font-medium rounded-lg sm:rounded-xl hover:from-[#1e3f63] hover:to-[#27548A] transition-colors text-sm sm:text-base"
                   >
-                    {quizResult.passed
-                      ? "Lanjut ke Materi Berikutnya"
-                      : "Kembali ke Materi"}
+                    <span className="hidden sm:inline">
+                      {quizResult.passed
+                        ? "Lanjut ke Materi Berikutnya"
+                        : "Kembali ke Materi"}
+                    </span>
+                    <span className="inline sm:hidden">
+                      {quizResult.passed ? "Lanjut" : "Kembali"}
+                    </span>
                   </button>
                 </div>
               </div>

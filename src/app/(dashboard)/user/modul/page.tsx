@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   BookOpen,
   Clock,
@@ -611,7 +612,10 @@ export default function ModulPage() {
                 </div>
 
                 {/* Action Button */}
-                <button className="w-full bg-gradient-to-r from-[#578FCA] to-[#27548A] hover:from-[#27548A] hover:to-[#578FCA] text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-300 group-hover:shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-sm sm:text-base">
+                <Link
+                  href={`/user/modul/${module.slug}`}
+                  className="w-full bg-gradient-to-r from-[#578FCA] to-[#27548A] hover:from-[#27548A] hover:to-[#578FCA] text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-300 group-hover:shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-sm sm:text-base"
+                >
                   {module.status === "completed" && (
                     <>
                       <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -630,7 +634,7 @@ export default function ModulPage() {
                       <span>Mulai Belajar</span>
                     </>
                   )}
-                </button>
+                </Link>
               </div>
             </div>
           ))}

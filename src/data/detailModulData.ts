@@ -38,6 +38,7 @@ export interface SubMateri {
 
 export interface DetailModul {
   id: number;
+  slug: string;
   title: string;
   description: string;
   duration: string;
@@ -61,6 +62,7 @@ export interface DetailModul {
 export const detailModulData: DetailModul[] = [
   {
     id: 1,
+    slug: "pengelolaan-posyandu",
     title: "Modul Pengelolaan Posyandu",
     description:
       "Pelajari cara mengelola posyandu dengan baik, mulai dari administrasi, koordinasi kader, hingga pelaporan kegiatan.",
@@ -392,6 +394,7 @@ export const detailModulData: DetailModul[] = [
   },
   {
     id: 2,
+    slug: "bayi-balita",
     title: "Modul Bayi & Balita",
     description:
       "Memahami tumbuh kembang bayi dan balita, pemberian ASI eksklusif, MPASI, dan stimulasi yang tepat.",
@@ -522,10 +525,287 @@ export const detailModulData: DetailModul[] = [
       },
     ],
   },
+  {
+    id: 3,
+    slug: "ibu-hamil-menyusui",
+    title: "Modul Ibu Hamil & Menyusui",
+    description:
+      "Panduan lengkap perawatan kehamilan, persiapan persalinan, dan perawatan masa nifas serta menyusui.",
+    duration: "4 jam 10 menit",
+    lessons: 14,
+    difficulty: "Menengah",
+    category: "Ibu Hamil & Menyusui",
+    status: "not-started",
+    progress: 0,
+    rating: 4.7,
+    students: 950,
+    thumbnail: "/dummy/dummy-fotoprofil.png",
+    instructor: "Dr. Lisa Kartika",
+    estimatedCompletion: "6 hari",
+    overview:
+      "Modul ini memberikan panduan komprehensif untuk mendampingi ibu hamil dan menyusui dengan informasi terkini dan praktis.",
+    learningObjectives: [
+      "Memahami perubahan fisik dan psikis selama kehamilan",
+      "Menguasai teknik menyusui yang benar",
+      "Dapat memberikan konseling laktasi",
+      "Mampu mendeteksi tanda bahaya kehamilan",
+    ],
+    requirements: [
+      "Pengetahuan dasar kesehatan reproduksi",
+      "Kepedulian terhadap kesehatan ibu",
+      "Kemampuan komunikasi yang baik",
+    ],
+    subMateris: [
+      {
+        id: "sub1",
+        title: "Perawatan Kehamilan",
+        description: "Memahami perawatan dasar selama masa kehamilan",
+        duration: "60 menit",
+        isCompleted: false,
+        isUnlocked: true,
+        currentPoinIndex: 0,
+        poinDetails: [
+          {
+            id: "poin1-1",
+            title: "Perubahan Tubuh Selama Kehamilan",
+            content:
+              "Selama kehamilan, tubuh ibu mengalami berbagai perubahan fisik dan hormonal yang normal terjadi untuk mendukung pertumbuhan janin.",
+            duration: "20 menit",
+            isCompleted: false,
+            type: "text",
+          },
+          {
+            id: "poin1-2",
+            title: "Nutrisi Penting untuk Ibu Hamil",
+            content:
+              "Kebutuhan nutrisi ibu hamil meningkat untuk mendukung pertumbuhan janin yang optimal, termasuk asam folat, zat besi, dan kalsium.",
+            duration: "20 menit",
+            isCompleted: false,
+            type: "text",
+          },
+          {
+            id: "poin1-3",
+            title: "Tanda Bahaya Kehamilan",
+            content:
+              "Mengenali tanda-tanda bahaya selama kehamilan seperti perdarahan, nyeri perut yang hebat, dan pembengkakan yang berlebihan.",
+            duration: "20 menit",
+            isCompleted: false,
+            type: "text",
+          },
+        ],
+        quiz: [
+          {
+            id: "quiz1-1",
+            question: "Apa saja tanda bahaya kehamilan yang perlu diwaspadai?",
+            options: [
+              "Mual muntah ringan",
+              "Perdarahan pervaginam",
+              "Pergerakan janin yang aktif",
+              "Penambahan berat badan normal",
+            ],
+            correctAnswer: 1,
+            explanation:
+              "Perdarahan pervaginam merupakan salah satu tanda bahaya kehamilan yang memerlukan penanganan medis segera.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 4,
+    slug: "usia-sekolah-remaja",
+    title: "Modul Usia Sekolah & Remaja",
+    description:
+      "Edukasi kesehatan reproduksi remaja, gizi seimbang untuk anak sekolah, dan pencegahan penyakit pada remaja.",
+    duration: "3 jam 15 menit",
+    lessons: 10,
+    difficulty: "Menengah",
+    category: "Usia Sekolah & Remaja",
+    status: "in-progress",
+    progress: 30,
+    rating: 4.6,
+    students: 1100,
+    thumbnail: "/dummy/dummy-fotoprofil.png",
+    instructor: "Dr. Ahmad Fauzi",
+    estimatedCompletion: "5 hari",
+    overview:
+      "Modul khusus untuk memahami kebutuhan kesehatan anak usia sekolah dan remaja dengan pendekatan yang sesuai tahap perkembangan.",
+    learningObjectives: [
+      "Memahami tahap perkembangan remaja",
+      "Dapat memberikan edukasi kesehatan reproduksi",
+      "Menguasai prinsip gizi seimbang untuk remaja",
+      "Mampu berkomunikasi efektif dengan remaja",
+    ],
+    requirements: [
+      "Pengalaman berinteraksi dengan remaja",
+      "Pemahaman dasar psikologi perkembangan",
+      "Kemampuan komunikasi yang baik",
+    ],
+    subMateris: [
+      {
+        id: "sub1",
+        title: "Kesehatan Reproduksi Remaja",
+        description:
+          "Memahami edukasi kesehatan reproduksi yang tepat untuk remaja",
+        duration: "45 menit",
+        isCompleted: false,
+        isUnlocked: true,
+        currentPoinIndex: 0,
+        poinDetails: [
+          {
+            id: "poin1-1",
+            title: "Perubahan Fisik Masa Pubertas",
+            content:
+              "Masa pubertas adalah periode perubahan fisik dan hormonal yang menandai transisi dari anak-anak menuju dewasa.",
+            duration: "15 menit",
+            isCompleted: false,
+            type: "text",
+          },
+          {
+            id: "poin1-2",
+            title: "Edukasi Kesehatan Reproduksi",
+            content:
+              "Memberikan informasi yang akurat dan sesuai usia tentang kesehatan reproduksi untuk mencegah perilaku berisiko.",
+            duration: "15 menit",
+            isCompleted: false,
+            type: "text",
+          },
+          {
+            id: "poin1-3",
+            title: "Pencegahan Penyakit Menular Seksual",
+            content:
+              "Edukasi tentang cara pencegahan penyakit menular seksual dan pentingnya perilaku seks yang aman dan bertanggung jawab.",
+            duration: "15 menit",
+            isCompleted: false,
+            type: "text",
+          },
+        ],
+        quiz: [
+          {
+            id: "quiz1-1",
+            question:
+              "Kapan waktu yang tepat untuk memberikan edukasi kesehatan reproduksi?",
+            options: [
+              "Setelah remaja aktif secara seksual",
+              "Sebelum masa pubertas dimulai",
+              "Hanya ketika remaja bertanya",
+              "Setelah remaja menikah",
+            ],
+            correctAnswer: 1,
+            explanation:
+              "Edukasi kesehatan reproduksi sebaiknya diberikan sebelum masa pubertas untuk mempersiapkan remaja menghadapi perubahan yang akan terjadi.",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 5,
+    slug: "dewasa-lansia",
+    title: "Modul Dewasa & Lansia",
+    description:
+      "Pengelolaan hipertensi dan diabetes, perawatan kesehatan lansia, dan pola hidup sehat pada usia dewasa.",
+    duration: "4 jam 25 menit",
+    lessons: 16,
+    difficulty: "Lanjutan",
+    category: "Dewasa & Lansia",
+    status: "not-started",
+    progress: 0,
+    rating: 4.8,
+    students: 720,
+    thumbnail: "/dummy/dummy-fotoprofil.png",
+    instructor: "Dr. Andi Wijaya",
+    estimatedCompletion: "7 hari",
+    overview:
+      "Modul lanjutan untuk memahami pengelolaan kesehatan dewasa dan lansia dengan fokus pada penyakit tidak menular dan perawatan jangka panjang.",
+    learningObjectives: [
+      "Menguasai pengelolaan hipertensi dan diabetes",
+      "Memahami kebutuhan kesehatan lansia",
+      "Dapat merancang program kesehatan komunitas",
+      "Mampu memberikan konseling gaya hidup sehat",
+    ],
+    requirements: [
+      "Pengetahuan dasar penyakit tidak menular",
+      "Pengalaman dalam pelayanan kesehatan",
+      "Kemampuan analisis dan evaluasi",
+    ],
+    subMateris: [
+      {
+        id: "sub1",
+        title: "Pengelolaan Hipertensi",
+        description:
+          "Memahami cara mengelola dan mencegah hipertensi pada dewasa",
+        duration: "50 menit",
+        isCompleted: false,
+        isUnlocked: true,
+        currentPoinIndex: 0,
+        poinDetails: [
+          {
+            id: "poin1-1",
+            title: "Pengertian dan Klasifikasi Hipertensi",
+            content:
+              "Hipertensi adalah kondisi tekanan darah tinggi yang dapat menyebabkan komplikasi serius jika tidak dikelola dengan baik.",
+            duration: "15 menit",
+            isCompleted: false,
+            type: "text",
+          },
+          {
+            id: "poin1-2",
+            title: "Faktor Risiko Hipertensi",
+            content:
+              "Berbagai faktor risiko hipertensi meliputi faktor yang dapat dimodifikasi seperti diet dan aktivitas fisik, serta faktor yang tidak dapat dimodifikasi seperti usia dan genetik.",
+            duration: "20 menit",
+            isCompleted: false,
+            type: "text",
+          },
+          {
+            id: "poin1-3",
+            title: "Pengelolaan Non-Farmakologis",
+            content:
+              "Pendekatan non-farmakologis untuk mengelola hipertensi meliputi modifikasi gaya hidup, diet rendah garam, olahraga teratur, dan manajemen stres.",
+            duration: "15 menit",
+            isCompleted: false,
+            type: "text",
+          },
+        ],
+        quiz: [
+          {
+            id: "quiz1-1",
+            question: "Apa definisi hipertensi menurut standar terbaru?",
+            options: [
+              "Tekanan darah ≥120/80 mmHg",
+              "Tekanan darah ≥130/80 mmHg",
+              "Tekanan darah ≥140/90 mmHg",
+              "Tekanan darah ≥150/90 mmHg",
+            ],
+            correctAnswer: 2,
+            explanation:
+              "Menurut standar terbaru, hipertensi didefinisikan sebagai tekanan darah ≥140/90 mmHg pada pengukuran berulang.",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export const getDetailModulById = (id: number): DetailModul | null => {
   return detailModulData.find((modul) => modul.id === id) || null;
+};
+
+export const getDetailModulBySlug = (slug: string): DetailModul | null => {
+  return detailModulData.find((modul) => modul.slug === slug) || null;
+};
+
+// Fungsi utility untuk membuat slug
+export const createSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/modul\s+/gi, "") // Remove "Modul" prefix
+    .replace(/[&]/g, "") // Remove &
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/[^\w\-]/g, "") // Remove special characters except hyphens
+    .replace(/\-+/g, "-") // Replace multiple hyphens with single hyphen
+    .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
 };
 
 export const updateSubMateriProgress = (
