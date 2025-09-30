@@ -6,7 +6,10 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate-icons": "node generate-icons.js",
+    "generate-screenshots": "node generate-screenshots.js",
+    "pwa:build": "npm run generate-icons && npm run generate-screenshots && npm run build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
@@ -20,6 +23,7 @@
     "lucide-react": "^0.541.0",
     "motion": "^12.23.12",
     "next": "15.5.0",
+    "next-pwa": "^5.6.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-icons": "^5.5.0",
@@ -34,6 +38,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.0",
+    "sharp": "^0.34.4",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.8",
     "typescript": "^5"
