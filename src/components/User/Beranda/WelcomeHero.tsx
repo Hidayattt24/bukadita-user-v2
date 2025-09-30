@@ -1,16 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 
-interface UserProfile {
-  full_name?: string;
-  email?: string;
-  [key: string]: any;
-}
-
-interface User {
-  email?: string;
-  profile?: UserProfile;
-  [key: string]: any;
-}
+import { User } from "@/context/AuthContext";
 
 interface WelcomeHeroProps {
   user: User | null;

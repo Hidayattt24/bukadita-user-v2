@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import Image from "next/image";
 import {
   Camera,
@@ -48,7 +48,10 @@ interface ProfileSectionProps {
   handleImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleSaveProfile: () => Promise<void>;
   profilePending: boolean;
-  upsertProfile: (data: any) => Promise<any>;
+  upsertProfile: (data: {
+    full_name: string;
+    phone?: string;
+  }) => Promise<{ success: boolean; error?: string }>;
   savingCompletion: boolean;
   setSavingCompletion: (saving: boolean) => void;
   completionError: string | null;

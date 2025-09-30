@@ -60,8 +60,8 @@ export default function ModulContent({
               Pilih Materi untuk Mulai Belajar
             </h3>
             <p className="text-sm sm:text-base text-gray-600 px-4">
-              Gunakan tombol "Materi" di atas untuk memilih sub materi yang
-              ingin dipelajari
+              Gunakan tombol &quot;Materi&quot; di atas untuk memilih sub materi
+              yang ingin dipelajari
             </p>
           </div>
         </div>

@@ -334,7 +334,13 @@ export default function ModulPage() {
                     <button
                       key={tab.key}
                       onClick={() => {
-                        setActiveTab(tab.key as any);
+                        setActiveTab(
+                          tab.key as
+                            | "all"
+                            | "not-started"
+                            | "in-progress"
+                            | "completed"
+                        );
                         setActiveDropdown("none");
                       }}
                       style={{
@@ -392,7 +398,15 @@ export default function ModulPage() {
             ].map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key as any)}
+                onClick={() =>
+                  setActiveTab(
+                    tab.key as
+                      | "all"
+                      | "not-started"
+                      | "in-progress"
+                      | "completed"
+                  )
+                }
                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-semibold transition-all duration-300 text-xs sm:text-sm md:text-base ${
                   activeTab === tab.key
                     ? "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white shadow-lg hover:shadow-xl"

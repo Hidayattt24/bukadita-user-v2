@@ -2,7 +2,6 @@ import {
   User as UserIcon,
   Shield,
   Bell,
-  Palette,
   ChevronDown,
   ChevronUp,
   Check,
@@ -11,7 +10,7 @@ import {
 interface Tab {
   id: string;
   label: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 }
 
 interface SettingsNavigationProps {
@@ -37,7 +36,6 @@ export default function SettingsNavigation({
     },
     { id: "security", label: "Keamanan", icon: Shield },
     { id: "notifications", label: "Notifikasi", icon: Bell },
-    { id: "preferences", label: "Preferensi", icon: Palette },
   ];
 
   return (
@@ -109,23 +107,23 @@ export default function SettingsNavigation({
         </div>
       </div>
 
-      {/* Desktop Navigation - Original Grid */}
-      <div className="hidden sm:block bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-2 shadow-xl border border-[#578FCA]/20 max-w-4xl mx-auto mb-8 mt-4 px-2">
-        <div className="grid grid-cols-4 gap-2">
+      {/* Desktop Navigation - Icon Centered */}
+      <div className="hidden sm:block bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-2 shadow-xl border border-[#578FCA]/20 max-w-4xl mx-auto mb-8 mt-4">
+        <div className="grid grid-cols-3 gap-2">
           {tabs.map((tab) => {
             const IconComponent = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center justify-center gap-2 px-4 py-4 rounded-2xl font-semibold transition-all duration-300 text-sm ${
+                className={`flex flex-col items-center justify-center gap-2 px-4 py-4 rounded-2xl font-semibold transition-all duration-300 text-sm ${
                   activeTab === tab.id
                     ? "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white shadow-lg"
                     : "text-[#27548A] hover:bg-[#578FCA]/10"
                 }`}
               >
-                <IconComponent className="w-5 h-5" />
-                <span>{tab.label}</span>
+                <IconComponent className="w-6 h-6" />
+                <span className="text-center">{tab.label}</span>
               </button>
             );
           })}
