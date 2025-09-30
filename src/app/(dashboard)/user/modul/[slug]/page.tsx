@@ -64,6 +64,11 @@ export default function DetailModulPage() {
         setSelectedSubMateri(firstUnlockedSubMateri);
         setSelectedPoinIndex(0);
       }
+
+      // Save to localStorage for demo purposes (beranda will show this as last accessed)
+      localStorage.setItem("lastAccessedModul", modulSlug);
+      localStorage.setItem("lastAccessedModulTitle", modulData.title);
+      localStorage.setItem("lastAccessedTime", new Date().toISOString());
     }
     setLoading(false);
   }, [params.slug]);
