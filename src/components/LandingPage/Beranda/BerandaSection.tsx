@@ -34,14 +34,16 @@ export default function BerandaSection() {
       <div className="relative z-10 w-full max-w-6xl mx-auto text-center">
         {/* Main Title */}
         <h1 className="mb-4 sm:mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[48px] font-medium text-[#3674B5] font-poppins leading-tight">
-          Lorem ipsum dolor sit amet,
+          Bukadita
           <br className="hidden sm:block" />
-          <span className="block sm:inline"> consectetur adipiscing elit.</span>
+          <span className="block text-xl sm:inline">(Buku Kader Digital)</span>
         </h1>
 
         {/* Subtitle */}
         <p className="mb-8 sm:mb-10 lg:mb-12 text-sm sm:text-base lg:text-[16px] font-medium text-[#27548A] font-poppins max-w-2xl mx-auto px-4">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+          Platform digital untuk mendukung kader posyandu dalam pelaksanaan
+          tugasnya, meningkatkan pengetahuan, dan mempermudah pelaporan kegiatan
+          posyandu secara efisien.
         </p>
 
         {/* Action Buttons */}
@@ -79,7 +81,7 @@ export default function BerandaSection() {
             </video>
 
             {/* Video Text Overlay - Right Aligned */}
-            <div className="absolute inset-0 flex items-center justify-end pr-4 sm:pr-6 lg:pr-8">
+            {/* <div className="absolute inset-0 flex items-center justify-end pr-4 sm:pr-6 lg:pr-8">
               <div className="text-right">
                 <h3 className="text-white text-right font-poppins text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-[32px] font-medium leading-tight">
                   Lorem ipsum dolor sit amet,
@@ -90,7 +92,7 @@ export default function BerandaSection() {
                   </span>
                 </h3>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

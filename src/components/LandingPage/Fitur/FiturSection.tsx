@@ -1,110 +1,108 @@
 import React from "react";
 import { DotPattern } from "@/components/magicui/dot-pattern";
-import { InfiniteMovingCards } from "@/components/ui";
+import Image from "next/image";
 
-export default function FiturSection() {
-  const features = [
+interface KaderMember {
+  position: string;
+  name: string;
+  photo?: string;
+}
+
+export default function StrukturKaderSection() {
+  const kaderData: KaderMember[] = [
     {
-      icon: (
-        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-          <svg
-            className="w-8 h-8 text-white"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-        </div>
-      ),
-      title: "Pembelajaran Interaktif",
-      description:
-        "Materi pembelajaran yang interaktif dan mudah dipahami untuk semua tingkatan kader posyandu.",
+      position: "PEMBINA",
+      name: "CUT YUSNAR, ST., MT",
+      photo: "/dummy/dummy-fotoprofil.png",
     },
     {
-      icon: (
-        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-          <svg
-            className="w-8 h-8 text-white"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-      ),
-      title: "Tracking Progress",
-      description:
-        "Pantau perkembangan pembelajaran dan pencapaian kompetensi secara real-time dengan mudah.",
+      position: "KETUA POSYANDU",
+      name: "SYARIFAH NADIRA",
+      photo: "/dummy/dummy-fotoprofil.png",
     },
     {
-      icon: (
-        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-          <svg
-            className="w-8 h-8 text-white"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-        </div>
-      ),
-      title: "Sertifikat Digital",
-      description:
-        "Dapatkan sertifikat digital setelah menyelesaikan setiap modul pembelajaran dengan baik.",
+      position: "SEKRETARIS",
+      name: "ZULVIRA",
+      photo: "/dummy/dummy-fotoprofil.png",
     },
     {
-      icon: (
-        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-          <svg
-            className="w-8 h-8 text-white"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
-        </div>
-      ),
-      title: "Komunitas Kader",
-      description:
-        "Bergabung dengan komunitas kader posyandu untuk berbagi pengalaman dan ilmu.",
+      position: "BENDAHARA",
+      name: "SARIDAWATI",
+      photo: "/dummy/dummy-fotoprofil.png",
     },
     {
-      icon: (
-        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-          <svg
-            className="w-8 h-8 text-white"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M12 14l9-5-9-5-9 5 9 5z M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-          </svg>
-        </div>
-      ),
-      title: "Konsultasi Expert",
-      description:
-        "Konsultasi langsung dengan para ahli kesehatan dan gizi untuk panduan terbaik.",
+      position: "ANGGOTA KADER",
+      name: "MUTIAWATI",
+      photo: "/dummy/dummy-fotoprofil.png",
     },
     {
-      icon: (
-        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-          <svg
-            className="w-8 h-8 text-white"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-        </div>
-      ),
-      title: "Analytics Dashboard",
-      description:
-        "Dashboard analitik komprehensif untuk memantau performa pembelajaran.",
+      position: "ANGGOTA KADER",
+      name: "MURSYIDAH",
+      photo: "/dummy/dummy-fotoprofil.png",
     },
   ];
 
+  const KaderCard = ({
+    member,
+    className = "",
+    size = "default",
+  }: {
+    member: KaderMember;
+    className?: string;
+    size?: "default" | "large";
+  }) => {
+    const isLarge = size === "large";
+
+    return (
+      <div
+        className={`group relative bg-white rounded-2xl border-2 border-gray-200 hover:border-[#578FCA] transition-all duration-300 hover:-translate-y-1 ${
+          isLarge ? "p-8" : "p-6"
+        } ${className}`}
+      >
+        <div className="flex flex-col items-center text-center">
+          <div
+            className={`relative ${
+              isLarge ? "w-20 h-20 mb-4" : "w-16 h-16 mb-3"
+            } rounded-full overflow-hidden border-3 border-[#578FCA]`}
+          >
+            <Image
+              src={member.photo || "/dummy/dummy-fotoprofil.png"}
+              alt={member.name}
+              width={isLarge ? 80 : 64}
+              height={isLarge ? 80 : 64}
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          <div
+            className={`inline-block px-3 py-1 bg-[#578FCA] text-white rounded-full ${
+              isLarge ? "mb-3" : "mb-2"
+            }`}
+          >
+            <h4
+              className={`${
+                isLarge ? "text-xs" : "text-xs"
+              } font-semibold uppercase tracking-wide`}
+            >
+              {member.position}
+            </h4>
+          </div>
+
+          <p
+            className={`${
+              isLarge ? "text-base" : "text-sm"
+            } font-medium text-gray-800 leading-tight`}
+          >
+            {member.name}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <section
-      id="fitur"
+      id="struktur-kader"
       className="relative py-12 sm:py-16 lg:py-20 bg-white overflow-hidden"
     >
       {/* Dot Pattern Background */}
@@ -118,31 +116,84 @@ export default function FiturSection() {
         glow={false}
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Title Section */}
-        <div className="mb-8 sm:mb-12 lg:mb-16">
-          <h2 className="mb-4 text-left">
-            <span className="text-[#27548A] font-poppins text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-[64px] font-normal leading-tight">
-              Fitur{" "}
-            </span>
-            <span className="text-[#27548A] font-poppins text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-[64px] italic font-medium leading-tight">
-              Interaktif
-            </span>
-            <br />
-            <span className="text-[#27548A] font-poppins text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-[64px] font-normal leading-tight">
-              Bukadita
-            </span>
-          </h2>
+      <div className="relative z-10 max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Clean Title Section */}
+        <div className="mb-12 sm:mb-16 lg:mb-20 text-center">
+          <div className="mb-8">
+            <h2 className="mb-6">
+              <span className="text-[#27548A] font-poppins text-4xl sm:text-5xl md:text-6xl font-normal leading-tight">
+                Struktur{" "}
+              </span>
+              <span className="text-[#27548A] font-poppins text-4xl sm:text-5xl md:text-6xl italic font-medium leading-tight">
+                Kader
+              </span>
+            </h2>
+
+            {/* Clean subtitle without shadow */}
+            <div className="text-center space-y-1">
+              <p className="text-xl font-bold text-[#27548A]">
+                STRUKTUR ORGANISASI POSYANDU
+              </p>
+              <p className="text-lg font-semibold text-[#578FCA]">
+                SEULANGA INDAH
+              </p>
+              <p className="text-base text-gray-600">GP. KOPELMA DARUSSALAM</p>
+            </div>
+          </div>
         </div>
 
-        {/* Infinite Moving Feature Cards */}
-        <div className="mt-8 sm:mt-12 lg:mt-16">
-          <InfiniteMovingCards
-            features={features}
-            direction="left"
-            speed="fast"
-            pauseOnHover={true}
-          />
+        {/* Clean Organizational Chart */}
+        <div className="relative w-full max-w-5xl mx-auto">
+          <div className="relative p-4 lg:p-8">
+            {/* Level 1: Pembina */}
+            <div className="flex justify-center mb-12">
+              <div className="relative">
+                <KaderCard
+                  member={kaderData[0]}
+                  size="large"
+                  className="w-64"
+                />
+                {/* Simple connecting line */}
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2">
+                  <div className="w-0.5 h-12 bg-[#578FCA]"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Level 2: Ketua Posyandu */}
+            <div className="flex justify-center mb-12">
+              <div className="relative">
+                <KaderCard
+                  member={kaderData[1]}
+                  size="large"
+                  className="w-64"
+                />
+
+                {/* Hierarchical connecting lines */}
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2">
+                  {/* Garis vertikal utama yang menghubungkan ke garis horizontal */}
+                  <div className="w-0.5 h-12 bg-[#578FCA]"></div>
+
+                  {/* Main horizontal distribution line */}
+                  <div className="absolute top-12 left-1/2 transform -translate-x-1/2 w-80 h-0.5 bg-[#578FCA]"></div>
+
+                  {/* Garis vertikal ke semua bawahan - harus terhubung ke atas kartu bawahan */}
+                  <div className="absolute top-12 left-1/2 transform -translate-x-1/2 -translate-x-40 w-0.5 h-28 bg-[#578FCA]"></div>
+                  <div className="absolute top-12 left-1/2 transform -translate-x-1/2 -translate-x-8 w-0.5 h-28 bg-[#578FCA]"></div>
+                  <div className="absolute top-12 left-1/2 transform -translate-x-1/2 translate-x-8 w-0.5 h-28 bg-[#578FCA]"></div>
+                  <div className="absolute top-12 left-1/2 transform -translate-x-1/2 translate-x-40 w-0.5 h-28 bg-[#578FCA]"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Level 3: All subordinates in one row */}
+            <div className="flex justify-center items-center gap-12 lg:gap-16">
+              <KaderCard member={kaderData[4]} className="w-52" />
+              <KaderCard member={kaderData[2]} className="w-52" />
+              <KaderCard member={kaderData[3]} className="w-52" />
+              <KaderCard member={kaderData[5]} className="w-52" />
+            </div>
+          </div>
         </div>
       </div>
     </section>
