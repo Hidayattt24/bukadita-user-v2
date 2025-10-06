@@ -31,7 +31,7 @@ export default function LoadingScreen({
 
   return (
     <div
-      className={`min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f8fafc] via-[#e2e8f0] to-[#cbd5e1] relative overflow-hidden ${className}`}
+      className={`h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#f8fafc] via-[#e2e8f0] to-[#cbd5e1] relative overflow-hidden ${className}`}
     >
       {/* Background animated elements */}
       <div className="absolute inset-0 overflow-hidden">

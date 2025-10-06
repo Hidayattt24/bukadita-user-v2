@@ -1,32 +1,56 @@
 import React from "react";
+import Image from "next/image";
 import { DotPattern } from "@/components/magicui/dot-pattern";
 
 export default function GaleriSection() {
   const galleryItems = [
     {
       id: 1,
-      title: "Pelatihan Kader Posyandu",
-      size: "large", // 767x345
+      title: "Dokumentasi Kegiatan Posyandu",
+      description: "Kegiatan posyandu tanggal 12 September 2025",
+      image:
+        "/images/galeri/FOTO DOKUMENTASI KEGIATAS POSYANDU TGL 12 SEPT 2025 1.jpg",
+      size: "large",
     },
     {
       id: 2,
-      title: "Kegiatan Pembelajaran",
-      size: "small", // 373x345
+      title: "Pelayanan Kesehatan Ibu dan Anak",
+      description: "Pemeriksaan dan konsultasi kesehatan",
+      image:
+        "/images/galeri/FOTO DOKUMENTASI KEGIATAS POSYANDU TGL 12 SEPT 2025 6.jpg",
+      size: "small",
     },
     {
       id: 3,
-      title: "Sertifikasi Kader",
-      size: "small", // 373x345
+      title: "Penimbangan Balita",
+      description: "Monitoring pertumbuhan anak",
+      image:
+        "/images/galeri/FOTO DOKUMENTASI KEGIATAS POSYANDU TGL 12 SEPT 2025 7.jpg",
+      size: "small",
     },
     {
       id: 4,
-      title: "Workshop Digital",
-      size: "small", // 373x345
+      title: "Edukasi Kesehatan",
+      description: "Penyuluhan gizi dan kesehatan",
+      image:
+        "/images/galeri/FOTO DOKUMENTASI KEGIATAS POSYANDU TGL 12 SEPT 2025 8.jpg",
+      size: "small",
     },
     {
       id: 5,
-      title: "Praktik Lapangan",
-      size: "small", // 373x345
+      title: "Imunisasi Anak",
+      description: "Program vaksinasi untuk balita",
+      image:
+        "/images/galeri/FOTO DOKUMENTASI KEGIATAS POSYANDU TGL 12 SEPT 2025 9.jpg",
+      size: "small",
+    },
+    {
+      id: 6,
+      title: "Kader Posyandu Aktif",
+      description: "Tim kader dalam melayani masyarakat",
+      image:
+        "/images/galeri/FOTO DOKUMENTASI KEGIATAS POSYANDU TGL 12 SEPT 2025 10.jpg",
+      size: "small",
     },
   ];
 
@@ -70,19 +94,23 @@ export default function GaleriSection() {
             {galleryItems.map((item, index) => (
               <div
                 key={item.id}
-                className="w-full h-48 sm:h-56 rounded-2xl bg-[#D9D9D9] flex items-center justify-center"
+                className="relative w-full h-48 sm:h-56 rounded-2xl overflow-hidden group cursor-pointer"
               >
-                <div className="text-center">
-                  <svg
-                    className="w-10 h-10 sm:w-12 sm:h-12 text-gray-500 mx-auto mb-2 sm:mb-3"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span className="text-gray-500 font-medium font-poppins text-sm sm:text-base">
+                <Image
+                  src={item.image}
+                  alt={item.title}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <h3 className="text-white font-semibold font-inter text-sm sm:text-base mb-1">
                     {item.title}
-                  </span>
+                  </h3>
+                  <p className="text-white/80 font-inter text-xs sm:text-sm">
+                    {item.description}
+                  </p>
                 </div>
               </div>
             ))}
@@ -93,50 +121,62 @@ export default function GaleriSection() {
             {/* First Row - Large image on left, 2 small images on right */}
             <div className="flex gap-6 justify-center">
               {/* Large Image */}
-              <div className="w-[767px] h-[345px] flex-shrink-0 rounded-2xl bg-[#D9D9D9] flex items-center justify-center">
-                <div className="text-center">
-                  <svg
-                    className="w-16 h-16 text-gray-500 mx-auto mb-4"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span className="text-gray-500 font-semibold font-poppins">
+              <div className="relative w-[767px] h-[345px] flex-shrink-0 rounded-2xl overflow-hidden group cursor-pointer">
+                <Image
+                  src={galleryItems[0].image}
+                  alt={galleryItems[0].title}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  sizes="767px"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-6">
+                  <h3 className="text-white font-bold font-inter text-xl mb-2">
                     {galleryItems[0].title}
-                  </span>
+                  </h3>
+                  <p className="text-white/90 font-inter text-sm">
+                    {galleryItems[0].description}
+                  </p>
                 </div>
               </div>
 
               {/* Two Small Images Stacked */}
               <div className="flex flex-col gap-6">
-                <div className="w-[373px] h-[165px] flex-shrink-0 rounded-2xl bg-[#D9D9D9] flex items-center justify-center">
-                  <div className="text-center">
-                    <svg
-                      className="w-10 h-10 text-gray-500 mx-auto mb-2"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-gray-500 font-medium font-poppins text-sm">
+                <div className="relative w-[373px] h-[165px] flex-shrink-0 rounded-2xl overflow-hidden group cursor-pointer">
+                  <Image
+                    src={galleryItems[1].image}
+                    alt={galleryItems[1].title}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    sizes="373px"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="text-white font-semibold font-inter text-sm mb-1">
                       {galleryItems[1].title}
-                    </span>
+                    </h3>
+                    <p className="text-white/80 font-inter text-xs">
+                      {galleryItems[1].description}
+                    </p>
                   </div>
                 </div>
 
-                <div className="w-[373px] h-[165px] flex-shrink-0 rounded-2xl bg-[#D9D9D9] flex items-center justify-center">
-                  <div className="text-center">
-                    <svg
-                      className="w-10 h-10 text-gray-500 mx-auto mb-2"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-gray-500 font-medium font-poppins text-sm">
+                <div className="relative w-[373px] h-[165px] flex-shrink-0 rounded-2xl overflow-hidden group cursor-pointer">
+                  <Image
+                    src={galleryItems[2].image}
+                    alt={galleryItems[2].title}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    sizes="373px"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="text-white font-semibold font-inter text-sm mb-1">
                       {galleryItems[2].title}
-                    </span>
+                    </h3>
+                    <p className="text-white/80 font-inter text-xs">
+                      {galleryItems[2].description}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -144,48 +184,60 @@ export default function GaleriSection() {
 
             {/* Second Row - 3 equal-sized images */}
             <div className="flex gap-6 justify-center">
-              <div className="w-[373px] h-[250px] flex-shrink-0 rounded-2xl bg-[#D9D9D9] flex items-center justify-center">
-                <div className="text-center">
-                  <svg
-                    className="w-12 h-12 text-gray-500 mx-auto mb-3"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span className="text-gray-500 font-medium font-poppins">
+              <div className="relative w-[373px] h-[250px] flex-shrink-0 rounded-2xl overflow-hidden group cursor-pointer">
+                <Image
+                  src={galleryItems[3].image}
+                  alt={galleryItems[3].title}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  sizes="373px"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <h3 className="text-white font-semibold font-inter text-base mb-1">
                     {galleryItems[3].title}
-                  </span>
+                  </h3>
+                  <p className="text-white/80 font-inter text-sm">
+                    {galleryItems[3].description}
+                  </p>
                 </div>
               </div>
 
-              <div className="w-[373px] h-[250px] flex-shrink-0 rounded-2xl bg-[#D9D9D9] flex items-center justify-center">
-                <div className="text-center">
-                  <svg
-                    className="w-12 h-12 text-gray-500 mx-auto mb-3"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span className="text-gray-500 font-medium font-poppins">
+              <div className="relative w-[373px] h-[250px] flex-shrink-0 rounded-2xl overflow-hidden group cursor-pointer">
+                <Image
+                  src={galleryItems[4].image}
+                  alt={galleryItems[4].title}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  sizes="373px"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <h3 className="text-white font-semibold font-inter text-base mb-1">
                     {galleryItems[4].title}
-                  </span>
+                  </h3>
+                  <p className="text-white/80 font-inter text-sm">
+                    {galleryItems[4].description}
+                  </p>
                 </div>
               </div>
 
-              <div className="w-[373px] h-[250px] flex-shrink-0 rounded-2xl bg-[#D9D9D9] flex items-center justify-center">
-                <div className="text-center">
-                  <svg
-                    className="w-12 h-12 text-gray-500 mx-auto mb-3"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span className="text-gray-500 font-medium font-poppins">
-                    Workshop Posyandu
-                  </span>
+              <div className="relative w-[373px] h-[250px] flex-shrink-0 rounded-2xl overflow-hidden group cursor-pointer">
+                <Image
+                  src={galleryItems[5].image}
+                  alt={galleryItems[5].title}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  sizes="373px"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <h3 className="text-white font-semibold font-inter text-base mb-1">
+                    {galleryItems[5].title}
+                  </h3>
+                  <p className="text-white/80 font-inter text-sm">
+                    {galleryItems[5].description}
+                  </p>
                 </div>
               </div>
             </div>

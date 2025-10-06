@@ -427,3 +427,13 @@ body {
     font-size: 0.875rem;
   }
 }
+
+/* Logo scrolling animation */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}

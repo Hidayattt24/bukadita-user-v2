@@ -291,8 +291,73 @@ export default function KontakSection() {
           </div>
         </div>
 
-        {/* Footer Info */}
+        {/* Partner Logos Section */}
         <div className="mt-12 sm:mt-16 pt-6 sm:pt-8 border-t border-blue-400/20">
+          <div className="text-center mb-8 sm:mb-10">
+            <h3 className="text-lg sm:text-xl lg:text-2xl font-medium text-white font-poppins">
+              Didukung Oleh
+            </h3>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 lg:gap-10 xl:gap-12 mb-12 sm:mb-16">
+            {/* Logo Kesehatan */}
+            <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 p-2 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all duration-300">
+              <img
+                src="/images/logo-kampus/logo-kesehatan.svg"
+                alt="Kementerian Kesehatan"
+                className="w-full h-full object-contain filter hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+
+            {/* Logo Kampus Berdampak */}
+            <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 p-2 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all duration-300">
+              <img
+                src="/images/logo-kampus/logo-kampus-berdampak.svg"
+                alt="Kampus Berdampak"
+                className="w-full h-full object-contain filter hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+
+            {/* Logo USK */}
+            <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 p-2 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all duration-300">
+              <img
+                src="/images/logo-kampus/logo-usk.svg"
+                alt="Universitas Syiah Kuala"
+                className="w-full h-full object-contain filter hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+
+            {/* Logo Banda Aceh */}
+            <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 p-2 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all duration-300">
+              <img
+                src="/images/logo-kampus/logo-banda-aceh.svg"
+                alt="Kota Banda Aceh"
+                className="w-full h-full object-contain filter hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+
+            {/* Logo PK3KKN */}
+            <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 p-2 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all duration-300">
+              <img
+                src="/images/logo-kampus/logo-pk3kkn.svg"
+                alt="PK3KKN"
+                className="w-full h-full object-contain filter hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+
+            {/* Logo LPPM */}
+            <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 p-2 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-all duration-300">
+              <img
+                src="/images/logo-kampus/logo-lppm.svg"
+                alt="LPPM USK"
+                className="w-full h-full object-contain filter hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Info */}
+        <div className="pt-6 sm:pt-8 border-t border-blue-400/20">
           <div className="text-center">
             <p className="text-blue-100 mb-3 sm:mb-4 font-poppins text-sm sm:text-base">
               © 2025 Bukadita. Semua hak cipta dilindungi.
