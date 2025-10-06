@@ -48,7 +48,7 @@ export default function DetailModulPage() {
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
     return () => window.removeEventListener("resize", checkScreenSize);
-  }, []);
+  }, [sidebarOpen]);
 
   useEffect(() => {
     const modulSlug = params.slug as string;
