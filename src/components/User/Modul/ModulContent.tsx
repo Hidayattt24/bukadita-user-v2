@@ -9,6 +9,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { PoinDetail, SubMateri } from "@/data/detailModulData";
+import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 
 interface ModulContentProps {
   currentPoin: PoinDetail | null;
@@ -149,14 +150,11 @@ export default function ModulContent({
             </div>
           )}
 
-          <div className="prose prose-sm sm:prose-lg max-w-none space-y-4 sm:space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-gray-200">
-              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-[#27548A] mb-4 sm:mb-6">
-                {currentPoin.title}
-              </h3>
-              <div
-                className="text-gray-700 leading-relaxed text-sm sm:text-base"
-                dangerouslySetInnerHTML={{ __html: currentPoin.content }}
+              <MarkdownRenderer
+                content={currentPoin.content}
+                className="markdown-content"
               />
             </div>
 
