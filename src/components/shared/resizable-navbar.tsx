@@ -240,6 +240,7 @@ const MENU: NavItem[] = [
   { name: "Beranda", href: "#beranda" },
   { name: "Fitur", href: "#fitur" },
   { name: "Galeri", href: "#galeri" },
+  { name: "Lokasi", href: "#lokasi" },
   { name: "Pertanyaan", href: "#pertanyaan" },
   { name: "Kontak", href: "#kontak" },
 ];
