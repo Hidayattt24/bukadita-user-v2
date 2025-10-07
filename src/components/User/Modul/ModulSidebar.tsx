@@ -8,6 +8,7 @@ import {
   X,
 } from "lucide-react";
 import { DetailModul, SubMateri } from "@/data/detailModulData";
+import { useToast } from "@/components/ui/toast";
 
 interface ModulSidebarProps {
   modul: DetailModul;
@@ -32,6 +33,7 @@ export default function ModulSidebar({
   handlePoinSelect,
   toggleSubMateriExpanded,
 }: ModulSidebarProps) {
+  const { warning } = useToast();
   return (
     <>
       {/* Mobile Overlay */}
@@ -127,6 +129,9 @@ export default function ModulSidebar({
                       }`}
                     >
                       {subMateri.title}
+                      {!subMateri.isUnlocked && (
+                        <span className="ml-1 text-xs text-gray-400">🔒</span>
+                      )}
                     </h4>
 
                     <div className="flex items-center gap-1 sm:gap-2 text-xs text-gray-500">
@@ -139,13 +144,19 @@ export default function ModulSidebar({
 
                   <button
                     onClick={() => toggleSubMateriExpanded(subMateri.id)}
-                    disabled={!subMateri.isUnlocked}
                     className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                    title="Lihat daftar poin materi"
                   >
                     {expandedSubMateris.includes(subMateri.id) ? (
                       <ChevronDown className="w-4 h-4 text-[#578FCA]" />
                     ) : (
-                      <ChevronRight className="w-4 h-4 text-gray-400" />
+                      <ChevronRight
+                        className={`w-4 h-4 ${
+                          subMateri.isUnlocked
+                            ? "text-gray-400"
+                            : "text-gray-300"
+                        }`}
+                      />
                     )}
                   </button>
                 </div>
@@ -177,7 +188,11 @@ export default function ModulSidebar({
 
                 {/* Action Button */}
                 <button
-                  onClick={() => handleSubMateriSelect(subMateri)}
+                  onClick={() => {
+                    if (subMateri.isUnlocked) {
+                      handleSubMateriSelect(subMateri);
+                    }
+                  }}
                   disabled={!subMateri.isUnlocked}
                   className={`w-full py-2.5 px-4 rounded-lg font-medium text-sm transition-all ${
                     selectedSubMateri?.id === subMateri.id
@@ -189,8 +204,32 @@ export default function ModulSidebar({
                 >
                   {selectedSubMateri?.id === subMateri.id
                     ? "Sedang Dipelajari"
-                    : "Mulai Belajar"}
+                    : subMateri.isUnlocked
+                    ? "Mulai Belajar"
+                    : "Locked"}
                 </button>
+
+                {/* Locked Message */}
+                {!subMateri.isUnlocked && (
+                  <div className="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-xs text-amber-700 text-center">
+                      Selesaikan terlebih dahulu materi sebelumnya
+                    </p>
+                  </div>
+                )}
+
+                {/* Preview Notice for Locked Material */}
+                {!subMateri.isUnlocked &&
+                  expandedSubMateris.includes(subMateri.id) && (
+                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-xs text-blue-600 text-center font-medium">
+                        ✨ Pratinjau Poin Materi
+                      </p>
+                      <p className="text-xs text-blue-500 text-center mt-1">
+                        Klik untuk membuka (perlu selesai materi sebelumnya)
+                      </p>
+                    </div>
+                  )}
 
                 {/* Dropdown Poin Details */}
                 {expandedSubMateris.includes(subMateri.id) &&
@@ -200,33 +239,57 @@ export default function ModulSidebar({
                         <button
                           key={poin.id}
                           onClick={() => {
-                            handleSubMateriSelect(subMateri);
-                            handlePoinSelect(poinIndex);
+                            if (subMateri.isUnlocked) {
+                              handleSubMateriSelect(subMateri);
+                              handlePoinSelect(poinIndex);
+                            } else {
+                              warning(
+                                "Selesaikan terlebih dahulu materi sebelumnya untuk mengakses poin ini",
+                                {
+                                  title: "Materi Terkunci",
+                                  duration: 3000,
+                                }
+                              );
+                            }
                           }}
                           className={`w-full text-left p-2.5 rounded-lg text-xs transition-all ${
                             selectedPoinIndex === poinIndex &&
-                            selectedSubMateri?.id === subMateri.id
+                            selectedSubMateri?.id === subMateri.id &&
+                            subMateri.isUnlocked
                               ? "bg-[#578FCA]/10 text-[#27548A] border border-[#578FCA]/30"
-                              : poin.isCompleted
+                              : poin.isCompleted && subMateri.isUnlocked
                               ? "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
-                              : "text-gray-600 hover:bg-gray-100"
+                              : subMateri.isUnlocked
+                              ? "text-gray-600 hover:bg-gray-100"
+                              : "text-gray-400 hover:bg-red-50 hover:text-red-400 cursor-pointer"
                           }`}
+                          title={
+                            !subMateri.isUnlocked
+                              ? "Selesaikan materi sebelumnya untuk mengakses poin ini"
+                              : ""
+                          }
                         >
                           <div className="flex items-center gap-2">
                             <div
                               className={`w-1.5 h-1.5 rounded-full ${
                                 selectedPoinIndex === poinIndex &&
-                                selectedSubMateri?.id === subMateri.id
+                                selectedSubMateri?.id === subMateri.id &&
+                                subMateri.isUnlocked
                                   ? "bg-[#578FCA]"
-                                  : poin.isCompleted
+                                  : poin.isCompleted && subMateri.isUnlocked
                                   ? "bg-emerald-500"
+                                  : subMateri.isUnlocked
+                                  ? "bg-gray-300"
                                   : "bg-gray-300"
                               }`}
                             ></div>
                             <span className="truncate font-medium flex-1">
                               {poin.title}
+                              {!subMateri.isUnlocked && (
+                                <span className="ml-1 text-xs">🔒</span>
+                              )}
                             </span>
-                            {poin.isCompleted && (
+                            {poin.isCompleted && subMateri.isUnlocked && (
                               <CheckCircle className="w-3 h-3 text-emerald-500" />
                             )}
                           </div>

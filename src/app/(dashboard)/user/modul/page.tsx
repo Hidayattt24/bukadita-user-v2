@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   BookOpen,
@@ -22,6 +22,60 @@ import {
   getCategories,
   type ModulData,
 } from "@/data/modulData";
+
+// Helper functions for enhanced design
+const getCategoryGradient = (category: string): string => {
+  const gradients = {
+    "Pengelolaan Posyandu":
+      "bg-gradient-to-br from-purple-600 via-purple-500 to-indigo-600",
+    "Bayi & Balita":
+      "bg-gradient-to-br from-pink-500 via-rose-400 to-orange-400",
+    "Ibu Hamil & Menyusui":
+      "bg-gradient-to-br from-emerald-500 via-teal-400 to-green-500",
+    "Usia Sekolah & Remaja":
+      "bg-gradient-to-br from-blue-600 via-cyan-500 to-teal-500",
+    "Dewasa & Lansia":
+      "bg-gradient-to-br from-amber-500 via-orange-400 to-red-500",
+  };
+  return (
+    gradients[category as keyof typeof gradients] ||
+    "bg-gradient-to-br from-[#578FCA] via-[#4A7BC8] to-[#27548A]"
+  );
+};
+
+const getCategoryIcon = (category: string): React.ReactElement => {
+  const iconProps = "w-24 h-24 sm:w-32 sm:h-32 text-white";
+
+  switch (category) {
+    case "Pengelolaan Posyandu":
+      return <BarChart3 className={iconProps} />;
+    case "Bayi & Balita":
+      return <Users className={iconProps} />;
+    case "Ibu Hamil & Menyusui":
+      return <Star className={iconProps} />;
+    case "Usia Sekolah & Remaja":
+      return <BookOpen className={iconProps} />;
+    case "Dewasa & Lansia":
+      return <Trophy className={iconProps} />;
+    default:
+      return <BookOpen className={iconProps} />;
+  }
+};
+
+const getCategoryBadgeStyle = (category: string): string => {
+  const styles = {
+    "Pengelolaan Posyandu": "bg-purple-100 text-purple-800 border-purple-200",
+    "Bayi & Balita": "bg-pink-100 text-pink-800 border-pink-200",
+    "Ibu Hamil & Menyusui":
+      "bg-emerald-100 text-emerald-800 border-emerald-200",
+    "Usia Sekolah & Remaja": "bg-blue-100 text-blue-800 border-blue-200",
+    "Dewasa & Lansia": "bg-amber-100 text-amber-800 border-amber-200",
+  };
+  return (
+    styles[category as keyof typeof styles] ||
+    "bg-[#578FCA]/15 text-[#27548A] border-[#578FCA]/20"
+  );
+};
 
 export default function ModulPage() {
   const [activeTab, setActiveTab] = useState<
@@ -512,12 +566,25 @@ export default function ModulPage() {
           {filteredModules.map((module) => (
             <div
               key={module.id}
-              className="group bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border border-[#578FCA]/20 hover:shadow-2xl hover:scale-[1.02] transition-all duration-500"
+              className="group bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border border-[#578FCA]/20 hover:shadow-2xl hover:scale-[1.02] transition-all duration-500 relative"
             >
+              {/* Animated Background Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#578FCA]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 transform -translate-x-full group-hover:translate-x-full"></div>
+
               {/* Thumbnail */}
               <div className="relative h-40 sm:h-48 md:h-52 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#578FCA] via-[#4A7BC8] to-[#27548A]"></div>
+                {/* Dynamic gradient based on category */}
+                <div
+                  className={`absolute inset-0 ${getCategoryGradient(
+                    module.category
+                  )}`}
+                ></div>
                 <div className="absolute inset-0 bg-black/10"></div>
+
+                {/* Category Icon */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+                  {getCategoryIcon(module.category)}
+                </div>
 
                 {/* Status Badge */}
                 <div className="absolute top-3 left-3 sm:top-4 sm:left-4 flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-white/90 backdrop-blur-sm rounded-lg sm:rounded-xl">
@@ -553,11 +620,29 @@ export default function ModulPage() {
               </div>
 
               {/* Content */}
-              <div className="p-4 sm:p-5 md:p-6">
-                <div className="mb-2 sm:mb-3">
-                  <span className="text-xs font-semibold px-2.5 sm:px-3 py-1 bg-[#578FCA]/15 text-[#27548A] rounded-full border border-[#578FCA]/20">
+              <div className="p-4 sm:p-5 md:p-6 relative">
+                {/* Floating Elements */}
+                <div className="absolute top-2 right-2 opacity-5 group-hover:opacity-10 transition-opacity duration-500">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#578FCA] to-[#27548A]"></div>
+                </div>
+
+                <div className="mb-2 sm:mb-3 flex items-center justify-between">
+                  <span
+                    className={`text-xs font-semibold px-2.5 sm:px-3 py-1 rounded-full border transition-all duration-300 group-hover:scale-105 ${getCategoryBadgeStyle(
+                      module.category
+                    )}`}
+                  >
                     {module.category}
                   </span>
+                  {/* WhatsApp Support Indicator for Usia Sekolah & Remaja */}
+                  {module.category === "Usia Sekolah & Remaja" && (
+                    <div className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full border border-green-200">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-xs font-medium text-green-700">
+                        WhatsApp Support
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <h3
@@ -623,8 +708,17 @@ export default function ModulPage() {
                 {/* Action Button */}
                 <Link
                   href={`/user/modul/${module.slug}`}
-                  className="w-full bg-gradient-to-r from-[#578FCA] to-[#27548A] hover:from-[#27548A] hover:to-[#578FCA] text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-300 group-hover:shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-sm sm:text-base"
+                  className={`w-full font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl transition-all duration-300 group-hover:shadow-lg hover:shadow-xl flex items-center justify-center gap-2 text-sm sm:text-base relative overflow-hidden ${
+                    module.category === "Usia Sekolah & Remaja"
+                      ? "bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-cyan-600 hover:to-blue-600 text-white shadow-lg shadow-blue-200"
+                      : "bg-gradient-to-r from-[#578FCA] to-[#27548A] hover:from-[#27548A] hover:to-[#578FCA] text-white"
+                  }`}
                 >
+                  {/* Special animation for Usia Sekolah & Remaja */}
+                  {module.category === "Usia Sekolah & Remaja" && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  )}
+
                   {module.status === "completed" && (
                     <>
                       <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -640,7 +734,11 @@ export default function ModulPage() {
                   {module.status === "not-started" && (
                     <>
                       <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                      <span>Mulai Belajar</span>
+                      <span>
+                        {module.category === "Usia Sekolah & Remaja"
+                          ? "Mulai Belajar ✨"
+                          : "Mulai Belajar"}
+                      </span>
                     </>
                   )}
                 </Link>
