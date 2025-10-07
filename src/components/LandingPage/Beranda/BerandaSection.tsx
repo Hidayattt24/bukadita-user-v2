@@ -8,11 +8,41 @@ import { ArrowRight, PhoneCall } from "lucide-react";
 export default function BerandaSection() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Auto-play video when component mounts
+  // Auto-play video safely when component mounts
   React.useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.play();
+    const el = videoRef.current;
+    if (!el) return;
+
+    // Ensure muted for autoplay policies
+    el.muted = true;
+
+    const tryPlay = () => {
+      const p = el.play();
+      if (p && typeof (p as Promise<void>).catch === "function") {
+        (p as Promise<void>).catch((err: unknown) => {
+          const name = (err as { name?: string } | undefined)?.name;
+          // Ignore AbortError (occurs when element unmounts or source changes)
+          if (name !== "AbortError") {
+            console.warn("Video play() rejected:", err);
+          }
+        });
+      }
+    };
+
+    // If metadata already loaded, try immediately; otherwise wait for canplay
+    if (el.readyState >= 2) {
+      tryPlay();
+    } else {
+      const onCanPlay = () => tryPlay();
+      el.addEventListener("canplay", onCanPlay, { once: true });
     }
+
+    // Pause on unmount to prevent play during removal
+    return () => {
+      try {
+        el.pause();
+      } catch { }
+    };
   }, []);
 
   return (
