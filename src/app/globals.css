@@ -438,3 +438,50 @@ body {
     transform: translateX(-50%);
   }
 }
+
+/* Floating Notes Styles */
+.floating-notes-backdrop {
+  backdrop-filter: blur(2px);
+}
+
+.floating-notes-panel {
+  box-shadow: -10px 0 25px -5px rgba(0, 0, 0, 0.1),
+    -20px 0 25px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Custom scrollbar for notes panel */
+.notes-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notes-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.notes-scrollbar::-webkit-scrollbar-thumb {
+  background: #578fca;
+  border-radius: 10px;
+  opacity: 0.7;
+}
+
+.notes-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #27548a;
+}
+
+/* Floating Notes Welcome Animation */
+@keyframes subtle-glow {
+  0%,
+  100% {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+      0 0 0 0 rgba(87, 143, 202, 0.3);
+  }
+  50% {
+    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.15),
+      0 0 0 4px rgba(87, 143, 202, 0);
+  }
+}
+
+.animate-subtle-glow {
+  animation: subtle-glow 2s infinite ease-in-out;
+}
