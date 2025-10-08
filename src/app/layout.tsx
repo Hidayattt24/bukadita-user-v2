@@ -6,6 +6,7 @@ import poppins from "@/components/font/poppins";
 import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/components/ui";
 import InstallPrompt from "@/components/shared/InstallPrompt";
+import FloatingNotes from "@/components/shared/FloatingNotes";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -109,6 +110,7 @@ export default function RootLayout({
           <ToastProvider>
             <ConditionalLayout>{children}</ConditionalLayout>
             <InstallPrompt />
+            <FloatingNotes />
           </ToastProvider>
         </AuthProvider>
       </body>
