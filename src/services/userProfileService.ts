@@ -1,4 +1,6 @@
-// Profile service for Google OAuth integration with backend
+import { apiClient, ApiResponse } from "@/lib/apiClient";
+
+// Profile service for user profile management with backend integration
 
 export interface GoogleUserData {
   id: string;
@@ -13,14 +15,32 @@ export interface BackendProfileData {
   phone: string;
 }
 
-export interface UserProfileResponse {
+export interface UserProfile {
   id: string;
   full_name: string;
-  phone: string;
+  phone?: string;
   email: string;
+  address?: string;
+  profil_url?: string;
+  date_of_birth?: string;
   role: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface UpdateProfileRequest {
+  full_name?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  profil_url?: string;
+  date_of_birth?: string;
+}
+
+export interface ProfilePhotoResponse {
+  profile: UserProfile;
+  photo_url: string;
+  filename: string;
 }
 
 // Type for Supabase session
@@ -40,12 +60,167 @@ export interface SupabaseSession {
 
 export class ProfileService {
   /**
-   * Fetch current authenticated user profile with fallback endpoints
+   * Get current user profile using new API structure
+   */
+  static async getUserProfile(): Promise<ApiResponse<UserProfile>> {
+    return await apiClient.get<UserProfile>("/users/me", { auth: true });
+  }
+
+  /**
+   * Update user profile
+   */
+  static async updateProfile(
+    data: UpdateProfileRequest
+  ): Promise<ApiResponse<UserProfile>> {
+    return await apiClient.put<UserProfile>("/users/me", data, {
+      auth: true,
+    });
+  }
+
+  /**
+   * Upload profile photo
+   */
+  static async uploadProfilePhoto(
+    file: File
+  ): Promise<ApiResponse<ProfilePhotoResponse>> {
+    // Validate file before creating FormData
+    if (!file || file.size === 0) {
+      throw new Error("Invalid file: File is empty or null");
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error("File too large: Maximum size is 5MB");
+    }
+
+    if (!file.type.startsWith("image/")) {
+      throw new Error(
+        `Invalid file type: ${file.type}. Only images are allowed`
+      );
+    }
+
+    console.log("📸 Creating FormData for file:", {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    });
+
+    const formData = new FormData();
+    formData.append("photo", file);
+
+    // Verify FormData content
+    console.log("📝 FormData entries:", Array.from(formData.entries()));
+
+    return await apiClient.post<ProfilePhotoResponse>(
+      "/users/me/profile-photo",
+      formData,
+      {
+        auth: true,
+        headers: {}, // Remove Content-Type for FormData - let browser set it
+      }
+    );
+  }
+
+  /**
+   * Delete profile photo
+   */
+  static async deleteProfilePhoto(): Promise<
+    ApiResponse<{ profile: UserProfile }>
+  > {
+    return await apiClient.delete<{ profile: UserProfile }>(
+      "/users/me/profile-photo",
+      { auth: true }
+    );
+  }
+
+  /**
+   * Validate profile data
+   */
+  static validateProfileData(data: UpdateProfileRequest): {
+    isValid: boolean;
+    errors: string[];
+  } {
+    const errors: string[] = [];
+
+    if (data.full_name !== undefined) {
+      if (!data.full_name.trim()) {
+        errors.push("Nama lengkap wajib diisi");
+      } else if (data.full_name.trim().length < 2) {
+        errors.push("Nama lengkap minimal 2 karakter");
+      } else if (data.full_name.trim().length > 100) {
+        errors.push("Nama lengkap maksimal 100 karakter");
+      }
+    }
+
+    if (data.phone !== undefined && data.phone.trim()) {
+      const phoneRegex = /^(08\d{8,12}|\+628\d{8,12})$/;
+      if (!phoneRegex.test(data.phone.trim())) {
+        errors.push("Format nomor telepon tidak valid (contoh: 081234567890)");
+      }
+    }
+
+    if (data.email !== undefined && data.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email.trim())) {
+        errors.push("Format email tidak valid");
+      }
+    }
+
+    if (data.address !== undefined && data.address.length > 500) {
+      errors.push("Alamat maksimal 500 karakter");
+    }
+
+    if (data.date_of_birth !== undefined && data.date_of_birth.trim()) {
+      const birthDate = new Date(data.date_of_birth);
+      const today = new Date();
+      if (birthDate > today) {
+        errors.push("Tanggal lahir tidak boleh di masa depan");
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
+  }
+
+  /**
+   * Format phone number to Indonesian format
+   */
+  static formatPhoneNumber(phone: string): string {
+    if (!phone) return "";
+
+    // Remove all non-digits
+    const digits = phone.replace(/\D/g, "");
+
+    // Convert +62 format to 08 format
+    if (digits.startsWith("62")) {
+      return "0" + digits.slice(2);
+    }
+
+    return digits.startsWith("0") ? digits : "0" + digits;
+  }
+
+  /**
+   * Format date for input field
+   */
+  static formatDateForInput(dateString?: string): string {
+    if (!dateString) return "";
+
+    try {
+      const date = new Date(dateString);
+      return date.toISOString().split("T")[0]; // YYYY-MM-DD format
+    } catch {
+      return "";
+    }
+  }
+
+  /**
+   * Legacy: Fetch current authenticated user profile with fallback endpoints
    * Tries GET /api/pengguna/profile first, then other available endpoints
    */
-  static async getUserProfile(accessToken: string): Promise<{
+  static async getUserProfileLegacy(accessToken: string): Promise<{
     success: boolean;
-    data?: UserProfileResponse;
+    data?: UserProfile;
     error?: string;
     notFound?: boolean; // indicates 404 (profile missing)
   }> {
@@ -132,7 +307,7 @@ export class ProfileService {
     payload: Partial<{ full_name: string; phone: string; email: string }>
   ): Promise<{
     success: boolean;
-    data?: UserProfileResponse;
+    data?: UserProfile;
     error?: string;
     created?: boolean;
   }> {
@@ -215,6 +390,7 @@ export class ProfileService {
       };
     }
   }
+
   /**
    * Sync Google OAuth user profile to backend
    * This function handles the profile creation/update in the backend database

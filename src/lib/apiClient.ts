@@ -27,6 +27,15 @@ let _accessToken: string | null = null;
 let _refreshToken: string | null = null;
 let _expiresAt: number | null = null;
 
+// Initialize token store on module load if in browser
+if (typeof window !== "undefined") {
+  _accessToken =
+    sessionStorage.getItem("access_token") || localStorage.getItem("authToken");
+  _refreshToken = localStorage.getItem("refresh_token");
+  const ea = sessionStorage.getItem("expires_at");
+  _expiresAt = ea ? Number(ea) : null;
+}
+
 // Token helpers
 export const tokenStore = {
   set(tokens: {
@@ -39,6 +48,7 @@ export const tokenStore = {
     if (typeof tokens.expires_at === "number") _expiresAt = tokens.expires_at;
     if (typeof window !== "undefined") {
       sessionStorage.setItem("access_token", tokens.access_token);
+      localStorage.setItem("authToken", tokens.access_token); // Also store in localStorage as fallback
       if (tokens.refresh_token) {
         localStorage.setItem("refresh_token", tokens.refresh_token);
       }
@@ -49,7 +59,10 @@ export const tokenStore = {
   },
   loadFromStorage() {
     if (typeof window === "undefined") return;
-    _accessToken = sessionStorage.getItem("access_token");
+    // Try sessionStorage first, then localStorage as fallback
+    _accessToken =
+      sessionStorage.getItem("access_token") ||
+      localStorage.getItem("authToken");
     _refreshToken = localStorage.getItem("refresh_token");
     const ea = sessionStorage.getItem("expires_at");
     _expiresAt = ea ? Number(ea) : null;
@@ -61,11 +74,18 @@ export const tokenStore = {
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
+      localStorage.removeItem("authToken");
       sessionStorage.removeItem("expires_at");
       localStorage.removeItem("user");
     }
   },
   get access() {
+    // Always try to load from storage if token is null
+    if (!_accessToken && typeof window !== "undefined") {
+      _accessToken =
+        sessionStorage.getItem("access_token") ||
+        localStorage.getItem("authToken");
+    }
     return _accessToken;
   },
   get refresh() {
@@ -95,16 +115,33 @@ export async function rawFetch<T = unknown>(
   }: RequestOptions = {}
 ): Promise<ApiResponse<T>> {
   const url = `${BASE_URL}${path.startsWith("/api/") ? "" : API_PREFIX}${path}`;
+
+  // Determine if body is FormData (for file uploads)
+  const isFormData = body instanceof FormData;
+
+  // Prepare authorization header
+  let authHeader = {};
+  if (auth) {
+    const token = tokenStore.access;
+    if (token) {
+      authHeader = { Authorization: `Bearer ${token}` };
+    }
+  }
+
+  const requestHeaders: Record<string, string> = {
+    ...authHeader,
+    ...headers,
+  };
+
+  // Don't set Content-Type for FormData (let browser set it with boundary)
+  if (!isFormData && body) {
+    requestHeaders["Content-Type"] = "application/json";
+  }
+
   const res = await fetch(url, {
     method,
-    headers: {
-      "Content-Type": body ? "application/json" : "application/json",
-      ...(auth && tokenStore.access
-        ? { Authorization: `Bearer ${tokenStore.access}` }
-        : {}),
-      ...headers,
-    },
-    body: body ? JSON.stringify(body) : undefined,
+    headers: requestHeaders,
+    body: isFormData ? body : body ? JSON.stringify(body) : undefined,
   });
 
   let json: unknown = null;
@@ -160,6 +197,7 @@ export async function rawFetch<T = unknown>(
         payload: json.data,
       }
     );
+
     throw err;
   }
 

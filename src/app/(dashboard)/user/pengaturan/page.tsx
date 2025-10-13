@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, AlertTriangle } from "lucide-react";
 import { UserNavbar, MobileBottomNavbar } from "@/components/User/Beranda";
@@ -27,6 +27,7 @@ export default function PengaturanPage() {
     email: "",
     phone: "",
     birthDate: "",
+    address: "",
     joinDate: "",
     role: "",
     backendLoaded: false,
@@ -67,6 +68,8 @@ export default function PengaturanPage() {
     push: true,
     sms: false,
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   // Initialize profile data when user data is available
   useEffect(() => {
@@ -76,9 +79,20 @@ export default function PengaturanPage() {
         name: user.profile?.full_name || user.email || "",
         email: user.email || "",
         phone: user.profile?.phone || "",
+        address: user.profile?.address || "",
+        birthDate: user.profile?.date_of_birth || "",
       }));
+
+      // Auto-load full profile if address or date_of_birth is missing
+      if ((!user.profile?.address && !user.profile?.date_of_birth) ||
+        !user.profile?.address ||
+        !user.profile?.date_of_birth) {
+        if (authCtx.loadFullProfile) {
+          authCtx.loadFullProfile().catch(console.error);
+        }
+      }
     }
-  }, [user]);
+  }, [user, authCtx]);
 
   // Removed legacy fetch from ProfileService; rely on context 'user' and upsertProfile
 
@@ -111,11 +125,90 @@ export default function PengaturanPage() {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Ukuran file maksimal 5MB");
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        toast.error("File harus berupa gambar");
+        return;
+      }
+
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
         setSelectedImage(e.target?.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveProfilePhoto = async () => {
+    if (!selectedFile) {
+      toast.warning("Pilih foto terlebih dahulu");
+      return;
+    }
+
+    // Additional file validation
+    console.log("📸 File to upload:", {
+      name: selectedFile.name,
+      size: selectedFile.size,
+      type: selectedFile.type,
+      lastModified: selectedFile.lastModified
+    });
+
+    if (selectedFile.size === 0) {
+      toast.error("File kosong atau tidak valid");
+      return;
+    }
+
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      toast.error("Ukuran file maksimal 5MB");
+      return;
+    }
+
+    if (!selectedFile.type.startsWith("image/")) {
+      toast.error("File harus berupa gambar");
+      return;
+    }
+
+    try {
+      setUploadingPhoto(true);
+
+      // Import ProfileService
+      const { ProfileService } = await import("@/services/userProfileService");
+
+      console.log("🚀 Starting photo upload...");
+      const response = await ProfileService.uploadProfilePhoto(selectedFile);
+      console.log("📝 Upload response:", response);
+      console.log("🔗 Photo URL from backend:", response.data?.photo_url);
+
+      if (response.data) {
+        // Update user profile URL in context
+        if (authCtx.updateProfileWithNew) {
+          await authCtx.updateProfileWithNew({
+            profil_url: response.data.photo_url
+          });
+        }
+
+        toast.success("Foto profil berhasil diupload");
+        setSelectedFile(null);
+        setSelectedImage(null);
+        // Reload profile to get updated photo URL
+        if (authCtx.loadFullProfile) {
+          await authCtx.loadFullProfile();
+        }
+      } else {
+        toast.error(response.message || "Gagal upload foto");
+      }
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      toast.error("Gagal upload foto. Silakan coba lagi.");
+    } finally {
+      setUploadingPhoto(false);
     }
   };
 
@@ -128,6 +221,8 @@ export default function PengaturanPage() {
       const result = await upsertProfile({
         full_name: profileData.name.trim(),
         phone: profileData.phone || undefined,
+        address: profileData.address || undefined,
+        date_of_birth: profileData.birthDate || undefined,
       });
       if (result.success) {
         setEditMode({ ...editMode, profile: false });
@@ -144,7 +239,7 @@ export default function PengaturanPage() {
   const handleChangePassword = async () => {
     try {
       // TODO: Implement API call to change password
-      console.log("Changing password");
+
 
       // Validate passwords
       if (passwordData.newPassword !== passwordData.confirmPassword) {
@@ -220,6 +315,9 @@ export default function PengaturanPage() {
               setSelectedImage={setSelectedImage}
               handleImageUpload={handleImageUpload}
               handleSaveProfile={handleSaveProfile}
+              handleSaveProfilePhoto={handleSaveProfilePhoto}
+              selectedFile={selectedFile}
+              uploadingPhoto={uploadingPhoto}
               profilePending={profilePending}
               upsertProfile={upsertProfile}
               savingCompletion={savingCompletion}

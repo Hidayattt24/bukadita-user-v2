@@ -3,7 +3,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { googleAuthService } from '@/lib/supabase';
 import { authService } from '@/services/authService';
-import { tokenStore, API_CODES, isProfilePending, mapAuthError } from '@/lib/apiClient';
+import { ProfileService } from '@/services/userProfileService';
+import { tokenStore, isProfilePending, mapAuthError } from '@/lib/apiClient';
 
 // Types
 export interface User {
@@ -12,7 +13,12 @@ export interface User {
   profile?: {
     full_name?: string;
     phone?: string | null;
+    address?: string | null;
+    date_of_birth?: string | null;
+    profil_url?: string | null;
     role?: string | null;
+    created_at?: string;
+    updated_at?: string;
     // allow null to represent pending profile from backend
   };
 }
@@ -35,7 +41,9 @@ export interface AuthContextType extends AuthState {
   signUpWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   refreshAccessToken: () => Promise<boolean>;
-  upsertProfile: (data: { full_name: string; phone?: string }) => Promise<{ success: boolean; error?: string }>;
+  upsertProfile: (data: { full_name: string; phone?: string; address?: string; date_of_birth?: string }) => Promise<{ success: boolean; error?: string }>;
+  loadFullProfile: () => Promise<{ success: boolean; error?: string }>;
+  updateProfileWithNew: (data: { full_name?: string; phone?: string; address?: string; date_of_birth?: string; profil_url?: string }) => Promise<{ success: boolean; error?: string }>;
 }
 
 export interface RegisterData {
@@ -252,11 +260,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const upsertProfile = async (data: { full_name: string; phone?: string }): Promise<{ success: boolean; error?: string }> => {
+  const upsertProfile = async (data: { full_name: string; phone?: string; address?: string; date_of_birth?: string }): Promise<{ success: boolean; error?: string }> => {
     try {
       // Try create-missing first; ignore its error and fall back to upsert
       try {
-        const createRes = await authService.createMissingProfile({ full_name: data.full_name, phone: data.phone });
+        const createRes = await authService.createMissingProfile({
+          full_name: data.full_name,
+          phone: data.phone,
+          address: data.address,
+          date_of_birth: data.date_of_birth
+        });
         if (createRes.data?.profile) {
           if (typeof window !== 'undefined' && authState.user) {
             const updated = { ...authState.user, profile: createRes.data.profile };
@@ -273,21 +286,118 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // continue to upsert
       }
 
-      // Upsert (create/update) via standard endpoint
-      const res = await authService.upsertProfile(data);
-      if (res.code === API_CODES.PROFILE_CREATE_SUCCESS || res.code === API_CODES.PROFILE_UPDATE_SUCCESS) {
-        setAuthState(prev => ({
-          ...prev,
-          user: prev.user ? { ...prev.user, profile: { ...prev.user.profile, ...data } } : prev.user,
-          profilePending: false,
-        }));
+      // Use new ProfileService with correct endpoint: PUT /api/v1/users/me
+      const res = await ProfileService.updateProfile(data);
+      if (res.data) {
+        const updatedUser = {
+          ...authState.user!,
+          profile: {
+            ...authState.user?.profile,
+            full_name: res.data.full_name,
+            phone: res.data.phone,
+            address: res.data.address,
+            date_of_birth: res.data.date_of_birth,
+            profil_url: res.data.profil_url,
+            role: res.data.role,
+            created_at: res.data.created_at,
+            updated_at: res.data.updated_at,
+          }
+        };
+
+        setAuthState(prev => ({ ...prev, user: updatedUser, profilePending: false }));
+
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+
         return { success: true };
       }
-      return { success: true };
+      return { success: false, error: res.message || 'Failed to update profile' };
     } catch (error) {
       const e = error as { code?: string; message?: string };
       const friendly = e?.message || mapAuthError(e?.code || '');
       return { success: false, error: friendly };
+    }
+  };
+
+  // Load full profile from new ProfileService (using /v1/users/me)
+  const loadFullProfile = async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await ProfileService.getUserProfile();
+
+      if (response.data) {
+        // Update user in authState and localStorage
+        const updatedUser = {
+          ...authState.user!,
+          profile: {
+            full_name: response.data.full_name,
+            phone: response.data.phone,
+            address: response.data.address,
+            date_of_birth: response.data.date_of_birth,
+            profil_url: response.data.profil_url,
+            role: response.data.role,
+            created_at: response.data.created_at,
+            updated_at: response.data.updated_at,
+          }
+        };
+
+        setAuthState(prev => ({ ...prev, user: updatedUser, profilePending: false }));
+
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+
+        return { success: true };
+      }
+
+      return { success: false, error: 'Gagal memuat profil' };
+    } catch (error) {
+      console.error('Error loading full profile:', error);
+      return { success: false, error: 'Terjadi kesalahan saat memuat profil' };
+    }
+  };
+
+  // Update profile using new ProfileService (using /v1/users/me)
+  const updateProfileWithNew = async (data: {
+    full_name?: string;
+    phone?: string;
+    address?: string;
+    date_of_birth?: string;
+    profil_url?: string;
+  }): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await ProfileService.updateProfile(data);
+
+      if (response.data) {
+        // Update user in authState and localStorage
+        const updatedUser = {
+          ...authState.user!,
+          profile: {
+            ...authState.user?.profile,
+            full_name: response.data.full_name,
+            phone: response.data.phone,
+            address: response.data.address,
+            date_of_birth: response.data.date_of_birth,
+            profil_url: response.data.profil_url,
+            role: response.data.role,
+            created_at: response.data.created_at,
+            updated_at: response.data.updated_at,
+          }
+        };
+
+        setAuthState(prev => ({ ...prev, user: updatedUser, profilePending: false }));
+
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+
+        return { success: true };
+      }
+
+      return { success: false, error: response.message || 'Gagal memperbarui profil' };
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      return { success: false, error: 'Terjadi kesalahan saat memperbarui profil' };
     }
   };
 
@@ -301,6 +411,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     refreshAccessToken,
     upsertProfile,
+    loadFullProfile,
+    updateProfileWithNew,
   };
 
   return (

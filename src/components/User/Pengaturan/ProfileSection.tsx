@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import Image from "next/image";
 import {
   Camera,
@@ -10,6 +10,7 @@ import {
   Mail,
   Phone,
   Calendar,
+  MapPin,
 } from "lucide-react";
 
 interface ProfileData {
@@ -17,6 +18,7 @@ interface ProfileData {
   email: string;
   phone: string;
   birthDate: string;
+  address: string;
   joinDate: string;
   role: string;
   backendLoaded: boolean;
@@ -33,6 +35,9 @@ interface User {
   profile?: {
     full_name?: string;
     phone?: string | null;
+    address?: string | null;
+    date_of_birth?: string | null;
+    profil_url?: string | null;
     role?: string | null;
   };
 }
@@ -47,10 +52,15 @@ interface ProfileSectionProps {
   setSelectedImage: (image: string | null) => void;
   handleImageUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleSaveProfile: () => Promise<void>;
+  handleSaveProfilePhoto: () => Promise<void>;
+  selectedFile: File | null;
+  uploadingPhoto: boolean;
   profilePending: boolean;
   upsertProfile: (data: {
     full_name: string;
     phone?: string;
+    address?: string;
+    date_of_birth?: string;
   }) => Promise<{ success: boolean; error?: string }>;
   savingCompletion: boolean;
   setSavingCompletion: (saving: boolean) => void;
@@ -70,6 +80,9 @@ export default function ProfileSection({
   setSelectedImage,
   handleImageUpload,
   handleSaveProfile,
+  handleSaveProfilePhoto,
+  selectedFile,
+  uploadingPhoto,
   profilePending,
   upsertProfile,
   savingCompletion,
@@ -80,6 +93,15 @@ export default function ProfileSection({
   setCompletionSuccess,
 }: ProfileSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Debug URL foto profil
+  useEffect(() => {
+    console.log("🔍 ProfileSection Debug:", {
+      "user.profile.profil_url": user?.profile?.profil_url,
+      "selectedImage": selectedImage,
+      "final_src": selectedImage || user?.profile?.profil_url || "/dummy/dummy-fotoprofil.png"
+    });
+  }, [user?.profile?.profil_url, selectedImage]);
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -104,11 +126,21 @@ export default function ProfileSection({
           <div className="relative group">
             <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden ring-4 ring-[#578FCA]/20 shadow-xl">
               <Image
-                src={selectedImage || "/dummy/dummy-fotoprofil.png"}
+                src={selectedImage || user?.profile?.profil_url || "/dummy/dummy-fotoprofil.png"}
                 alt="Profile"
                 width={160}
                 height={160}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.error("🖼️ Image load error:", {
+                    src: e.currentTarget.src,
+                    profileUrl: user?.profile?.profil_url,
+                    selectedImage,
+                  });
+                }}
+                onLoad={() => {
+                  console.log("✅ Image loaded successfully with signed URL!");
+                }}
               />
             </div>
             <button
@@ -140,14 +172,35 @@ export default function ProfileSection({
                 <Upload className="w-4 h-4 sm:w-4 sm:h-4" />
                 Upload Foto
               </button>
-              {selectedImage && (
-                <button
-                  onClick={() => setSelectedImage(null)}
-                  className="flex items-center justify-center gap-2 px-4 sm:px-4 py-3 sm:py-2 bg-red-500 text-white rounded-xl font-semibold transition-all duration-300 hover:shadow-lg text-sm sm:text-base min-h-[44px]"
-                >
-                  <Trash2 className="w-4 h-4 sm:w-4 sm:h-4" />
-                  Hapus
-                </button>
+              {selectedImage && selectedFile && (
+                <>
+                  <button
+                    onClick={handleSaveProfilePhoto}
+                    disabled={uploadingPhoto}
+                    className="flex items-center justify-center gap-2 px-4 sm:px-4 py-3 sm:py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold transition-all duration-300 hover:shadow-lg text-sm sm:text-base min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {uploadingPhoto ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Menyimpan...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 sm:w-4 sm:h-4" />
+                        Simpan Foto
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedImage(null);
+                    }}
+                    className="flex items-center justify-center gap-2 px-4 sm:px-4 py-3 sm:py-2 bg-red-500 text-white rounded-xl font-semibold transition-all duration-300 hover:shadow-lg text-sm sm:text-base min-h-[44px]"
+                  >
+                    <Trash2 className="w-4 h-4 sm:w-4 sm:h-4" />
+                    Batal
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -178,11 +231,10 @@ export default function ProfileSection({
                   setEditMode({ ...editMode, profile: true });
                 }
               }}
-              className={`flex items-center gap-2 px-4 sm:px-4 py-3 sm:py-2 rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base min-h-[44px] ${
-                editMode.profile
-                  ? "bg-green-500 text-white hover:bg-green-600"
-                  : "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white hover:shadow-lg"
-              }`}
+              className={`flex items-center gap-2 px-4 sm:px-4 py-3 sm:py-2 rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base min-h-[44px] ${editMode.profile
+                ? "bg-green-500 text-white hover:bg-green-600"
+                : "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white hover:shadow-lg"
+                }`}
             >
               {editMode.profile ? (
                 <Save className="w-4 h-4 sm:w-4 sm:h-4" />
@@ -206,11 +258,10 @@ export default function ProfileSection({
                     setProfileData({ ...profileData, name: e.target.value })
                   }
                   disabled={!editMode.profile}
-                  className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${
-                    editMode.profile
-                      ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
-                      : "border-gray-200 bg-gray-50"
-                  } focus:outline-none`}
+                  className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile
+                    ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
+                    : "border-gray-200 bg-gray-50"
+                    } focus:outline-none`}
                 />
               </div>
             </div>
@@ -227,11 +278,10 @@ export default function ProfileSection({
                     setProfileData({ ...profileData, email: e.target.value })
                   }
                   disabled={!editMode.profile}
-                  className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${
-                    editMode.profile
-                      ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
-                      : "border-gray-200 bg-gray-50"
-                  } focus:outline-none`}
+                  className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile
+                    ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
+                    : "border-gray-200 bg-gray-50"
+                    } focus:outline-none`}
                 />
               </div>
             </div>
@@ -248,11 +298,10 @@ export default function ProfileSection({
                     setProfileData({ ...profileData, phone: e.target.value })
                   }
                   disabled={!editMode.profile}
-                  className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${
-                    editMode.profile
-                      ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
-                      : "border-gray-200 bg-gray-50"
-                  } focus:outline-none`}
+                  className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile
+                    ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
+                    : "border-gray-200 bg-gray-50"
+                    } focus:outline-none`}
                 />
               </div>
             </div>
@@ -272,11 +321,34 @@ export default function ProfileSection({
                     })
                   }
                   disabled={!editMode.profile}
-                  className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${
-                    editMode.profile
-                      ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
-                      : "border-gray-200 bg-gray-50"
-                  } focus:outline-none`}
+                  className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] ${editMode.profile
+                    ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
+                    : "border-gray-200 bg-gray-50"
+                    } focus:outline-none`}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-[#27548A] mb-2">
+                Alamat
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-3 w-5 h-5 text-[#578FCA]/60" />
+                <textarea
+                  placeholder="Masukkan alamat lengkap Anda"
+                  value={profileData.address}
+                  onChange={(e) =>
+                    setProfileData({
+                      ...profileData,
+                      address: e.target.value,
+                    })
+                  }
+                  disabled={!editMode.profile}
+                  rows={3}
+                  className={`w-full pl-10 pr-4 py-3 border-2 rounded-xl transition-colors text-[#27548A] resize-none ${editMode.profile
+                    ? "border-[#578FCA]/30 focus:border-[#27548A] bg-white"
+                    : "border-gray-200 bg-gray-50"
+                    } focus:outline-none`}
                 />
               </div>
             </div>
@@ -310,6 +382,8 @@ export default function ProfileSection({
                 const res = await upsertProfile({
                   full_name: profileData.name.trim(),
                   phone: profileData.phone || undefined,
+                  address: profileData.address || undefined,
+                  date_of_birth: profileData.birthDate || undefined,
                 });
                 if (res.success) {
                   setCompletionSuccess("Profil berhasil dilengkapi");

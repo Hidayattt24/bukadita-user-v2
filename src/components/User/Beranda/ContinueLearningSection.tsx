@@ -1,4 +1,4 @@
-import { ArrowUpRight, Clock, BookOpen, Users, Star } from "lucide-react";
+import { ArrowUpRight, Clock, BookOpen, Users } from "lucide-react";
 import { ModulData } from "@/data/modulData";
 import Link from "next/link";
 
@@ -39,12 +39,7 @@ export default function ContinueLearningSection({
                   <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-medium">
                     {lastStudiedModul.category}
                   </span>
-                  <div className="flex items-center gap-1">
-                    <Star className="w-3 h-3 text-yellow-300 fill-current" />
-                    <span className="text-white text-xs">
-                      {lastStudiedModul.rating}
-                    </span>
-                  </div>
+
                 </div>
                 <h4 className="text-white font-bold text-lg sm:text-xl mb-2">
                   {lastStudiedModul.title}

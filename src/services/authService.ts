@@ -17,7 +17,12 @@ export interface AuthUserProfile {
   id: string;
   full_name?: string;
   phone?: string | null;
+  address?: string | null;
+  date_of_birth?: string | null;
+  profil_url?: string | null;
   role?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface AuthUser {
@@ -98,6 +103,8 @@ export const authService = {
   async upsertProfile(body: {
     full_name: string;
     phone?: string;
+    address?: string;
+    date_of_birth?: string;
     role?: string;
   }): Promise<ApiResponse<{ profile: AuthUserProfile }>> {
     const res = await apiClient.post<{ profile: AuthUserProfile }>(
@@ -119,6 +126,8 @@ export const authService = {
   async createMissingProfile(body: {
     full_name?: string;
     phone?: string;
+    address?: string;
+    date_of_birth?: string;
   }): Promise<ApiResponse<{ profile: AuthUserProfile }>> {
     const res = await apiClient.post<{ profile: AuthUserProfile }>(
       "/auth/create-missing-profile",

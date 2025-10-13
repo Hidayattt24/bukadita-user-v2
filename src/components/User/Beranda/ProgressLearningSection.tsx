@@ -1,4 +1,4 @@
-import { BookOpen, Star } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { ModulData } from "@/data/modulData";
 import Link from "next/link";
 
@@ -31,8 +31,8 @@ export default function ProgressLearningSection({
               modul.status === "completed"
                 ? "Selesai"
                 : modul.status === "not-started"
-                ? "Belum Dimulai"
-                : "Dalam Progress";
+                  ? "Belum Dimulai"
+                  : "Dalam Progress";
 
             return (
               <div
@@ -54,22 +54,16 @@ export default function ProgressLearningSection({
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          modul.status === "completed"
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${modul.status === "completed"
                             ? "bg-green-100 text-green-700"
                             : modul.status === "not-started"
-                            ? "bg-gray-100 text-gray-700"
-                            : "bg-blue-100 text-blue-700"
-                        }`}
+                              ? "bg-gray-100 text-gray-700"
+                              : "bg-blue-100 text-blue-700"
+                          }`}
                       >
                         {statusText}
                       </span>
-                      <div className="flex items-center gap-1 text-yellow-500">
-                        <Star className="w-3 h-3 fill-current" />
-                        <span className="text-xs text-gray-600">
-                          {modul.rating}
-                        </span>
-                      </div>
+
                     </div>
                   </div>
                 </div>

@@ -39,7 +39,7 @@ export default function ResetPasswordPage() {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Handle reset password logic here
-      console.log("Reset password for:", formData.email);
+
 
       // Show success state
       setIsSuccess(true);
@@ -202,11 +202,10 @@ export default function ResetPasswordPage() {
               value={formData.email}
               onChange={handleChange}
               required
-              className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border rounded-lg focus:bg-white focus:ring-2 focus:ring-[#578FCA]/20 focus:border-[#578FCA] outline-none transition-all duration-200 font-poppins placeholder:text-gray-400 text-gray-700 text-sm ${
-                errors.email
+              className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border rounded-lg focus:bg-white focus:ring-2 focus:ring-[#578FCA]/20 focus:border-[#578FCA] outline-none transition-all duration-200 font-poppins placeholder:text-gray-400 text-gray-700 text-sm ${errors.email
                   ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-red-100"
                   : "border-gray-200 hover:border-[#578FCA]/50"
-              }`}
+                }`}
               placeholder="Masukkan email Anda"
             />
           </div>

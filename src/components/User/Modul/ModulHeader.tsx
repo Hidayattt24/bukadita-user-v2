@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowLeft, Star, Users, Menu, X, BookOpen } from "lucide-react";
+import { ArrowLeft, X, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { DetailModul, SubMateri } from "@/data/detailModulData";
 
@@ -52,25 +52,12 @@ export default function ModulHeader({
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <div className="hidden lg:flex items-center gap-2 text-sm text-gray-600">
-            <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 text-yellow-500" />
-              <span>{modul.rating}</span>
-            </div>
-            <span>•</span>
-            <div className="flex items-center gap-1">
-              <Users className="w-4 h-4" />
-              <span>{modul.students} peserta</span>
-            </div>
-          </div>
-
           <button
             onClick={toggleSidebar}
-            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg transition-all duration-300 ${
-              sidebarOpen
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg transition-all duration-300 ${sidebarOpen
                 ? "bg-red-500 hover:bg-red-600 text-white"
                 : "bg-[#578FCA] hover:bg-[#27548A] text-white"
-            }`}
+              }`}
           >
             {sidebarOpen ? (
               <X className="w-4 h-4" />

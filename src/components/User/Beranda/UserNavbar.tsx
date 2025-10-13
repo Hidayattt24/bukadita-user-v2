@@ -126,31 +126,28 @@ export default function UserNavbar({
           <div className="hidden md:flex items-center space-x-3">
             <Link
               href="/user/beranda"
-              className={`px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${
-                activeMenu === "beranda"
+              className={`px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${activeMenu === "beranda"
                   ? "text-[#27548A] bg-white/95 shadow-lg"
                   : "text-white/90 hover:text-white hover:bg-white/20"
-              }`}
+                }`}
             >
               Beranda
             </Link>
             <Link
               href="/user/modul"
-              className={`px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${
-                activeMenu === "modul"
+              className={`px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${activeMenu === "modul"
                   ? "text-[#27548A] bg-white/95 shadow-lg"
                   : "text-white/90 hover:text-white hover:bg-white/20"
-              }`}
+                }`}
             >
               Modul
             </Link>
             <Link
               href="/user/pengaturan"
-              className={`px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${
-                activeMenu === "pengaturan"
+              className={`px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${activeMenu === "pengaturan"
                   ? "text-[#27548A] bg-white/95 shadow-lg"
                   : "text-white/90 hover:text-white hover:bg-white/20"
-              }`}
+                }`}
             >
               Pengaturan
             </Link>
@@ -184,7 +181,7 @@ export default function UserNavbar({
                 className="w-11 h-11 rounded-full overflow-hidden shadow-lg border-2 border-white/50 hover:border-white/70 transition-all duration-300 hover:scale-105 relative"
               >
                 <Image
-                  src="/dummy/dummy-fotoprofil.png"
+                  src={user?.profile?.profil_url || "/dummy/dummy-fotoprofil.png"}
                   alt="Foto Profil"
                   width={44}
                   height={44}
@@ -203,7 +200,7 @@ export default function UserNavbar({
                 className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-white/40 shadow-lg flex-shrink-0 hover:ring-white/60 transition-all duration-300 relative"
               >
                 <Image
-                  src="/dummy/dummy-fotoprofil.png"
+                  src={user?.profile?.profil_url || "/dummy/dummy-fotoprofil.png"}
                   alt={`Foto Profil ${user?.profile?.full_name || "User"}`}
                   width={56}
                   height={56}
@@ -234,7 +231,7 @@ export default function UserNavbar({
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                       <Image
-                        src="/dummy/dummy-fotoprofil.png"
+                        src={user?.profile?.profil_url || "/dummy/dummy-fotoprofil.png"}
                         alt="Profile"
                         width={40}
                         height={40}
