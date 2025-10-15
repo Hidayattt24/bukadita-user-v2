@@ -8,7 +8,7 @@ import {
   XCircle,
   Award,
 } from "lucide-react";
-import { SubMateri, QuizResult } from "@/data/detailModulData";
+import { SubMateri, QuizResult } from "@/types/modul";
 
 interface ModulQuizContentProps {
   selectedSubMateri: SubMateri;
@@ -67,7 +67,7 @@ export default function ModulQuizContent({
     setQuizResult(result);
     setCurrentState("result");
     onQuizComplete(result);
-  }, [selectedAnswers, selectedSubMateri.quiz, onQuizComplete, timeLeft]);
+  }, [selectedAnswers, selectedSubMateri.quiz, onQuizComplete]);
 
   // Timer effect
   useEffect(() => {
@@ -135,9 +135,8 @@ export default function ModulQuizContent({
 
   return (
     <div
-      className={`flex-1 transition-all duration-300 ${
-        sidebarOpen ? "md:mr-96" : "mr-0"
-      }`}
+      className={`flex-1 transition-all duration-300 ${sidebarOpen ? "md:mr-96" : "mr-0"
+        }`}
     >
       <div className="flex flex-col h-full bg-white rounded-none md:rounded-2xl shadow-none md:shadow-lg m-0 md:m-6 overflow-hidden">
         {/* Quiz Header */}
@@ -165,11 +164,10 @@ export default function ModulQuizContent({
             <button
               onClick={onBackToContent}
               disabled={currentState === "playing"}
-              className={`flex items-center gap-1 sm:gap-2 transition-colors text-sm sm:text-base ${
-                currentState === "playing"
-                  ? "text-blue-200/50 cursor-not-allowed"
-                  : "text-blue-100 hover:text-white"
-              }`}
+              className={`flex items-center gap-1 sm:gap-2 transition-colors text-sm sm:text-base ${currentState === "playing"
+                ? "text-blue-200/50 cursor-not-allowed"
+                : "text-blue-100 hover:text-white"
+                }`}
             >
               <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Kembali ke Materi</span>
@@ -181,9 +179,8 @@ export default function ModulQuizContent({
                 <div className="flex items-center gap-1 sm:gap-2 bg-white/10 px-2 sm:px-4 py-1 sm:py-2 rounded-lg">
                   <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-blue-100" />
                   <span
-                    className={`text-xs sm:text-sm font-mono ${
-                      timeLeft < 60 ? "text-red-200" : "text-blue-100"
-                    }`}
+                    className={`text-xs sm:text-sm font-mono ${timeLeft < 60 ? "text-red-200" : "text-blue-100"
+                      }`}
                   >
                     {formatTime(timeLeft)}
                   </span>
@@ -213,11 +210,10 @@ export default function ModulQuizContent({
                   <div className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-xl">
                     <div className="flex items-center gap-3 sm:gap-4">
                       <div
-                        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ${
-                          selectedSubMateri.quizResult.passed
-                            ? "bg-green-100"
-                            : "bg-red-100"
-                        }`}
+                        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ${selectedSubMateri.quizResult.passed
+                          ? "bg-green-100"
+                          : "bg-red-100"
+                          }`}
                       >
                         {selectedSubMateri.quizResult.passed ? (
                           <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
@@ -237,11 +233,10 @@ export default function ModulQuizContent({
                       </div>
                     </div>
                     <div
-                      className={`px-4 py-2 rounded-lg font-medium ${
-                        selectedSubMateri.quizResult.passed
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
+                      className={`px-4 py-2 rounded-lg font-medium ${selectedSubMateri.quizResult.passed
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                        }`}
                     >
                       {selectedSubMateri.quizResult.passed
                         ? "LULUS"
@@ -338,11 +333,10 @@ export default function ModulQuizContent({
                       <div
                         className="bg-gradient-to-r from-[#27548A] to-[#578FCA] h-2 rounded-full transition-all"
                         style={{
-                          width: `${
-                            ((currentQuestionIndex + 1) /
-                              selectedSubMateri.quiz.length) *
+                          width: `${((currentQuestionIndex + 1) /
+                            selectedSubMateri.quiz.length) *
                             100
-                          }%`,
+                            }%`,
                         }}
                       ></div>
                     </div>
@@ -358,26 +352,24 @@ export default function ModulQuizContent({
                     <button
                       key={index}
                       onClick={() => handleAnswerSelect(index)}
-                      className={`w-full text-left p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${
-                        selectedAnswers[currentQuestionIndex] ===
+                      className={`w-full text-left p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 transition-all ${selectedAnswers[currentQuestionIndex] ===
                         index.toString()
-                          ? "border-[#578FCA] bg-blue-50 text-[#27548A]"
-                          : "border-gray-200 bg-white hover:border-[#578FCA] hover:bg-blue-50"
-                      }`}
+                        ? "border-[#578FCA] bg-blue-50 text-[#27548A]"
+                        : "border-gray-200 bg-white hover:border-[#578FCA] hover:bg-blue-50"
+                        }`}
                     >
                       <div className="flex items-center gap-2 sm:gap-3">
                         <div
-                          className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                            selectedAnswers[currentQuestionIndex] ===
+                          className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${selectedAnswers[currentQuestionIndex] ===
                             index.toString()
-                              ? "border-[#578FCA] bg-[#578FCA]"
-                              : "border-gray-300"
-                          }`}
+                            ? "border-[#578FCA] bg-[#578FCA]"
+                            : "border-gray-300"
+                            }`}
                         >
                           {selectedAnswers[currentQuestionIndex] ===
                             index.toString() && (
-                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white rounded-full"></div>
-                          )}
+                              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white rounded-full"></div>
+                            )}
                         </div>
                         <span className="font-medium text-sm sm:text-base leading-tight">
                           {option}
@@ -393,11 +385,10 @@ export default function ModulQuizContent({
                     <button
                       onClick={handlePreviousQuestion}
                       disabled={currentQuestionIndex === 0}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center ${
-                        currentQuestionIndex === 0
-                          ? "bg-gray-50 text-gray-400 cursor-not-allowed"
-                          : "bg-gray-100 text-[#27548A] hover:bg-gray-200"
-                      }`}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center ${currentQuestionIndex === 0
+                        ? "bg-gray-50 text-gray-400 cursor-not-allowed"
+                        : "bg-gray-100 text-[#27548A] hover:bg-gray-200"
+                        }`}
                     >
                       <ArrowLeft className="w-4 h-4" />
                       Sebelumnya
@@ -406,14 +397,13 @@ export default function ModulQuizContent({
                     <button
                       onClick={handleNextQuestion}
                       disabled={!selectedAnswers[currentQuestionIndex]}
-                      className={`px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center flex items-center ${
-                        !selectedAnswers[currentQuestionIndex]
-                          ? "bg-gray-50 text-gray-400 cursor-not-allowed"
-                          : "bg-gradient-to-r from-[#27548A] to-[#578FCA] text-white hover:from-[#1e3f63] hover:to-[#27548A]"
-                      }`}
+                      className={`px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center flex items-center ${!selectedAnswers[currentQuestionIndex]
+                        ? "bg-gray-50 text-gray-400 cursor-not-allowed"
+                        : "bg-gradient-to-r from-[#27548A] to-[#578FCA] text-white hover:from-[#1e3f63] hover:to-[#27548A]"
+                        }`}
                     >
                       {currentQuestionIndex ===
-                      selectedSubMateri.quiz.length - 1
+                        selectedSubMateri.quiz.length - 1
                         ? "Selesai"
                         : "Selanjutnya"}
                     </button>
@@ -425,11 +415,10 @@ export default function ModulQuizContent({
                   <button
                     onClick={handlePreviousQuestion}
                     disabled={currentQuestionIndex === 0}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors ${
-                      currentQuestionIndex === 0
-                        ? "bg-gray-50 text-gray-400 cursor-not-allowed"
-                        : "bg-gray-100 text-[#27548A] hover:bg-gray-200"
-                    }`}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors ${currentQuestionIndex === 0
+                      ? "bg-gray-50 text-gray-400 cursor-not-allowed"
+                      : "bg-gray-100 text-[#27548A] hover:bg-gray-200"
+                      }`}
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Sebelumnya
@@ -438,11 +427,10 @@ export default function ModulQuizContent({
                   <button
                     onClick={handleNextQuestion}
                     disabled={!selectedAnswers[currentQuestionIndex]}
-                    className={`px-6 py-3 rounded-xl font-medium transition-colors ${
-                      !selectedAnswers[currentQuestionIndex]
-                        ? "bg-gray-50 text-gray-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-[#27548A] to-[#578FCA] text-white hover:from-[#1e3f63] hover:to-[#27548A]"
-                    }`}
+                    className={`px-6 py-3 rounded-xl font-medium transition-colors ${!selectedAnswers[currentQuestionIndex]
+                      ? "bg-gray-50 text-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-[#27548A] to-[#578FCA] text-white hover:from-[#1e3f63] hover:to-[#27548A]"
+                      }`}
                   >
                     {currentQuestionIndex === selectedSubMateri.quiz.length - 1
                       ? "Selesai"
@@ -457,9 +445,8 @@ export default function ModulQuizContent({
             <div className="max-w-4xl mx-auto">
               <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-gray-200 text-center">
                 <div
-                  className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 mx-auto mb-4 sm:mb-6 rounded-full flex items-center justify-center ${
-                    quizResult.passed ? "bg-green-100" : "bg-red-100"
-                  }`}
+                  className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 mx-auto mb-4 sm:mb-6 rounded-full flex items-center justify-center ${quizResult.passed ? "bg-green-100" : "bg-red-100"
+                    }`}
                 >
                   {quizResult.passed ? (
                     <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-green-600" />
@@ -469,9 +456,8 @@ export default function ModulQuizContent({
                 </div>
 
                 <h3
-                  className={`text-xl sm:text-2xl md:text-3xl font-bold mb-2 ${
-                    quizResult.passed ? "text-green-600" : "text-red-600"
-                  }`}
+                  className={`text-xl sm:text-2xl md:text-3xl font-bold mb-2 ${quizResult.passed ? "text-green-600" : "text-red-600"
+                    }`}
                 >
                   {quizResult.passed ? "Selamat!" : "Belum Berhasil"}
                 </h3>
@@ -503,9 +489,8 @@ export default function ModulQuizContent({
 
                   <div className="p-4 sm:p-6 bg-blue-50 rounded-lg sm:rounded-xl text-center">
                     <div
-                      className={`text-2xl sm:text-3xl font-bold mb-1 sm:mb-2 ${
-                        quizResult.passed ? "text-green-600" : "text-red-600"
-                      }`}
+                      className={`text-2xl sm:text-3xl font-bold mb-1 sm:mb-2 ${quizResult.passed ? "text-green-600" : "text-red-600"
+                        }`}
                     >
                       {quizResult.passed ? "LULUS" : "GAGAL"}
                     </div>

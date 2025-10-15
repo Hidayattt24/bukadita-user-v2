@@ -7,7 +7,7 @@ import {
   BookOpen,
   X,
 } from "lucide-react";
-import { DetailModul, SubMateri } from "@/data/detailModulData";
+import { DetailModul, SubMateri } from "@/types/modul";
 import { useToast } from "@/components/ui/toast";
 
 interface ModulSidebarProps {
@@ -45,9 +45,8 @@ export default function ModulSidebar({
       )}
 
       <div
-        className={`fixed top-[73px] left-0 right-0 h-[calc(100vh-73px)] bg-white transform transition-transform duration-300 z-40 ${
-          sidebarOpen ? "translate-x-0" : "translate-x-full"
-        } md:left-auto md:right-0 md:w-96 md:border-l md:border-gray-200 md:shadow-2xl`}
+        className={`fixed top-[73px] left-0 right-0 h-[calc(100vh-73px)] bg-white transform transition-transform duration-300 z-40 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
+          } md:left-auto md:right-0 md:w-96 md:border-l md:border-gray-200 md:shadow-2xl`}
       >
         {/* Sidebar Header */}
         <div className="px-4 py-4 sm:px-6 sm:py-6 bg-gradient-to-br from-[#578FCA] to-[#27548A] relative">
@@ -103,15 +102,14 @@ export default function ModulSidebar({
               <div className="p-3 sm:p-4">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <div
-                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-xs sm:text-sm font-bold ${
-                      subMateri.isCompleted
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-xs sm:text-sm font-bold ${subMateri.isCompleted
                         ? "bg-emerald-500 text-white"
                         : selectedSubMateri?.id === subMateri.id
-                        ? "bg-[#578FCA] text-white"
-                        : subMateri.isUnlocked
-                        ? "bg-gray-100 text-[#27548A]"
-                        : "bg-gray-50 text-gray-400"
-                    }`}
+                          ? "bg-[#578FCA] text-white"
+                          : subMateri.isUnlocked
+                            ? "bg-gray-100 text-[#27548A]"
+                            : "bg-gray-50 text-gray-400"
+                      }`}
                   >
                     {subMateri.isCompleted ? (
                       <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -122,11 +120,10 @@ export default function ModulSidebar({
 
                   <div className="flex-1 min-w-0">
                     <h4
-                      className={`font-bold text-xs sm:text-sm mb-1 leading-tight ${
-                        subMateri.isUnlocked
+                      className={`font-bold text-xs sm:text-sm mb-1 leading-tight ${subMateri.isUnlocked
                           ? "text-[#27548A]"
                           : "text-gray-400"
-                      }`}
+                        }`}
                     >
                       {subMateri.title}
                       {!subMateri.isUnlocked && (
@@ -151,11 +148,10 @@ export default function ModulSidebar({
                       <ChevronDown className="w-4 h-4 text-[#578FCA]" />
                     ) : (
                       <ChevronRight
-                        className={`w-4 h-4 ${
-                          subMateri.isUnlocked
+                        className={`w-4 h-4 ${subMateri.isUnlocked
                             ? "text-gray-400"
                             : "text-gray-300"
-                        }`}
+                          }`}
                       />
                     )}
                   </button>
@@ -165,18 +161,16 @@ export default function ModulSidebar({
                 <div className="mb-3">
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
                     <div
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        subMateri.isCompleted
+                      className={`h-1.5 rounded-full transition-all duration-300 ${subMateri.isCompleted
                           ? "bg-emerald-500"
                           : "bg-[#578FCA]"
-                      }`}
+                        }`}
                       style={{
-                        width: `${
-                          (subMateri.poinDetails.filter((p) => p.isCompleted)
+                        width: `${(subMateri.poinDetails.filter((p) => p.isCompleted)
                             .length /
                             subMateri.poinDetails.length) *
                           100
-                        }%`,
+                          }%`,
                       }}
                     ></div>
                   </div>
@@ -194,19 +188,18 @@ export default function ModulSidebar({
                     }
                   }}
                   disabled={!subMateri.isUnlocked}
-                  className={`w-full py-2.5 px-4 rounded-lg font-medium text-sm transition-all ${
-                    selectedSubMateri?.id === subMateri.id
+                  className={`w-full py-2.5 px-4 rounded-lg font-medium text-sm transition-all ${selectedSubMateri?.id === subMateri.id
                       ? "bg-[#578FCA] text-white"
                       : subMateri.isUnlocked
-                      ? "bg-gray-100 text-[#27548A] hover:bg-gray-200"
-                      : "bg-gray-50 text-gray-400 cursor-not-allowed"
-                  }`}
+                        ? "bg-gray-100 text-[#27548A] hover:bg-gray-200"
+                        : "bg-gray-50 text-gray-400 cursor-not-allowed"
+                    }`}
                 >
                   {selectedSubMateri?.id === subMateri.id
                     ? "Sedang Dipelajari"
                     : subMateri.isUnlocked
-                    ? "Mulai Belajar"
-                    : "Locked"}
+                      ? "Mulai Belajar"
+                      : "Locked"}
                 </button>
 
                 {/* Locked Message */}
@@ -252,17 +245,16 @@ export default function ModulSidebar({
                               );
                             }
                           }}
-                          className={`w-full text-left p-2.5 rounded-lg text-xs transition-all ${
-                            selectedPoinIndex === poinIndex &&
-                            selectedSubMateri?.id === subMateri.id &&
-                            subMateri.isUnlocked
+                          className={`w-full text-left p-2.5 rounded-lg text-xs transition-all ${selectedPoinIndex === poinIndex &&
+                              selectedSubMateri?.id === subMateri.id &&
+                              subMateri.isUnlocked
                               ? "bg-[#578FCA]/10 text-[#27548A] border border-[#578FCA]/30"
                               : poin.isCompleted && subMateri.isUnlocked
-                              ? "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
-                              : subMateri.isUnlocked
-                              ? "text-gray-600 hover:bg-gray-100"
-                              : "text-gray-400 hover:bg-red-50 hover:text-red-400 cursor-pointer"
-                          }`}
+                                ? "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                                : subMateri.isUnlocked
+                                  ? "text-gray-600 hover:bg-gray-100"
+                                  : "text-gray-400 hover:bg-red-50 hover:text-red-400 cursor-pointer"
+                            }`}
                           title={
                             !subMateri.isUnlocked
                               ? "Selesaikan materi sebelumnya untuk mengakses poin ini"
@@ -271,17 +263,16 @@ export default function ModulSidebar({
                         >
                           <div className="flex items-center gap-2">
                             <div
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                selectedPoinIndex === poinIndex &&
-                                selectedSubMateri?.id === subMateri.id &&
-                                subMateri.isUnlocked
+                              className={`w-1.5 h-1.5 rounded-full ${selectedPoinIndex === poinIndex &&
+                                  selectedSubMateri?.id === subMateri.id &&
+                                  subMateri.isUnlocked
                                   ? "bg-[#578FCA]"
                                   : poin.isCompleted && subMateri.isUnlocked
-                                  ? "bg-emerald-500"
-                                  : subMateri.isUnlocked
-                                  ? "bg-gray-300"
-                                  : "bg-gray-300"
-                              }`}
+                                    ? "bg-emerald-500"
+                                    : subMateri.isUnlocked
+                                      ? "bg-gray-300"
+                                      : "bg-gray-300"
+                                }`}
                             ></div>
                             <span className="truncate font-medium flex-1">
                               {poin.title}
