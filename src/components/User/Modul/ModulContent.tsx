@@ -21,6 +21,7 @@ interface ModulContentProps {
   handleNextPoin: () => void;
   sidebarOpen: boolean;
   onStartQuiz?: () => void;
+  onPoinCompleted?: (poinId: string) => void;
 }
 
 export default function ModulContent({
@@ -33,6 +34,7 @@ export default function ModulContent({
   handleNextPoin,
   sidebarOpen,
   onStartQuiz,
+  onPoinCompleted,
 }: ModulContentProps) {
   const getContentTypeIcon = (type: string) => {
     switch (type) {
@@ -48,8 +50,9 @@ export default function ModulContent({
   if (!currentPoin) {
     return (
       <div
-        className={`flex-1 transition-all duration-300 ${sidebarOpen ? "md:mr-96" : "mr-0"
-          }`}
+        className={`flex-1 transition-all duration-300 ${
+          sidebarOpen ? "md:mr-96" : "mr-0"
+        }`}
       >
         <div className="flex items-center justify-center h-full">
           <div className="text-center p-4 sm:p-8">
@@ -71,8 +74,9 @@ export default function ModulContent({
 
   return (
     <div
-      className={`flex-1 transition-all duration-300 ${sidebarOpen ? "md:mr-96" : "mr-0"
-        }`}
+      className={`flex-1 transition-all duration-300 ${
+        sidebarOpen ? "md:mr-96" : "mr-0"
+      }`}
     >
       <div className="flex flex-col h-full bg-white rounded-none md:rounded-2xl shadow-none md:shadow-lg m-0 md:m-6 overflow-hidden">
         {/* Content Header */}
@@ -215,21 +219,29 @@ export default function ModulContent({
               <button
                 onClick={handlePreviousPoin}
                 disabled={!canNavigatePrevious()}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center ${canNavigatePrevious()
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center ${
+                  canNavigatePrevious()
                     ? "bg-gray-100 text-[#27548A] hover:bg-gray-200"
                     : "bg-gray-50 text-gray-400 cursor-not-allowed"
-                  }`}
+                }`}
               >
                 <ArrowLeft className="w-4 h-4" />
                 Sebelumnya
               </button>
               <button
-                onClick={handleNextPoin}
+                onClick={() => {
+                  // Mark current poin as completed before navigating
+                  if (currentPoin && onPoinCompleted) {
+                    onPoinCompleted(currentPoin.id);
+                  }
+                  handleNextPoin();
+                }}
                 disabled={!canNavigateNext()}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center ${canNavigateNext()
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center ${
+                  canNavigateNext()
                     ? "bg-[#578FCA] text-white hover:bg-[#27548A]"
                     : "bg-gray-50 text-gray-400 cursor-not-allowed"
-                  }`}
+                }`}
               >
                 Selanjutnya
                 <ChevronRight className="w-4 h-4" />
@@ -242,10 +254,11 @@ export default function ModulContent({
             <button
               onClick={handlePreviousPoin}
               disabled={!canNavigatePrevious()}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors text-base ${canNavigatePrevious()
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors text-base ${
+                canNavigatePrevious()
                   ? "bg-gray-100 text-[#27548A] hover:bg-gray-200"
                   : "bg-gray-50 text-gray-400 cursor-not-allowed"
-                }`}
+              }`}
             >
               <ArrowLeft className="w-4 h-4" />
               Sebelumnya
@@ -265,12 +278,19 @@ export default function ModulContent({
             </div>
 
             <button
-              onClick={handleNextPoin}
+              onClick={() => {
+                // Mark current poin as completed before navigating
+                if (currentPoin && onPoinCompleted) {
+                  onPoinCompleted(currentPoin.id);
+                }
+                handleNextPoin();
+              }}
               disabled={!canNavigateNext()}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors text-base ${canNavigateNext()
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors text-base ${
+                canNavigateNext()
                   ? "bg-[#578FCA] text-white hover:bg-[#27548A]"
                   : "bg-gray-50 text-gray-400 cursor-not-allowed"
-                }`}
+              }`}
             >
               Selanjutnya
               <ChevronRight className="w-4 h-4" />

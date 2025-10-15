@@ -1,6 +1,10 @@
 import { ArrowUpRight, Clock, BookOpen, Users } from "lucide-react";
 import { ModulData } from "@/data/modulData";
 import Link from "next/link";
+import { useProgress } from "@/context/ProgressContext";
+import { useBackendProgress } from "@/hooks/useBackendProgress";
+import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from "react";
 
 interface ContinueLearningProps {
   lastStudiedModul: ModulData | null;
@@ -9,6 +13,47 @@ interface ContinueLearningProps {
 export default function ContinueLearningSection({
   lastStudiedModul,
 }: ContinueLearningProps) {
+  const { getModuleProgress } = useProgress();
+  const { modulesProgress } = useBackendProgress();
+  const { user } = useAuth();
+  const [actualProgress, setActualProgress] = useState(0);
+
+  // Get real progress from backend if user is logged in, otherwise from localStorage
+  useEffect(() => {
+    if (lastStudiedModul) {
+      if (user && modulesProgress) {
+        // Backend returns progress with module_id
+        // Match with frontend module.id (both are numbers)
+        const backendProgress = modulesProgress.modules.find(
+          (m) => m.module_id === lastStudiedModul.id
+        );
+
+        if (backendProgress) {
+          const progress = backendProgress.progress_percentage || 0;
+          setActualProgress(progress);
+          console.log("[ContinueLearning] Using backend progress:", {
+            moduleId: lastStudiedModul.id,
+            progress,
+          });
+        } else {
+          // No progress in backend yet, show 0
+          setActualProgress(0);
+          console.log(
+            "[ContinueLearning] No backend progress found, showing 0"
+          );
+        }
+      } else {
+        // User not logged in, use localStorage
+        const localProgress = getModuleProgress(lastStudiedModul.id);
+        setActualProgress(localProgress?.overallProgress ?? 0);
+        console.log(
+          "[ContinueLearning] Using localStorage progress:",
+          localProgress?.overallProgress
+        );
+      }
+    }
+  }, [lastStudiedModul, user, modulesProgress, getModuleProgress]);
+
   return (
     <div className="mb-6 sm:mb-8">
       <div className="mb-4 sm:mb-6">
@@ -39,7 +84,6 @@ export default function ContinueLearningSection({
                   <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-medium">
                     {lastStudiedModul.category}
                   </span>
-
                 </div>
                 <h4 className="text-white font-bold text-lg sm:text-xl mb-2">
                   {lastStudiedModul.title}
@@ -68,13 +112,13 @@ export default function ContinueLearningSection({
                   <div className="flex justify-between items-center">
                     <span className="text-white/80 text-sm">Progress</span>
                     <span className="text-white font-semibold text-sm">
-                      {lastStudiedModul.progress}%
+                      {actualProgress}%
                     </span>
                   </div>
                   <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
                     <div
                       className="bg-white h-2 rounded-full transition-all duration-700"
-                      style={{ width: `${lastStudiedModul.progress}%` }}
+                      style={{ width: `${actualProgress}%` }}
                     ></div>
                   </div>
                 </div>

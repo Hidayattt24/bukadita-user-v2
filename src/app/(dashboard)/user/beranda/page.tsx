@@ -12,10 +12,12 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
 import { modulPosyanduData } from "@/data/modulData";
 import { useMemo, useEffect, useState } from "react";
+import { useProgress } from "@/context/ProgressContext";
 
 export default function BerandaUser() {
   const { user } = useAuth();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const { getModuleProgress, getAllModulesProgress } = useProgress();
 
   useEffect(() => {
     const handleFocus = () => {
@@ -67,14 +69,21 @@ export default function BerandaUser() {
 
   const accessedModuls = useMemo(() => {
     return modulPosyanduData
-      .filter((modul) => modul.progress > 0 || modul.status === "completed")
+      .filter((modul) => {
+        const progress = getModuleProgress(modul.id);
+        return progress && progress.overallProgress > 0;
+      })
       .filter((modul) => modul.id !== lastStudiedModul?.id);
-  }, [lastStudiedModul]);
+  }, [lastStudiedModul, getModuleProgress]);
 
   const stats = useMemo(() => {
-    const completed = modulPosyanduData.filter(
-      (m) => m.status === "completed"
-    ).length;
+    // Get all modules progress from localStorage
+    const allProgress = getAllModulesProgress();
+
+    // Count completed modules (progress = 100%)
+    const completed = allProgress.filter((p) => p.progress === 100).length;
+
+    // Calculate total hours (unchanged, based on static data)
     const totalHours = modulPosyanduData.reduce((acc, m) => {
       const hourMatch = m.duration.match(/(\d+)\s*jam/);
       const minuteMatch = m.duration.match(/(\d+)\s*menit/);
@@ -82,17 +91,22 @@ export default function BerandaUser() {
       const minutes = minuteMatch ? parseInt(minuteMatch[1]) : 0;
       return acc + hours + minutes / 60;
     }, 0);
-    const totalProgress = Math.round(
-      modulPosyanduData.reduce((acc, m) => acc + m.progress, 0) /
-        modulPosyanduData.length
-    );
+
+    // Calculate overall progress from localStorage
+    const totalProgress =
+      allProgress.length > 0
+        ? Math.round(
+            allProgress.reduce((acc, p) => acc + p.progress, 0) /
+              allProgress.length
+          )
+        : 0;
 
     return {
       completedModuls: completed,
       totalHours: Math.round(totalHours),
       overallProgress: totalProgress,
     };
-  }, []);
+  }, [getAllModulesProgress]);
 
   return (
     <ProtectedRoute>

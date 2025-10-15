@@ -77,10 +77,24 @@ export default function ModulCard({
           {description}
         </p>
 
-        <button className="w-full py-3.5 px-4 bg-gradient-to-r from-slate-100/80 to-slate-50/80 text-[#27548A] rounded-2xl font-semibold text-sm hover:from-[#578FCA] hover:to-[#27548A] hover:text-white transition-all duration-300 shadow-sm hover:shadow-md mb-6 group/btn border border-slate-200/50">
+        <button
+          className={`w-full py-3.5 px-4 rounded-2xl font-semibold text-sm transition-all duration-300 shadow-sm hover:shadow-md mb-6 group/btn border ${
+            progress === 100
+              ? "bg-gradient-to-r from-green-100 to-emerald-50 text-green-700 border-green-200/50 hover:from-green-200 hover:to-emerald-100"
+              : progress > 0
+              ? "bg-gradient-to-r from-blue-100 to-indigo-50 text-blue-700 border-blue-200/50 hover:from-blue-200 hover:to-indigo-100"
+              : "bg-gradient-to-r from-slate-100/80 to-slate-50/80 text-[#27548A] border-slate-200/50 hover:from-[#578FCA] hover:to-[#27548A] hover:text-white"
+          }`}
+        >
           <span className="flex items-center justify-center space-x-2">
             <BookOpen className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
-            <span>Ayo mulai belajar</span>
+            <span>
+              {progress === 100
+                ? "Selesai Dipelajari"
+                : progress > 0
+                ? "Lanjutkan Belajar"
+                : "Ayo mulai belajar"}
+            </span>
           </span>
         </button>
 

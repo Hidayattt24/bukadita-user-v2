@@ -8,25 +8,77 @@ import {
   AlertCircle,
   Flag,
 } from "lucide-react";
-import { Quiz, QuizResult } from "@/data/detailModulData";
+import { type Quiz, type QuizResult } from "@/data/modules";
+import { QuizService, QuizAnswer } from "@/services/quizService";
+import { useAuth } from "@/context/AuthContext";
 
 interface QuizPlayerProps {
   quizzes: Quiz[];
+  quizId?: string; // Backend quiz ID (optional - for UUID system)
+  moduleId: number; // Frontend module ID (required - for simple system)
+  subMateriId: string; // Frontend sub-materi ID (required - for simple system)
   onQuizComplete: (result: QuizResult) => void;
   onBack: () => void;
 }
 
 export default function QuizPlayer({
   quizzes,
+  quizId,
+  moduleId,
+  subMateriId,
   onQuizComplete,
   onBack,
 }: QuizPlayerProps) {
+  const { user } = useAuth();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<{
     [key: number]: number;
   }>({});
   const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [attemptId, setAttemptId] = useState<string | null>(null);
+
+  // Start quiz attempt on mount (create attempt in backend)
+  useEffect(() => {
+    const startAttempt = async () => {
+      if (user && quizId) {
+        try {
+          console.log(
+            "[QuizPlayer] 🚀 Starting quiz attempt for quizId:",
+            quizId
+          );
+          const response = await QuizService.startQuizAttempt(quizId);
+
+          if (response.success && response.data) {
+            setAttemptId(response.data.attempt_id);
+            console.log("[QuizPlayer] ✅ Quiz attempt started:", {
+              attemptId: response.data.attempt_id,
+              startedAt: response.data.started_at,
+            });
+          } else {
+            console.error(
+              "[QuizPlayer] ❌ Failed to start attempt:",
+              response.message
+            );
+          }
+        } catch (error: any) {
+          console.error("[QuizPlayer] ❌ Error starting attempt:", error);
+          console.error("[QuizPlayer] Error details:", {
+            message: error?.message,
+            status: error?.status,
+            code: error?.code,
+          });
+        }
+      } else {
+        console.log("[QuizPlayer] ⚠️ Cannot start attempt:", {
+          hasUser: !!user,
+          hasQuizId: !!quizId,
+        });
+      }
+    };
+
+    startAttempt();
+  }, [user, quizId]);
 
   // Timer countdown
   useEffect(() => {
@@ -65,10 +117,10 @@ export default function QuizPlayer({
     }
   };
 
-  const handleSubmitQuiz = () => {
+  const handleSubmitQuiz = async () => {
     setIsSubmitting(true);
 
-    // Calculate results
+    // Calculate results locally first
     let correctAnswers = 0;
     const answers = quizzes.map((quiz, index) => {
       const selectedAnswer = selectedAnswers[index] ?? -1;
@@ -88,8 +140,69 @@ export default function QuizPlayer({
       totalQuestions: quizzes.length,
       correctAnswers,
       answers,
-      passed: score >= 50,
+      passed: score >= 70, // Updated to 70% passing
     };
+
+    // Save to backend using SIMPLE QUIZ SYSTEM (always works with frontend IDs)
+    if (user) {
+      try {
+        console.log(
+          "[QuizPlayer] 💾 Saving quiz result to backend (simple system):",
+          {
+            moduleId,
+            subMateriId,
+            score,
+            correctAnswers,
+            totalQuestions: quizzes.length,
+          }
+        );
+
+        // Format answers for simple quiz backend
+        const backendAnswers = quizzes.map((quiz, index) => ({
+          question_id: quiz.id,
+          selected_option_index: selectedAnswers[index] ?? -1,
+          is_correct: (selectedAnswers[index] ?? -1) === quiz.correctAnswer,
+        }));
+
+        // Submit using simple quiz API
+        const response = await QuizService.submitSimpleQuiz({
+          module_id: moduleId,
+          sub_materi_id: subMateriId,
+          quiz_data: quizzes, // Store full quiz data
+          answers: backendAnswers,
+          time_taken_seconds: 15 * 60 - timeLeft,
+        });
+
+        console.log("[QuizPlayer] 📥 Backend response:", response);
+
+        if (response.data) {
+          console.log(
+            "[QuizPlayer] ✅ Quiz result saved successfully to backend:",
+            response.data
+          );
+        } else {
+          console.warn(
+            "[QuizPlayer] ⚠️ Backend returned no data:",
+            response.message
+          );
+        }
+      } catch (error: any) {
+        console.error(
+          "[QuizPlayer] ❌ Error saving quiz result to backend:",
+          error
+        );
+        console.error("[QuizPlayer] Error details:", {
+          message: error?.message,
+          status: error?.status,
+          code: error?.code,
+        });
+        // Continue with local result even if backend fails
+      }
+    } else {
+      console.log(
+        "[QuizPlayer] ⚠️ User not authenticated, skipping backend save"
+      );
+    }
 
     setTimeout(() => {
       onQuizComplete(result);

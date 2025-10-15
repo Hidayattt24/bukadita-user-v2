@@ -21,6 +21,7 @@ import {
 import Link from "next/link";
 import { modulPosyanduData } from "@/data/modulData";
 import { useState, useMemo, useEffect } from "react";
+import { useProgress } from "@/context/ProgressContext";
 
 interface StatisticsProps {
   completedModuls: number;
@@ -38,6 +39,9 @@ export default function StatisticsSection({
   const [searchQuery, setSearchQuery] = useState("");
 
   const [isSearching, setIsSearching] = useState(false);
+
+  // Get progress from localStorage
+  const { getModuleProgress } = useProgress();
 
   // Get unique categories
   const categories = [
@@ -207,6 +211,19 @@ export default function StatisticsSection({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-4 lg:gap-5 mb-6">
             {filteredModuls.map((modul) => {
               const IconComponent = getCategoryIcon(modul.category);
+
+              // Get real progress from localStorage
+              const moduleProgress = getModuleProgress(modul.id);
+              const actualProgress = moduleProgress?.overallProgress ?? 0;
+
+              // Determine real status based on progress
+              const realStatus =
+                actualProgress === 100
+                  ? "completed"
+                  : actualProgress > 0
+                  ? "in-progress"
+                  : "not-started";
+
               return (
                 <div
                   key={modul.id}
@@ -249,13 +266,13 @@ export default function StatisticsSection({
                         Progress
                       </span>
                       <span className="text-sm sm:text-sm font-semibold text-[#27548A]">
-                        {modul.progress}%
+                        {actualProgress}%
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2.5">
                       <div
                         className="bg-gradient-to-r from-[#578FCA] to-[#27548A] h-2.5 rounded-full transition-all duration-300"
-                        style={{ width: `${modul.progress}%` }}
+                        style={{ width: `${actualProgress}%` }}
                       ></div>
                     </div>
                   </div>
@@ -264,18 +281,18 @@ export default function StatisticsSection({
                   <Link
                     href={`/user/modul/${modul.slug}`}
                     className={`w-full flex items-center justify-center gap-2 px-4 py-3 sm:py-3 rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base hover:scale-105 shadow-sm ${
-                      modul.status === "completed"
+                      realStatus === "completed"
                         ? "bg-green-100 text-green-700 hover:bg-green-200"
-                        : modul.status === "in-progress"
+                        : realStatus === "in-progress"
                         ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
                         : "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white hover:from-[#27548A] hover:to-[#578FCA]"
                     }`}
                   >
                     <Play className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span>
-                      {modul.status === "completed"
+                      {realStatus === "completed"
                         ? "Selesai"
-                        : modul.status === "in-progress"
+                        : realStatus === "in-progress"
                         ? "Lanjutkan"
                         : "Mulai"}
                     </span>

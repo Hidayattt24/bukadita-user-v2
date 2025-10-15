@@ -1,23 +1,25 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
-  getDetailModulBySlug,
-  DetailModul,
-  SubMateri,
-  PoinDetail,
-  QuizResult,
-} from "@/data/detailModulData";
+  getModuleBySlug,
+  type DetailModul,
+  type SubMateri,
+  type PoinDetail,
+  type QuizResult,
+} from "@/data/modules";
 import MobileBottomNavbar from "@/components/User/Beranda/MobileBottomNavbar";
 import {
   ModulSidebar,
   ModulHeader,
   ModulContent,
-  ModulQuizContent,
   ModulLoading,
   ModulNotFound,
 } from "@/components/User/Modul";
+import { QuizManager } from "@/components/User/Modul/Quiz";
+import { useAuth } from "@/context/AuthContext";
+import { useProgress } from "@/context/ProgressContext";
 
 type PageState = "content" | "quiz";
 
@@ -33,6 +35,16 @@ export default function DetailModulPage() {
   const [expandedSubMateris, setExpandedSubMateris] = useState<string[]>([]);
   const [pageState, setPageState] = useState<PageState>("content");
   const [isMobile, setIsMobile] = useState(true); // Default true untuk mobile-first
+  const { user } = useAuth(); // Get user for auth check
+
+  // Progress tracking
+  const {
+    initializeModuleProgress,
+    updateCurrentPoin,
+    markPoinCompleted,
+    saveQuizResult,
+    markSubMateriCompleted,
+  } = useProgress();
 
   // Detect screen size and adjust sidebar behavior
   useEffect(() => {
@@ -40,7 +52,7 @@ export default function DetailModulPage() {
       const isMobileSize = window.innerWidth < 768; // md breakpoint
       setIsMobile(isMobileSize);
       // Di desktop, sidebar default terbuka; di mobile, default tertutup
-      if (!isMobileSize && !sidebarOpen) {
+      if (!isMobileSize) {
         setSidebarOpen(true);
       }
     };
@@ -48,14 +60,30 @@ export default function DetailModulPage() {
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
     return () => window.removeEventListener("resize", checkScreenSize);
-  }, [sidebarOpen]);
+  }, []); // Remove sidebarOpen from dependency to prevent infinite loop
 
   useEffect(() => {
+    // Wait for auth to be ready before initializing module
+    if (user === undefined) {
+      console.log("⏳ Waiting for auth to be ready...");
+      return; // Auth still loading
+    }
+
     const modulSlug = params.slug as string;
-    const modulData = getDetailModulBySlug(modulSlug);
+    const modulData = getModuleBySlug(modulSlug);
 
     if (modulData) {
       setModul(modulData);
+
+      console.log(
+        "👤 User ready, initializing module:",
+        user?.email || "guest"
+      );
+
+      // Initialize progress tracking for this module
+      const subMateriIds = modulData.subMateris.map((sub) => sub.id);
+      initializeModuleProgress(modulData.id, modulSlug, subMateriIds);
+
       // Set default ke sub materi pertama yang unlocked
       const firstUnlockedSubMateri = modulData.subMateris.find(
         (sub: SubMateri) => sub.isUnlocked
@@ -63,40 +91,73 @@ export default function DetailModulPage() {
       if (firstUnlockedSubMateri) {
         setSelectedSubMateri(firstUnlockedSubMateri);
         setSelectedPoinIndex(0);
+
+        // Update current position in progress tracking
+        updateCurrentPoin(
+          modulData.id,
+          firstUnlockedSubMateri.id,
+          0 // poin index, not poin id
+        );
       }
 
-      // Save to localStorage for demo purposes (beranda will show this as last accessed)
-      localStorage.setItem("lastAccessedModul", modulSlug);
-      localStorage.setItem("lastAccessedModulTitle", modulData.title);
-      localStorage.setItem("lastAccessedTime", new Date().toISOString());
+      // Note: Last accessed tracking sudah handled oleh backend
+      // melalui last_accessed_at field di user_module_progress
     }
     setLoading(false);
-  }, [params.slug]);
+  }, [params.slug, user]); // Removed initializeModuleProgress and updateCurrentPoin to prevent infinite loop
 
-  const handleSubMateriSelect = (subMateri: SubMateri) => {
-    if (subMateri.isUnlocked) {
-      setSelectedSubMateri(subMateri);
-      setSelectedPoinIndex(0);
-      setPageState("content");
-      // Auto expand the selected sub-materi
-      if (!expandedSubMateris.includes(subMateri.id)) {
-        setExpandedSubMateris((prev) => [...prev, subMateri.id]);
+  const handleSubMateriSelect = useCallback(
+    (subMateri: SubMateri) => {
+      if (subMateri.isUnlocked) {
+        setSelectedSubMateri(subMateri);
+        setSelectedPoinIndex(0);
+        setPageState("content");
+
+        // Update progress tracking
+        if (modul) {
+          updateCurrentPoin(modul.id, subMateri.id, 0);
+        }
+
+        // Auto expand the selected sub-materi
+        setExpandedSubMateris((prev) =>
+          prev.includes(subMateri.id) ? prev : [...prev, subMateri.id]
+        );
+
+        // Close sidebar on mobile after selection
+        if (isMobile) {
+          setSidebarOpen(false);
+        }
       }
+    },
+    [modul, updateCurrentPoin, isMobile]
+  );
+
+  const handlePoinSelect = useCallback(
+    (poinIndex: number) => {
+      setSelectedPoinIndex(poinIndex);
+      setPageState("content");
+
+      // Update progress tracking
+      if (modul && selectedSubMateri) {
+        updateCurrentPoin(modul.id, selectedSubMateri.id, poinIndex);
+      }
+
       // Close sidebar on mobile after selection
       if (isMobile) {
         setSidebarOpen(false);
       }
-    }
-  };
+    },
+    [modul, selectedSubMateri, updateCurrentPoin, isMobile]
+  );
 
-  const handlePoinSelect = (poinIndex: number) => {
-    setSelectedPoinIndex(poinIndex);
-    setPageState("content");
-    // Close sidebar on mobile after selection
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-  };
+  const handlePoinCompleted = useCallback(
+    (poinId: string) => {
+      if (modul && selectedSubMateri) {
+        markPoinCompleted(modul.id, selectedSubMateri.id, poinId);
+      }
+    },
+    [modul, selectedSubMateri, markPoinCompleted]
+  );
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -208,7 +269,15 @@ export default function DetailModulPage() {
 
       setSelectedSubMateri(updatedSubMateri);
 
-      // Update modul data (in real app, this would be API call)
+      // Note: Quiz result and sub-materi progress are automatically saved by backend
+      // when QuizPlayer calls QuizService.submitQuizAnswers()
+      // No need to call saveQuizResult or markSubMateriCompleted here
+      console.log("✅ Quiz completed locally, backend already saved:", {
+        score: result.score,
+        passed: result.passed,
+      });
+
+      // Update modul data (local state only)
       const updatedModul = {
         ...modul,
         subMateris: modul.subMateris.map((sub) =>
@@ -268,10 +337,10 @@ export default function DetailModulPage() {
       />
 
       <main className="flex flex-1 relative min-h-[calc(100vh-73px)] pb-safe">
-        {pageState === "quiz" && selectedSubMateri ? (
-          <ModulQuizContent
-            selectedSubMateri={selectedSubMateri}
-            sidebarOpen={sidebarOpen}
+        {pageState === "quiz" && selectedSubMateri && modul ? (
+          <QuizManager
+            subMateri={selectedSubMateri}
+            moduleId={modul.id}
             onQuizComplete={handleQuizComplete}
             onBackToContent={handleBackToContent}
             onContinueToNext={handleContinueToNextSubMateri}
@@ -287,6 +356,7 @@ export default function DetailModulPage() {
             handleNextPoin={handleNextPoin}
             sidebarOpen={sidebarOpen}
             onStartQuiz={handleStartQuiz}
+            onPoinCompleted={handlePoinCompleted}
           />
         )}
 

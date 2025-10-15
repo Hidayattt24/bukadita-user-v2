@@ -4,6 +4,7 @@ import "./globals.css";
 import ConditionalLayout from "@/components/layout/ConditionalLayout";
 import poppins from "@/components/font/poppins";
 import { AuthProvider } from "@/context/AuthContext";
+import { ProgressProvider } from "@/context/ProgressContext";
 import { ToastProvider } from "@/components/ui";
 import InstallPrompt from "@/components/shared/InstallPrompt";
 import FloatingNotes from "@/components/shared/FloatingNotes";
@@ -107,11 +108,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
       >
         <AuthProvider>
-          <ToastProvider>
-            <ConditionalLayout>{children}</ConditionalLayout>
-            <InstallPrompt />
-            <FloatingNotes />
-          </ToastProvider>
+          <ProgressProvider>
+            <ToastProvider>
+              <ConditionalLayout>{children}</ConditionalLayout>
+              <InstallPrompt />
+              <FloatingNotes />
+            </ToastProvider>
+          </ProgressProvider>
         </AuthProvider>
       </body>
     </html>
