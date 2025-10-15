@@ -1,7 +1,7 @@
 import React from "react";
 import { ArrowLeft, X, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { DetailModul, SubMateri } from "@/data/detailModulData";
+import { DetailModul, SubMateri } from "@/types/modul";
 
 interface ModulHeaderProps {
   modul: DetailModul;
@@ -55,8 +55,8 @@ export default function ModulHeader({
           <button
             onClick={toggleSidebar}
             className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg transition-all duration-300 ${sidebarOpen
-                ? "bg-red-500 hover:bg-red-600 text-white"
-                : "bg-[#578FCA] hover:bg-[#27548A] text-white"
+              ? "bg-red-500 hover:bg-red-600 text-white"
+              : "bg-[#578FCA] hover:bg-[#27548A] text-white"
               }`}
           >
             {sidebarOpen ? (

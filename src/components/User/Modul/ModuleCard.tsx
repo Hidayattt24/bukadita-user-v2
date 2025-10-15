@@ -30,7 +30,6 @@ export default function ModuleCard({
   description,
   progress,
   isCompleted = false,
-  estimatedTime = "2-3 jam",
 }: ModuleCardProps) {
   const progressPercentage = progress?.percentage || 0;
   const hasProgress = progress && progress.total_sub_materis > 0;
@@ -116,8 +115,6 @@ export default function ModuleCard({
         {/* Stats */}
         <div className="flex items-center gap-4 mb-4 text-xs text-[#578FCA]/60">
           <div className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            <span>{estimatedTime}</span>
           </div>
           {progress && (
             <div className="flex items-center gap-1">
