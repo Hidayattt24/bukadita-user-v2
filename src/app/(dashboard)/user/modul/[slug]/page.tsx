@@ -1,23 +1,26 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
-  getDetailModulBySlug,
-  DetailModul,
-  SubMateri,
-  PoinDetail,
-  QuizResult,
-} from "@/data/detailModulData";
+  getModuleBySlug,
+  type DetailModul,
+  type SubMateri,
+  type PoinDetail,
+  type QuizResult,
+} from "@/data/modules";
 import MobileBottomNavbar from "@/components/User/Beranda/MobileBottomNavbar";
 import {
   ModulSidebar,
   ModulHeader,
   ModulContent,
-  ModulQuizContent,
   ModulLoading,
   ModulNotFound,
 } from "@/components/User/Modul";
+import { QuizManager } from "@/components/User/Modul/Quiz";
+import { useAuth } from "@/context/AuthContext";
+import { useProgress } from "@/context/ProgressContext";
+import { useProgressSync } from "@/hooks/useProgressSync";
 
 type PageState = "content" | "quiz";
 
@@ -33,6 +36,82 @@ export default function DetailModulPage() {
   const [expandedSubMateris, setExpandedSubMateris] = useState<string[]>([]);
   const [pageState, setPageState] = useState<PageState>("content");
   const [isMobile, setIsMobile] = useState(true); // Default true untuk mobile-first
+  const { user } = useAuth(); // Get user for auth check
+
+  // Progress tracking
+  const {
+    initializeModuleProgress,
+    updateCurrentPoin,
+    markPoinCompleted,
+    saveQuizResult,
+    markSubMateriCompleted,
+    getModuleProgress, // 🔥 NEW: untuk check progress state
+    getSubMateriProgress, // 🔥 NEW: untuk check sub-materi progress
+  } = useProgress();
+
+  // 🔥 NEW: Progress sync from backend
+  const { syncModuleProgress } = useProgressSync(modul?.id || null);
+
+  // 🔥 NEW: Effect untuk update modul state berdasarkan progress dari localStorage/backend
+  useEffect(() => {
+    if (!modul || !user) return;
+
+    console.log(
+      "[Page] 🔄 Checking if modul needs update based on progress..."
+    );
+
+    const moduleProgress = getModuleProgress(modul.id);
+    if (!moduleProgress) return;
+
+    // Update sub-materi state based on progress
+    let hasChanges = false;
+    const updatedSubMateris = modul.subMateris.map((sub, index) => {
+      const subProgress = moduleProgress.subMateris.find(
+        (sp) => sp.subMateriId === sub.id
+      );
+
+      if (!subProgress) return sub;
+
+      // Check apakah sub-materi harus completed atau unlocked
+      const shouldBeCompleted = subProgress.isCompleted;
+      const shouldBeUnlocked =
+        index === 0 ||
+        moduleProgress.subMateris.some(
+          (sp, i) => i < index && sp.isCompleted
+        ) ||
+        sub.isUnlocked;
+
+      // Jika ada perubahan, update
+      if (
+        sub.isCompleted !== shouldBeCompleted ||
+        sub.isUnlocked !== shouldBeUnlocked
+      ) {
+        hasChanges = true;
+        console.log(`[Page] 📝 Updating sub-materi ${sub.id}:`, {
+          wasCompleted: sub.isCompleted,
+          nowCompleted: shouldBeCompleted,
+          wasUnlocked: sub.isUnlocked,
+          nowUnlocked: shouldBeUnlocked,
+        });
+
+        return {
+          ...sub,
+          isCompleted: shouldBeCompleted,
+          isUnlocked: shouldBeUnlocked,
+        };
+      }
+
+      return sub;
+    });
+
+    if (hasChanges) {
+      console.log("[Page] ✅ Modul state updated based on progress");
+      setModul({
+        ...modul,
+        subMateris: updatedSubMateris,
+      });
+    }
+  }, [modul, user]); // Re-run when modul or user changes
 
   // Detect screen size and adjust sidebar behavior
   useEffect(() => {
@@ -40,7 +119,7 @@ export default function DetailModulPage() {
       const isMobileSize = window.innerWidth < 768; // md breakpoint
       setIsMobile(isMobileSize);
       // Di desktop, sidebar default terbuka; di mobile, default tertutup
-      if (!isMobileSize && !sidebarOpen) {
+      if (!isMobileSize) {
         setSidebarOpen(true);
       }
     };
@@ -48,55 +127,114 @@ export default function DetailModulPage() {
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
     return () => window.removeEventListener("resize", checkScreenSize);
-  }, [sidebarOpen]);
+  }, []); // Remove sidebarOpen from dependency to prevent infinite loop
 
   useEffect(() => {
+    // Wait for auth to be ready before initializing module
+    if (user === undefined) {
+      console.log("⏳ Waiting for auth to be ready...");
+      return; // Auth still loading
+    }
+
     const modulSlug = params.slug as string;
-    const modulData = getDetailModulBySlug(modulSlug);
+    const modulData = getModuleBySlug(modulSlug);
 
     if (modulData) {
       setModul(modulData);
-      // Set default ke sub materi pertama yang unlocked
-      const firstUnlockedSubMateri = modulData.subMateris.find(
-        (sub: SubMateri) => sub.isUnlocked
-      );
-      if (firstUnlockedSubMateri) {
-        setSelectedSubMateri(firstUnlockedSubMateri);
-        setSelectedPoinIndex(0);
-      }
 
-      // Save to localStorage for demo purposes (beranda will show this as last accessed)
-      localStorage.setItem("lastAccessedModul", modulSlug);
-      localStorage.setItem("lastAccessedModulTitle", modulData.title);
-      localStorage.setItem("lastAccessedTime", new Date().toISOString());
+      console.log(
+        "👤 User ready, initializing module:",
+        user?.email || "guest"
+      );
+
+      // Initialize progress tracking for this module
+      const subMateriIds = modulData.subMateris.map((sub) => sub.id);
+      initializeModuleProgress(modulData.id, modulSlug, subMateriIds);
+
+      // 🔥 FIX: Sync progress dari backend terlebih dahulu sebelum set selected sub-materi
+      const loadModuleWithProgress = async () => {
+        if (user) {
+          console.log("[Page] 🔄 Loading module progress from backend...");
+          await syncModuleProgress();
+        }
+
+        // Set default ke sub materi pertama yang unlocked
+        const firstUnlockedSubMateri = modulData.subMateris.find(
+          (sub: SubMateri) => sub.isUnlocked
+        );
+        if (firstUnlockedSubMateri) {
+          setSelectedSubMateri(firstUnlockedSubMateri);
+          setSelectedPoinIndex(0);
+
+          // Update current position in progress tracking
+          updateCurrentPoin(
+            modulData.id,
+            firstUnlockedSubMateri.id,
+            0 // poin index, not poin id
+          );
+        }
+
+        // Note: Last accessed tracking sudah handled oleh backend
+        // melalui last_accessed_at field di user_module_progress
+      };
+
+      loadModuleWithProgress();
     }
     setLoading(false);
-  }, [params.slug]);
+  }, [params.slug, user]); // Removed initializeModuleProgress and updateCurrentPoin to prevent infinite loop
 
-  const handleSubMateriSelect = (subMateri: SubMateri) => {
-    if (subMateri.isUnlocked) {
-      setSelectedSubMateri(subMateri);
-      setSelectedPoinIndex(0);
-      setPageState("content");
-      // Auto expand the selected sub-materi
-      if (!expandedSubMateris.includes(subMateri.id)) {
-        setExpandedSubMateris((prev) => [...prev, subMateri.id]);
+  const handleSubMateriSelect = useCallback(
+    (subMateri: SubMateri) => {
+      if (subMateri.isUnlocked) {
+        setSelectedSubMateri(subMateri);
+        setSelectedPoinIndex(0);
+        setPageState("content");
+
+        // Update progress tracking
+        if (modul) {
+          updateCurrentPoin(modul.id, subMateri.id, 0);
+        }
+
+        // Auto expand the selected sub-materi
+        setExpandedSubMateris((prev) =>
+          prev.includes(subMateri.id) ? prev : [...prev, subMateri.id]
+        );
+
+        // Close sidebar on mobile after selection
+        if (isMobile) {
+          setSidebarOpen(false);
+        }
       }
+    },
+    [modul, updateCurrentPoin, isMobile]
+  );
+
+  const handlePoinSelect = useCallback(
+    (poinIndex: number) => {
+      setSelectedPoinIndex(poinIndex);
+      setPageState("content");
+
+      // Update progress tracking
+      if (modul && selectedSubMateri) {
+        updateCurrentPoin(modul.id, selectedSubMateri.id, poinIndex);
+      }
+
       // Close sidebar on mobile after selection
       if (isMobile) {
         setSidebarOpen(false);
       }
-    }
-  };
+    },
+    [modul, selectedSubMateri, updateCurrentPoin, isMobile]
+  );
 
-  const handlePoinSelect = (poinIndex: number) => {
-    setSelectedPoinIndex(poinIndex);
-    setPageState("content");
-    // Close sidebar on mobile after selection
-    if (isMobile) {
-      setSidebarOpen(false);
-    }
-  };
+  const handlePoinCompleted = useCallback(
+    (poinId: string) => {
+      if (modul && selectedSubMateri) {
+        markPoinCompleted(modul.id, selectedSubMateri.id, poinId);
+      }
+    },
+    [modul, selectedSubMateri, markPoinCompleted]
+  );
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -197,7 +335,7 @@ export default function DetailModulPage() {
     return !(isFirstPoinInSubMateri && isFirstSubMateri);
   };
 
-  const handleQuizComplete = (result: QuizResult) => {
+  const handleQuizComplete = async (result: QuizResult) => {
     // Update sub materi dengan hasil kuis
     if (selectedSubMateri && modul) {
       const updatedSubMateri = {
@@ -208,7 +346,19 @@ export default function DetailModulPage() {
 
       setSelectedSubMateri(updatedSubMateri);
 
-      // Update modul data (in real app, this would be API call)
+      // Note: Quiz result and sub-materi progress are automatically saved by backend
+      // when QuizPlayer calls QuizService.submitQuizAnswers()
+      // No need to call saveQuizResult or markSubMateriCompleted here
+      console.log("✅ Quiz completed locally, backend already saved:", {
+        score: result.score,
+        passed: result.passed,
+      });
+
+      // 🔥 NEW: Trigger progress sync from backend
+      console.log("[Page] 🔄 Triggering progress sync after quiz...");
+      await syncModuleProgress();
+
+      // Update modul data (local state only)
       const updatedModul = {
         ...modul,
         subMateris: modul.subMateris.map((sub) =>
@@ -217,11 +367,12 @@ export default function DetailModulPage() {
       };
       setModul(updatedModul);
 
-      // Jika lulus, unlock sub materi berikutnya
+      // 🔥 FIX: Jika lulus, unlock sub materi berikutnya DAN auto-navigate
       if (result.passed) {
         const currentSubMateriIndex = modul.subMateris.findIndex(
           (sub) => sub.id === selectedSubMateri.id
         );
+
         if (currentSubMateriIndex < modul.subMateris.length - 1) {
           const nextSubMateri = modul.subMateris[currentSubMateriIndex + 1];
           const updatedNextSubMateri = { ...nextSubMateri, isUnlocked: true };
@@ -233,6 +384,25 @@ export default function DetailModulPage() {
             ),
           };
           setModul(finalUpdatedModul);
+
+          // 🔥 FIX: Auto-navigate ke sub-materi berikutnya setelah quiz lulus
+          console.log("🔄 Quiz passed! Auto-navigating to next sub-materi:", {
+            currentSubMateri: selectedSubMateri.id,
+            nextSubMateri: updatedNextSubMateri.id,
+            nextTitle: updatedNextSubMateri.title,
+          });
+
+          // Tunggu sebentar untuk user melihat hasil quiz
+          setTimeout(() => {
+            setSelectedSubMateri(updatedNextSubMateri);
+            setSelectedPoinIndex(0);
+            setPageState("content");
+            console.log("✅ Navigated to next sub-materi");
+          }, 2000); // Delay 2 detik agar user bisa melihat hasil quiz
+        } else {
+          console.log(
+            "ℹ️ Quiz passed but no next sub-materi (last sub-materi completed)"
+          );
         }
       }
     }
@@ -268,10 +438,10 @@ export default function DetailModulPage() {
       />
 
       <main className="flex flex-1 relative min-h-[calc(100vh-73px)] pb-safe">
-        {pageState === "quiz" && selectedSubMateri ? (
-          <ModulQuizContent
-            selectedSubMateri={selectedSubMateri}
-            sidebarOpen={sidebarOpen}
+        {pageState === "quiz" && selectedSubMateri && modul ? (
+          <QuizManager
+            subMateri={selectedSubMateri}
+            moduleId={modul.id}
             onQuizComplete={handleQuizComplete}
             onBackToContent={handleBackToContent}
             onContinueToNext={handleContinueToNextSubMateri}
@@ -287,6 +457,7 @@ export default function DetailModulPage() {
             handleNextPoin={handleNextPoin}
             sidebarOpen={sidebarOpen}
             onStartQuiz={handleStartQuiz}
+            onPoinCompleted={handlePoinCompleted}
           />
         )}
 

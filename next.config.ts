@@ -36,7 +36,46 @@ const nextConfig: NextConfig = {
         pathname: "/storage/v1/object/sign/**",
       },
     ],
+    domains: ["ykvvjxbyxmyyzeutyxbf.supabase.co"],
   },
+  // Security headers for production
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+        ],
+      },
+    ];
+  },
+  // Compress output
+  compress: true,
+  // Production optimizations
+  productionBrowserSourceMaps: false,
+  // Optimize fonts
+  optimizeFonts: true,
+  // Enable SWC minification
+  swcMinify: true,
   turbopack: {
     root: __dirname,
   },

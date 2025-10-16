@@ -128,8 +128,8 @@ export class QuizService {
       // Return empty array with proper error handling
       return {
         error: true,
-        code: error.code || "QUIZ_FETCH_FAILED",
-        message: error.message || "Failed to fetch quizzes for this module",
+        code: error?.code || "QUIZ_FETCH_FAILED",
+        message: error?.message || "Failed to fetch quizzes for this module",
         data: [],
       };
     }
@@ -241,6 +241,229 @@ export class QuizService {
     try {
       return await apiClient.get<Quiz[]>(`/kuis`, { auth: true });
     } catch (err) {
+      throw err;
+    }
+  }
+
+  /**
+   * Start a new quiz attempt (requires auth)
+   * POST /api/v1/user-quizzes/:quizId/start
+   */
+  static async startQuizAttempt(quizId: string): Promise<
+    ApiResponse<{
+      attempt_id: string;
+      quiz: Quiz;
+      started_at: string;
+    }>
+  > {
+    try {
+      return await apiClient.post(
+        `/user-quizzes/${quizId}/start`,
+        {},
+        { auth: true }
+      );
+    } catch (err) {
+      const error = err as ApiError;
+      console.error("[QUIZ_SERVICE] Error starting quiz attempt:", {
+        quizId,
+        error: error?.message || "Unknown error",
+      });
+      throw err;
+    }
+  }
+
+  /**
+   * Get quiz questions for active attempt (requires auth)
+   * GET /api/v1/user-quizzes/:quizId/questions
+   */
+  static async getQuizQuestions(quizId: string): Promise<
+    ApiResponse<{
+      attempt_id: string;
+      questions: QuizQuestion[];
+      started_at: string;
+    }>
+  > {
+    try {
+      return await apiClient.get(`/user-quizzes/${quizId}/questions`, {
+        auth: true,
+      });
+    } catch (err) {
+      const error = err as ApiError;
+      console.error("[QUIZ_SERVICE] Error fetching quiz questions:", {
+        quizId,
+        error: error?.message || "Unknown error",
+      });
+      throw err;
+    }
+  }
+
+  /**
+   * Submit quiz answers (requires auth)
+   * POST /api/v1/user-quizzes/:quizId/submit
+   */
+  static async submitQuizAnswers(
+    quizId: string,
+    answers: QuizAnswer[]
+  ): Promise<
+    ApiResponse<{
+      attempt: QuizAttempt;
+      results: {
+        score: number;
+        correct_answers: number;
+        total_questions: number;
+        is_passed: boolean;
+        passing_score: number;
+      };
+    }>
+  > {
+    try {
+      return await apiClient.post(
+        `/user-quizzes/${quizId}/submit`,
+        { answers },
+        { auth: true }
+      );
+    } catch (err) {
+      const error = err as ApiError;
+      console.error("[QUIZ_SERVICE] Error submitting quiz:", {
+        quizId,
+        error: error?.message || "Unknown error",
+      });
+      throw err;
+    }
+  }
+
+  /**
+   * Get quiz results (requires auth)
+   * GET /api/v1/user-quizzes/:quizId/results?includeAnswers=true
+   */
+  static async getQuizResults(
+    quizId: string,
+    includeAnswers: boolean = false
+  ): Promise<
+    ApiResponse<{
+      quiz: Quiz;
+      attempt: QuizAttempt;
+      answer_details?: any[];
+    }>
+  > {
+    try {
+      const queryParams = includeAnswers ? "?includeAnswers=true" : "";
+      return await apiClient.get(
+        `/user-quizzes/${quizId}/results${queryParams}`,
+        { auth: true }
+      );
+    } catch (err) {
+      const error = err as ApiError;
+      console.error("[QUIZ_SERVICE] Error fetching quiz results:", {
+        quizId,
+        error: error?.message || "Unknown error",
+      });
+      throw err;
+    }
+  }
+
+  /**
+   * Get all user's quiz attempts history (requires auth)
+   * GET /api/v1/user-quizzes/my-attempts?status=completed&page=1&limit=10
+   */
+  static async getMyQuizAttempts(params?: {
+    status?: "completed" | "ongoing";
+    page?: number;
+    limit?: number;
+  }): Promise<
+    ApiResponse<{
+      attempts: QuizAttempt[];
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+      };
+    }>
+  > {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.status) queryParams.append("status", params.status);
+      if (params?.page) queryParams.append("page", params.page.toString());
+      if (params?.limit) queryParams.append("limit", params.limit.toString());
+
+      const queryString = queryParams.toString();
+      const url = `/user-quizzes/my-attempts${
+        queryString ? `?${queryString}` : ""
+      }`;
+
+      return await apiClient.get(url, { auth: true });
+    } catch (err) {
+      const error = err as ApiError;
+      console.error("[QUIZ_SERVICE] Error fetching quiz attempts:", {
+        error: error?.message || "Unknown error",
+      });
+      throw err;
+    }
+  }
+
+  // ============================================================================
+  // SIMPLE QUIZ SYSTEM (Compatible with Frontend Static Data)
+  // ============================================================================
+
+  /**
+   * Submit quiz using simple system (no backend quizId required)
+   * POST /api/v1/simple-quizzes/submit
+   */
+  static async submitSimpleQuiz(submission: {
+    module_id: number;
+    sub_materi_id: string;
+    quiz_data: any;
+    answers: Array<{
+      question_id: string;
+      selected_option_index: number;
+      is_correct: boolean;
+    }>;
+    time_taken_seconds?: number;
+  }): Promise<ApiResponse<any>> {
+    try {
+      console.log("[QUIZ_SERVICE] 📤 Submitting simple quiz:", {
+        module_id: submission.module_id,
+        sub_materi_id: submission.sub_materi_id,
+        answersCount: submission.answers.length,
+      });
+
+      return await apiClient.post(`/simple-quizzes/submit`, submission, {
+        auth: true,
+      });
+    } catch (err) {
+      const error = err as ApiError;
+      console.error("[QUIZ_SERVICE] ❌ Error submitting simple quiz:", {
+        error: error?.message || "Unknown error",
+        status: error?.status,
+      });
+      throw err;
+    }
+  }
+
+  /**
+   * Get quiz results using simple system
+   * GET /api/v1/simple-quizzes/results?module_id=1&sub_materi_id=sub1
+   */
+  static async getSimpleQuizResults(
+    moduleId: number,
+    subMateriId: string
+  ): Promise<ApiResponse<any>> {
+    try {
+      console.log("[QUIZ_SERVICE] 🔍 Getting simple quiz results:", {
+        moduleId,
+        subMateriId,
+      });
+
+      return await apiClient.get(
+        `/simple-quizzes/results?module_id=${moduleId}&sub_materi_id=${subMateriId}`,
+        { auth: true }
+      );
+    } catch (err) {
+      const error = err as ApiError;
+      console.error("[QUIZ_SERVICE] ❌ Error getting simple quiz results:", {
+        error: error?.message || "Unknown error",
+      });
       throw err;
     }
   }

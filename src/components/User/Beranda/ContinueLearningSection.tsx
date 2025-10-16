@@ -1,6 +1,7 @@
 import { ArrowUpRight, Clock, BookOpen, Users } from "lucide-react";
 import { ModulData } from "@/data/modulData";
 import Link from "next/link";
+import { useBackendModuleProgress } from "@/hooks/useBackendModuleProgress";
 
 interface ContinueLearningProps {
   lastStudiedModul: ModulData | null;
@@ -9,6 +10,26 @@ interface ContinueLearningProps {
 export default function ContinueLearningSection({
   lastStudiedModul,
 }: ContinueLearningProps) {
+  // 🔥 FIX: Use useBackendModuleProgress instead of useBackendProgress
+  // This ensures accurate progress calculation like sidebar
+  const { moduleProgress, isLoading } = useBackendModuleProgress(
+    lastStudiedModul?.id || null
+  );
+
+  // Get actual progress from backend (calculated with static data)
+  const actualProgress = moduleProgress?.progress_percentage || 0;
+  const completedSubMateris =
+    moduleProgress?.sub_materis.filter((s) => s.is_completed).length || 0;
+  const totalSubMateris = moduleProgress?.sub_materis.length || 0;
+
+  console.log("[ContinueLearning] Module progress:", {
+    moduleId: lastStudiedModul?.id,
+    actualProgress,
+    completedSubMateris,
+    totalSubMateris,
+    isLoading,
+  });
+
   return (
     <div className="mb-6 sm:mb-8">
       <div className="mb-4 sm:mb-6">
@@ -39,7 +60,6 @@ export default function ContinueLearningSection({
                   <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-medium">
                     {lastStudiedModul.category}
                   </span>
-
                 </div>
                 <h4 className="text-white font-bold text-lg sm:text-xl mb-2">
                   {lastStudiedModul.title}
@@ -68,15 +88,23 @@ export default function ContinueLearningSection({
                   <div className="flex justify-between items-center">
                     <span className="text-white/80 text-sm">Progress</span>
                     <span className="text-white font-semibold text-sm">
-                      {lastStudiedModul.progress}%
+                      {isLoading
+                        ? "..."
+                        : `${Math.round(actualProgress * 10) / 10}%`}
                     </span>
                   </div>
                   <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
                     <div
                       className="bg-white h-2 rounded-full transition-all duration-700"
-                      style={{ width: `${lastStudiedModul.progress}%` }}
+                      style={{ width: `${actualProgress}%` }}
                     ></div>
                   </div>
+                  {totalSubMateris > 0 && (
+                    <div className="text-white/70 text-xs mt-1">
+                      {completedSubMateris} dari {totalSubMateris} materi
+                      selesai
+                    </div>
+                  )}
                 </div>
               </div>
 

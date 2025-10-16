@@ -9,8 +9,8 @@ import {
   SettingsNavigation,
   ProfileSection,
   SecuritySection,
-  NotificationSection,
 } from "@/components/User/Pengaturan";
+import NotificationSection from "@/components/User/Pengaturan/NotificationSectionNew";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui";
 
@@ -63,11 +63,6 @@ export default function PengaturanPage() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: true,
-    sms: false,
-  });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -82,17 +77,43 @@ export default function PengaturanPage() {
         address: user.profile?.address || "",
         birthDate: user.profile?.date_of_birth || "",
       }));
+    }
+  }, [
+    user?.id,
+    user?.email,
+    user?.profile?.full_name,
+    user?.profile?.phone,
+    user?.profile?.address,
+    user?.profile?.date_of_birth,
+  ]);
 
-      // Auto-load full profile if address or date_of_birth is missing
-      if ((!user.profile?.address && !user.profile?.date_of_birth) ||
-        !user.profile?.address ||
-        !user.profile?.date_of_birth) {
-        if (authCtx.loadFullProfile) {
-          authCtx.loadFullProfile().catch(console.error);
+  // Separate useEffect for loading full profile (runs only once on mount if needed)
+  useEffect(() => {
+    let mounted = true;
+
+    const loadProfile = async () => {
+      if (user && authCtx.loadFullProfile) {
+        // Only load if some profile fields are missing
+        const needsFullProfile =
+          !user.profile?.address || !user.profile?.date_of_birth;
+
+        if (needsFullProfile && mounted) {
+          console.log("[PengaturanPage] Loading full profile...");
+          try {
+            await authCtx.loadFullProfile();
+          } catch (error) {
+            console.error("[PengaturanPage] Error loading profile:", error);
+          }
         }
       }
-    }
-  }, [user, authCtx]);
+    };
+
+    loadProfile();
+
+    return () => {
+      mounted = false;
+    };
+  }, []); // Empty dependency - only run once on mount
 
   // Removed legacy fetch from ProfileService; rely on context 'user' and upsertProfile
 
@@ -157,7 +178,7 @@ export default function PengaturanPage() {
       name: selectedFile.name,
       size: selectedFile.size,
       type: selectedFile.type,
-      lastModified: selectedFile.lastModified
+      lastModified: selectedFile.lastModified,
     });
 
     if (selectedFile.size === 0) {
@@ -177,6 +198,7 @@ export default function PengaturanPage() {
 
     try {
       setUploadingPhoto(true);
+      toast.info("Mengupload foto profil... 📤");
 
       // Import ProfileService
       const { ProfileService } = await import("@/services/userProfileService");
@@ -186,27 +208,48 @@ export default function PengaturanPage() {
       console.log("📝 Upload response:", response);
       console.log("🔗 Photo URL from backend:", response.data?.photo_url);
 
-      if (response.data) {
+      if (response.data && !response.error) {
         // Update user profile URL in context
         if (authCtx.updateProfileWithNew) {
           await authCtx.updateProfileWithNew({
-            profil_url: response.data.photo_url
+            profil_url: response.data.photo_url,
           });
         }
 
-        toast.success("Foto profil berhasil diupload");
+        toast.success("✅ Foto profil berhasil diupload!");
         setSelectedFile(null);
         setSelectedImage(null);
+
         // Reload profile to get updated photo URL
         if (authCtx.loadFullProfile) {
           await authCtx.loadFullProfile();
         }
       } else {
-        toast.error(response.message || "Gagal upload foto");
+        // Handle specific errors
+        if (response.code === "FILE_MISSING") {
+          toast.error("❌ File tidak ditemukan");
+        } else if (response.code === "PROFILE_NOT_FOUND") {
+          toast.error("❌ Profil tidak ditemukan");
+        } else if (response.message?.includes("size")) {
+          toast.error("❌ Ukuran file terlalu besar (max 5MB)");
+        } else {
+          toast.error(response.message || "❌ Gagal upload foto");
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error uploading photo:", error);
-      toast.error("Gagal upload foto. Silakan coba lagi.");
+
+      // Handle different error types
+      if (
+        error.message?.includes("fetch") ||
+        error.message?.includes("network")
+      ) {
+        toast.error("❌ Koneksi gagal. Periksa internet Anda.");
+      } else if (error.message?.includes("size")) {
+        toast.error("❌ File terlalu besar");
+      } else {
+        toast.error("❌ Gagal upload foto. Silakan coba lagi.");
+      }
     } finally {
       setUploadingPhoto(false);
     }
@@ -238,33 +281,74 @@ export default function PengaturanPage() {
 
   const handleChangePassword = async () => {
     try {
-      // TODO: Implement API call to change password
-
-
       // Validate passwords
+      if (!passwordData.currentPassword) {
+        toast.warning("Password saat ini wajib diisi!");
+        return;
+      }
+
+      if (!passwordData.newPassword) {
+        toast.warning("Password baru wajib diisi!");
+        return;
+      }
+
       if (passwordData.newPassword !== passwordData.confirmPassword) {
         toast.warning("Password baru dan konfirmasi password tidak cocok!");
         return;
       }
 
       if (passwordData.newPassword.length < 6) {
-        toast.info("Password baru minimal 6 karakter!");
+        toast.warning("Password baru minimal 6 karakter!");
         return;
       }
 
-      // Reset form
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-      setEditMode({ ...editMode, password: false });
+      // Import ProfileService
+      const { ProfileService } = await import("@/services/userProfileService");
 
-      // Show success message
-      toast.success("Password berhasil diubah!");
-    } catch (error) {
+      // Show loading state
+      toast.info("Mengubah password...");
+
+      // Call API to change password
+      const response = await ProfileService.changePassword(
+        passwordData.currentPassword,
+        passwordData.newPassword
+      );
+
+      if (!response.error) {
+        // Reset form
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+        setEditMode({ ...editMode, password: false });
+
+        // Show success message
+        toast.success("Password berhasil diubah! ✅");
+      } else {
+        // Show specific error message
+        if (response.code === "INVALID_CURRENT_PASSWORD") {
+          toast.error("❌ Password saat ini salah!");
+        } else if (response.message?.includes("password")) {
+          toast.error(response.message);
+        } else {
+          toast.error("Gagal mengubah password. Silakan coba lagi.");
+        }
+      }
+    } catch (error: any) {
       console.error("Error changing password:", error);
-      toast.error("Gagal mengubah password. Silakan coba lagi.");
+
+      // Handle different types of errors
+      if (
+        error.message?.includes("fetch") ||
+        error.message?.includes("network")
+      ) {
+        toast.error("❌ Koneksi gagal. Periksa internet Anda.");
+      } else if (error.message?.includes("password")) {
+        toast.error(error.message);
+      } else {
+        toast.error("❌ Terjadi kesalahan. Silakan coba lagi.");
+      }
     }
   };
 
@@ -341,12 +425,7 @@ export default function PengaturanPage() {
             />
           )}
 
-          {activeTab === "notifications" && (
-            <NotificationSection
-              notifications={notifications}
-              setNotifications={setNotifications}
-            />
-          )}
+          {activeTab === "notifications" && <NotificationSection />}
         </div>
 
         {/* Logout Section - Always Visible */}

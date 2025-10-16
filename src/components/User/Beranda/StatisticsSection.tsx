@@ -21,6 +21,9 @@ import {
 import Link from "next/link";
 import { modulPosyanduData } from "@/data/modulData";
 import { useState, useMemo, useEffect } from "react";
+import { useProgress } from "@/context/ProgressContext";
+import { useAuth } from "@/context/AuthContext";
+import StatisticsModuleCard from "./StatisticsModuleCard";
 
 interface StatisticsProps {
   completedModuls: number;
@@ -38,6 +41,10 @@ export default function StatisticsSection({
   const [searchQuery, setSearchQuery] = useState("");
 
   const [isSearching, setIsSearching] = useState(false);
+
+  // 🔥 Get progress from backend using individual module progress (same as ProgressModuleCard)
+  const { getModuleProgress } = useProgress();
+  const { user } = useAuth();
 
   // Get unique categories
   const categories = [
@@ -207,80 +214,14 @@ export default function StatisticsSection({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-4 lg:gap-5 mb-6">
             {filteredModuls.map((modul) => {
               const IconComponent = getCategoryIcon(modul.category);
+
+              // 🔥 Use StatisticsModuleCard component (same approach as ProgressModuleCard)
               return (
-                <div
+                <StatisticsModuleCard
                   key={modul.id}
-                  className="bg-white/95 backdrop-blur-sm rounded-2xl p-5 sm:p-5 lg:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/60 hover:scale-105 group"
-                >
-                  {/* Module Header with Icon */}
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#578FCA] to-[#27548A] rounded-xl flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                      <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="inline-block px-2 py-1 text-xs font-medium text-[#578FCA] bg-[#578FCA]/10 rounded-lg mb-2">
-                        {modul.category}
-                      </span>
-                      <h3 className="text-base sm:text-base lg:text-lg font-semibold text-[#27548A] line-clamp-2 group-hover:text-[#578FCA] transition-colors leading-tight">
-                        {searchQuery &&
-                        modul.title
-                          .toLowerCase()
-                          .includes(searchQuery.toLowerCase()) ? (
-                          <span
-                            dangerouslySetInnerHTML={{
-                              __html: modul.title.replace(
-                                new RegExp(searchQuery, "gi"),
-                                (match) =>
-                                  `<mark class="bg-yellow-200 rounded px-1">${match}</mark>`
-                              ),
-                            }}
-                          />
-                        ) : (
-                          modul.title
-                        )}
-                      </h3>
-                    </div>
-                  </div>
-
-                  {/* Progress Section */}
-                  <div className="mb-5">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm sm:text-sm font-medium text-gray-600">
-                        Progress
-                      </span>
-                      <span className="text-sm sm:text-sm font-semibold text-[#27548A]">
-                        {modul.progress}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div
-                        className="bg-gradient-to-r from-[#578FCA] to-[#27548A] h-2.5 rounded-full transition-all duration-300"
-                        style={{ width: `${modul.progress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  {/* Action Button */}
-                  <Link
-                    href={`/user/modul/${modul.slug}`}
-                    className={`w-full flex items-center justify-center gap-2 px-4 py-3 sm:py-3 rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base hover:scale-105 shadow-sm ${
-                      modul.status === "completed"
-                        ? "bg-green-100 text-green-700 hover:bg-green-200"
-                        : modul.status === "in-progress"
-                        ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
-                        : "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white hover:from-[#27548A] hover:to-[#578FCA]"
-                    }`}
-                  >
-                    <Play className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span>
-                      {modul.status === "completed"
-                        ? "Selesai"
-                        : modul.status === "in-progress"
-                        ? "Lanjutkan"
-                        : "Mulai"}
-                    </span>
-                  </Link>
-                </div>
+                  modul={modul}
+                  IconComponent={IconComponent}
+                />
               );
             })}
           </div>
@@ -338,72 +279,6 @@ export default function StatisticsSection({
             </Link>
           </div>
         )}
-      </div>
-
-      {/* Statistics Overview - Now Below Modules */}
-      <div className="mb-8 sm:mb-10">
-        <div className="mb-6">
-          <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#27548A] mb-2">
-            Statistik Pembelajaran
-          </h3>
-          <p className="text-sm sm:text-base text-[#578FCA] font-medium">
-            Ringkasan progress pembelajaran Anda
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-6xl mx-auto">
-          {/* Modul Selesai */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/60 group hover:scale-105">
-            <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-[#578FCA] to-[#27548A] rounded-xl sm:rounded-2xl mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
-              <Trophy className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-            </div>
-            <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#27548A] mb-1 sm:mb-2">
-              {completedModuls}
-            </h3>
-            <p className="text-xs sm:text-sm lg:text-base text-[#578FCA] font-medium">
-              Modul Selesai
-            </p>
-          </div>
-
-          {/* Jam Belajar */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/60 group hover:scale-105">
-            <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-[#27548A] to-[#578FCA] rounded-xl sm:rounded-2xl mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
-              <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-            </div>
-            <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#27548A] mb-1 sm:mb-2">
-              {totalHours}
-            </h3>
-            <p className="text-xs sm:text-sm lg:text-base text-[#578FCA] font-medium">
-              Jam Belajar
-            </p>
-          </div>
-
-          {/* Pencapaian */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/60 group hover:scale-105">
-            <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-[#578FCA] to-[#27548A] rounded-xl sm:rounded-2xl mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
-              <Users className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-            </div>
-            <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#27548A] mb-1 sm:mb-2">
-              {overallProgress}%
-            </h3>
-            <p className="text-xs sm:text-sm lg:text-base text-[#578FCA] font-medium">
-              Pencapaian
-            </p>
-          </div>
-
-          {/* Total Modul */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/60 group hover:scale-105">
-            <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-[#27548A] to-[#578FCA] rounded-xl sm:rounded-2xl mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-300">
-              <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-            </div>
-            <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#27548A] mb-1 sm:mb-2">
-              {totalModuls}
-            </h3>
-            <p className="text-xs sm:text-sm lg:text-base text-[#578FCA] font-medium">
-              Total Modul
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );

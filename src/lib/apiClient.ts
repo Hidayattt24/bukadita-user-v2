@@ -185,6 +185,34 @@ export async function rawFetch<T = unknown>(
         headers,
         retryOn401: false,
       });
+    } else {
+      // Refresh failed, clear tokens and redirect to login
+      if (typeof window !== "undefined") {
+        console.log(
+          "[API_CLIENT] Token refresh failed, clearing auth and redirecting to login"
+        );
+        tokenStore.clear();
+
+        // Save current path for redirect after login
+        const currentPath = window.location.pathname;
+        if (currentPath !== "/login" && currentPath !== "/register") {
+          sessionStorage.setItem("redirectAfterLogin", currentPath);
+        }
+
+        // Redirect to login
+        window.location.href = "/login";
+      }
+
+      // Throw error untuk stop execution
+      const err: ApiError = Object.assign(
+        new Error("Session expired. Please login again."),
+        {
+          code: "SESSION_EXPIRED",
+          status: 401,
+          payload: null,
+        }
+      );
+      throw err;
     }
   }
 
@@ -207,23 +235,34 @@ export async function rawFetch<T = unknown>(
 let _refreshInFlight: Promise<boolean> | null = null;
 
 async function attemptRefresh(): Promise<boolean> {
-  if (!tokenStore.refresh) return false;
-  if (_refreshInFlight) return _refreshInFlight; // debounce concurrent 401s
+  if (!tokenStore.refresh) {
+    console.log("[API_CLIENT] No refresh token available");
+    tokenStore.clear();
+    return false;
+  }
+
+  if (_refreshInFlight) {
+    console.log("[API_CLIENT] Refresh already in flight, waiting...");
+    return _refreshInFlight; // debounce concurrent 401s
+  }
 
   _refreshInFlight = (async () => {
     try {
+      console.log("[API_CLIENT] Attempting token refresh...");
       const res = await fetch(`${BASE_URL}${API_PREFIX}/auth/refresh`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh_token: tokenStore.refresh }),
       });
       const json = await res.json().catch(() => ({}));
+
       if (
         res.ok &&
         typeof json.error === "boolean" &&
         json.error === false &&
         json.data?.access_token
       ) {
+        console.log("[API_CLIENT] Token refresh successful");
         tokenStore.set({
           access_token: json.data.access_token,
           refresh_token:
@@ -232,11 +271,16 @@ async function attemptRefresh(): Promise<boolean> {
         });
         return true;
       }
+
       // If envelope has code AUTH_REFRESH_FAILED mark tokens invalid
+      console.warn(
+        "[API_CLIENT] Token refresh failed:",
+        json.code || json.message
+      );
       tokenStore.clear();
       return false;
     } catch (e) {
-      console.warn("Refresh attempt failed", e);
+      console.warn("[API_CLIENT] Refresh attempt failed with error:", e);
       tokenStore.clear();
       return false;
     } finally {

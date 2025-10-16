@@ -1,10 +1,16 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { googleAuthService } from '@/lib/supabase';
-import { authService } from '@/services/authService';
-import { ProfileService } from '@/services/userProfileService';
-import { tokenStore, isProfilePending, mapAuthError } from '@/lib/apiClient';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { googleAuthService } from "@/lib/supabase";
+import { authService } from "@/services/authService";
+import { ProfileService } from "@/services/userProfileService";
+import { tokenStore, isProfilePending, mapAuthError } from "@/lib/apiClient";
 
 // Types
 export interface User {
@@ -34,16 +40,35 @@ export interface AuthState {
 }
 
 export interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<{ success: boolean; pendingProfile?: boolean; error?: string }>;
-  setUser: (userData: User & { provider?: string; avatar?: string }, token: string) => void; // For OAuth callback
-  register: (data: RegisterData) => Promise<{ success: boolean; pendingProfile?: boolean; error?: string }>;
+  login: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; pendingProfile?: boolean; error?: string }>;
+  setUser: (
+    userData: User & { provider?: string; avatar?: string },
+    token: string
+  ) => void; // For OAuth callback
+  register: (
+    data: RegisterData
+  ) => Promise<{ success: boolean; pendingProfile?: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   signUpWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   refreshAccessToken: () => Promise<boolean>;
-  upsertProfile: (data: { full_name: string; phone?: string; address?: string; date_of_birth?: string }) => Promise<{ success: boolean; error?: string }>;
+  upsertProfile: (data: {
+    full_name: string;
+    phone?: string;
+    address?: string;
+    date_of_birth?: string;
+  }) => Promise<{ success: boolean; error?: string }>;
   loadFullProfile: () => Promise<{ success: boolean; error?: string }>;
-  updateProfileWithNew: (data: { full_name?: string; phone?: string; address?: string; date_of_birth?: string; profil_url?: string }) => Promise<{ success: boolean; error?: string }>;
+  updateProfileWithNew: (data: {
+    full_name?: string;
+    phone?: string;
+    address?: string;
+    date_of_birth?: string;
+    profil_url?: string;
+  }) => Promise<{ success: boolean; error?: string }>;
 }
 
 export interface RegisterData {
@@ -72,16 +97,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initializeAuth = () => {
       try {
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           tokenStore.loadFromStorage();
-          const storedUserRaw = localStorage.getItem('user');
+          const storedUserRaw = localStorage.getItem("user");
           const access = tokenStore.access;
           const refresh = tokenStore.refresh;
           const expiresAt = tokenStore.expiresAt;
 
           if (access && storedUserRaw) {
             const parsedUser = JSON.parse(storedUserRaw);
-            setAuthState(prev => ({
+            setAuthState((prev) => ({
               ...prev,
               user: parsedUser,
               accessToken: access,
@@ -93,12 +118,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               isLoading: false,
             }));
           } else {
-            setAuthState(prev => ({ ...prev, isLoading: false }));
+            setAuthState((prev) => ({ ...prev, isLoading: false }));
           }
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
-        setAuthState(prev => ({ ...prev, isLoading: false }));
+        console.error("Error initializing auth:", error);
+        setAuthState((prev) => ({ ...prev, isLoading: false }));
       }
     };
 
@@ -106,23 +131,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Login function
-  const login = async (email: string, password: string): Promise<{ success: boolean; pendingProfile?: boolean; error?: string }> => {
+  const login = async (
+    email: string,
+    password: string
+  ): Promise<{
+    success: boolean;
+    pendingProfile?: boolean;
+    error?: string;
+  }> => {
     try {
       const res = await authService.login({ email, password });
       const pending = isProfilePending(res.code) || !res.data?.user.profile;
       if (res.data) {
-        const backendProfile = res.data!.user.profile as (| { full_name?: string; phone?: string | null; role?: string | null } | null | undefined);
-        setAuthState(prev => ({
+        const backendProfile = res.data!.user.profile as
+          | { full_name?: string; phone?: string | null; role?: string | null }
+          | null
+          | undefined;
+        setAuthState((prev) => ({
           ...prev,
           user: {
             id: res.data!.user.id,
             email: res.data!.user.email,
             profile: backendProfile
               ? {
-                full_name: backendProfile.full_name,
-                phone: backendProfile.phone ?? null,
-                role: backendProfile.role ?? null,
-              }
+                  full_name: backendProfile.full_name,
+                  phone: backendProfile.phone ?? null,
+                  role: backendProfile.role ?? null,
+                }
               : undefined,
           },
           accessToken: res.data!.access_token,
@@ -135,33 +170,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       return { success: true, pendingProfile: pending };
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       const e = error as { code?: string; message?: string };
       return {
         success: false,
-        error: e?.message || mapAuthError(e.code || '')
+        error: e?.message || mapAuthError(e.code || ""),
       };
     }
   };
 
   // Register function
-  const register = async (registerData: RegisterData): Promise<{ success: boolean; pendingProfile?: boolean; error?: string }> => {
+  const register = async (
+    registerData: RegisterData
+  ): Promise<{
+    success: boolean;
+    pendingProfile?: boolean;
+    error?: string;
+  }> => {
     try {
       const res = await authService.register(registerData);
       const pending = isProfilePending(res.code) || !res.data?.user.profile;
       if (res.data) {
-        const backendProfile = res.data!.user.profile as (| { full_name?: string; phone?: string | null; role?: string | null } | null | undefined);
-        setAuthState(prev => ({
+        const backendProfile = res.data!.user.profile as
+          | { full_name?: string; phone?: string | null; role?: string | null }
+          | null
+          | undefined;
+        setAuthState((prev) => ({
           ...prev,
           user: {
             id: res.data!.user.id,
             email: res.data!.user.email,
             profile: backendProfile
               ? {
-                full_name: backendProfile.full_name,
-                phone: backendProfile.phone ?? null,
-                role: backendProfile.role ?? null,
-              }
+                  full_name: backendProfile.full_name,
+                  phone: backendProfile.phone ?? null,
+                  role: backendProfile.role ?? null,
+                }
               : undefined,
           },
           accessToken: res.data!.access_token,
@@ -174,17 +218,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       return { success: true, pendingProfile: pending };
     } catch (error) {
-      console.error('Register error:', error);
+      console.error("Register error:", error);
       const e = error as { code?: string; message?: string };
       return {
         success: false,
-        error: e?.message || mapAuthError(e.code || '')
+        error: e?.message || mapAuthError(e.code || ""),
       };
     }
   };
 
   // Set user directly (for OAuth callback)
-  const setUser = (userData: User & { provider?: string; avatar?: string }, token: string) => {
+  const setUser = (
+    userData: User & { provider?: string; avatar?: string },
+    token: string
+  ) => {
     // Persist token via tokenStore for consistency across refresh
     tokenStore.set({ access_token: token });
 
@@ -193,19 +240,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       id: userData.id,
       email: userData.email,
       profile: {
-        full_name: userData.profile?.full_name || (userData as { name?: string }).name || userData.email,
-        phone: userData.profile?.phone || '',
+        full_name:
+          userData.profile?.full_name ||
+          (userData as { name?: string }).name ||
+          userData.email,
+        phone: userData.profile?.phone || "",
         role: userData.profile?.role || null,
       },
     };
     try {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('user', JSON.stringify(normalizedUser));
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(normalizedUser));
       }
-    } catch { }
+    } catch {}
 
     // Update auth state
-    setAuthState(prev => ({
+    setAuthState((prev) => ({
       ...prev,
       user: normalizedUser,
       accessToken: token,
@@ -216,7 +266,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Google OAuth login
-  const loginWithGoogle = async (): Promise<{ success: boolean; error?: string }> => {
+  const loginWithGoogle = async (): Promise<{
+    success: boolean;
+    error?: string;
+  }> => {
     try {
       const result = await googleAuthService.signInWithGoogle();
 
@@ -225,11 +278,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // and the session will be handled there
         return { success: true };
       } else {
-        return { success: false, error: result.error || 'Google OAuth failed' };
+        return { success: false, error: result.error || "Google OAuth failed" };
       }
     } catch (error) {
-      console.error('Google login error:', error);
-      return { success: false, error: 'Google login failed' };
+      console.error("Google login error:", error);
+      return { success: false, error: "Google login failed" };
     }
   };
 
@@ -241,7 +294,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Force a lightweight protected call could be added; for now return true if token exists
       return !!authState.accessToken;
     } catch (error) {
-      console.error('Refresh token error:', error);
+      console.error("Refresh token error:", error);
       return false;
     }
   };
@@ -249,7 +302,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Logout function
   const logout = () => {
     tokenStore.clear();
-    setAuthState(prev => ({
+    setAuthState((prev) => ({
       ...prev,
       user: null,
       accessToken: null,
@@ -260,7 +313,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const upsertProfile = async (data: { full_name: string; phone?: string; address?: string; date_of_birth?: string }): Promise<{ success: boolean; error?: string }> => {
+  const upsertProfile = async (data: {
+    full_name: string;
+    phone?: string;
+    address?: string;
+    date_of_birth?: string;
+  }): Promise<{ success: boolean; error?: string }> => {
     try {
       // Try create-missing first; ignore its error and fall back to upsert
       try {
@@ -268,16 +326,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           full_name: data.full_name,
           phone: data.phone,
           address: data.address,
-          date_of_birth: data.date_of_birth
+          date_of_birth: data.date_of_birth,
         });
         if (createRes.data?.profile) {
-          if (typeof window !== 'undefined' && authState.user) {
-            const updated = { ...authState.user, profile: createRes.data.profile };
-            localStorage.setItem('user', JSON.stringify(updated));
+          if (typeof window !== "undefined" && authState.user) {
+            const updated = {
+              ...authState.user,
+              profile: createRes.data.profile,
+            };
+            localStorage.setItem("user", JSON.stringify(updated));
           }
-          setAuthState(prev => ({
+          setAuthState((prev) => ({
             ...prev,
-            user: prev.user ? { ...prev.user, profile: { ...prev.user.profile, ...createRes.data!.profile } } : prev.user,
+            user: prev.user
+              ? {
+                  ...prev.user,
+                  profile: { ...prev.user.profile, ...createRes.data!.profile },
+                }
+              : prev.user,
             profilePending: false,
           }));
           return { success: true };
@@ -301,59 +367,97 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: res.data.role,
             created_at: res.data.created_at,
             updated_at: res.data.updated_at,
-          }
+          },
         };
 
-        setAuthState(prev => ({ ...prev, user: updatedUser, profilePending: false }));
+        setAuthState((prev) => ({
+          ...prev,
+          user: updatedUser,
+          profilePending: false,
+        }));
 
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('user', JSON.stringify(updatedUser));
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user", JSON.stringify(updatedUser));
         }
 
         return { success: true };
       }
-      return { success: false, error: res.message || 'Failed to update profile' };
+      return {
+        success: false,
+        error: res.message || "Failed to update profile",
+      };
     } catch (error) {
       const e = error as { code?: string; message?: string };
-      const friendly = e?.message || mapAuthError(e?.code || '');
+      const friendly = e?.message || mapAuthError(e?.code || "");
       return { success: false, error: friendly };
     }
   };
 
   // Load full profile from new ProfileService (using /v1/users/me)
-  const loadFullProfile = async (): Promise<{ success: boolean; error?: string }> => {
+  const loadFullProfile = async (): Promise<{
+    success: boolean;
+    error?: string;
+  }> => {
     try {
+      console.log("[AuthContext] loadFullProfile - Starting...");
       const response = await ProfileService.getUserProfile();
 
       if (response.data) {
-        // Update user in authState and localStorage
-        const updatedUser = {
-          ...authState.user!,
-          profile: {
-            full_name: response.data.full_name,
-            phone: response.data.phone,
-            address: response.data.address,
-            date_of_birth: response.data.date_of_birth,
-            profil_url: response.data.profil_url,
-            role: response.data.role,
-            created_at: response.data.created_at,
-            updated_at: response.data.updated_at,
-          }
+        console.log("[AuthContext] loadFullProfile - Got data:", response.data);
+
+        // Check if profile data actually changed to avoid unnecessary updates
+        const currentProfile = authState.user?.profile;
+        const newProfile = {
+          full_name: response.data.full_name,
+          phone: response.data.phone,
+          address: response.data.address,
+          date_of_birth: response.data.date_of_birth,
+          profil_url: response.data.profil_url,
+          role: response.data.role,
+          created_at: response.data.created_at,
+          updated_at: response.data.updated_at,
         };
 
-        setAuthState(prev => ({ ...prev, user: updatedUser, profilePending: false }));
+        // Only update if something actually changed
+        const hasChanges =
+          !currentProfile ||
+          currentProfile.full_name !== newProfile.full_name ||
+          currentProfile.phone !== newProfile.phone ||
+          currentProfile.address !== newProfile.address ||
+          currentProfile.date_of_birth !== newProfile.date_of_birth ||
+          currentProfile.profil_url !== newProfile.profil_url;
 
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('user', JSON.stringify(updatedUser));
+        if (hasChanges) {
+          console.log(
+            "[AuthContext] loadFullProfile - Updating state (changes detected)"
+          );
+          const updatedUser = {
+            ...authState.user!,
+            profile: newProfile,
+          };
+
+          setAuthState((prev) => ({
+            ...prev,
+            user: updatedUser,
+            profilePending: false,
+          }));
+
+          if (typeof window !== "undefined") {
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+          }
+        } else {
+          console.log(
+            "[AuthContext] loadFullProfile - No changes detected, skipping update"
+          );
         }
 
         return { success: true };
       }
 
-      return { success: false, error: 'Gagal memuat profil' };
+      return { success: false, error: "Gagal memuat profil" };
     } catch (error) {
-      console.error('Error loading full profile:', error);
-      return { success: false, error: 'Terjadi kesalahan saat memuat profil' };
+      console.error("Error loading full profile:", error);
+      return { success: false, error: "Terjadi kesalahan saat memuat profil" };
     }
   };
 
@@ -382,22 +486,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: response.data.role,
             created_at: response.data.created_at,
             updated_at: response.data.updated_at,
-          }
+          },
         };
 
-        setAuthState(prev => ({ ...prev, user: updatedUser, profilePending: false }));
+        setAuthState((prev) => ({
+          ...prev,
+          user: updatedUser,
+          profilePending: false,
+        }));
 
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('user', JSON.stringify(updatedUser));
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user", JSON.stringify(updatedUser));
         }
 
         return { success: true };
       }
 
-      return { success: false, error: response.message || 'Gagal memperbarui profil' };
+      return {
+        success: false,
+        error: response.message || "Gagal memperbarui profil",
+      };
     } catch (error) {
-      console.error('Error updating profile:', error);
-      return { success: false, error: 'Terjadi kesalahan saat memperbarui profil' };
+      console.error("Error updating profile:", error);
+      return {
+        success: false,
+        error: "Terjadi kesalahan saat memperbarui profil",
+      };
     }
   };
 
@@ -415,18 +529,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateProfileWithNew,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 // Custom hook to use auth context
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
