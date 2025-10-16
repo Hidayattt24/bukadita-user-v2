@@ -115,7 +115,7 @@ export class ProfileService {
       formData,
       {
         auth: true,
-        headers: {}, // Remove Content-Type for FormData - let browser set it
+        // Don't pass headers at all for FormData - let browser handle it automatically
       }
     );
   }
@@ -128,6 +128,23 @@ export class ProfileService {
   > {
     return await apiClient.delete<{ profile: UserProfile }>(
       "/users/me/profile-photo",
+      { auth: true }
+    );
+  }
+
+  /**
+   * Change password
+   */
+  static async changePassword(
+    currentPassword: string,
+    newPassword: string
+  ): Promise<ApiResponse<null>> {
+    return await apiClient.post<null>(
+      "/users/me/change-password",
+      {
+        currentPassword,
+        newPassword,
+      },
       { auth: true }
     );
   }

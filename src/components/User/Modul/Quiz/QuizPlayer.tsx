@@ -49,7 +49,7 @@ export default function QuizPlayer({
           );
           const response = await QuizService.startQuizAttempt(quizId);
 
-          if (response.success && response.data) {
+          if (!response.error && response.data) {
             setAttemptId(response.data.attempt_id);
             console.log("[QuizPlayer] ✅ Quiz attempt started:", {
               attemptId: response.data.attempt_id,
