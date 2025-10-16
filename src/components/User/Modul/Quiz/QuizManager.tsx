@@ -5,6 +5,7 @@ import QuizPlayer from "./QuizPlayer";
 import QuizResultComponent from "./QuizResult";
 import { QuizService } from "@/services/quizService";
 import { useAuth } from "@/context/AuthContext";
+import { useProgressSync } from "@/hooks/useProgressSync";
 
 interface QuizManagerProps {
   subMateri: SubMateri;
@@ -30,6 +31,9 @@ export default function QuizManager({
     subMateri.quizResult || null
   );
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  // 🔥 NEW: Hook to sync progress from backend
+  const { syncModuleProgress } = useProgressSync(moduleId);
 
   // Fetch quiz history from backend when component mounts (SIMPLE SYSTEM)
   useEffect(() => {
@@ -125,11 +129,20 @@ export default function QuizManager({
     setCurrentState("instruction");
   };
 
-  const handleQuizComplete = (result: QuizResult) => {
+  const handleQuizComplete = async (result: QuizResult) => {
     setLatestResult(result);
     setQuizHistory((prev) => [...prev, result]);
     setCurrentState("result");
     onQuizComplete(result);
+
+    // 🔥 CRITICAL: Sync progress from backend after quiz completion
+    console.log("[QuizManager] 🔄 Syncing progress after quiz completion...");
+    try {
+      await syncModuleProgress();
+      console.log("[QuizManager] ✅ Progress synced successfully");
+    } catch (error) {
+      console.error("[QuizManager] ❌ Failed to sync progress:", error);
+    }
   };
 
   const handleContinue = () => {

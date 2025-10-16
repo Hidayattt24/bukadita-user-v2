@@ -608,4 +608,44 @@ export class ProgressService {
       };
     }
   }
+
+  /**
+   * Get quiz history for a specific module (requires auth)
+   * GET /api/v1/simple-quizzes/history?module_id=:module_id
+   */
+  static async getSimpleQuizHistory(
+    moduleId: number
+  ): Promise<ApiResponse<{ attempts: any[]; total: number }>> {
+    try {
+      return await apiClient.get<{ attempts: any[]; total: number }>(
+        `/simple-quizzes/history?module_id=${moduleId}`,
+        { auth: true }
+      );
+    } catch (err) {
+      const error = err as ApiError;
+      console.error("[PROGRESS_SERVICE] Error fetching quiz history:", {
+        moduleId,
+        error: error?.message || "Unknown error",
+        status: error?.status,
+        code: error?.code,
+      });
+
+      if (error?.status === 401 || error?.status === 404) {
+        return {
+          error: false,
+          code: "HISTORY_NOT_FOUND",
+          message: "Quiz history not found",
+          data: { attempts: [], total: 0 },
+        };
+      }
+
+      // Return error response instead of throwing
+      return {
+        error: true,
+        code: error?.code || "QUIZ_HISTORY_ERROR",
+        message: error?.message || "Failed to fetch quiz history",
+        data: { attempts: [], total: 0 },
+      };
+    }
+  }
 }

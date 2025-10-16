@@ -1,7 +1,7 @@
 import { DetailModul } from "./types";
 
 export const ibuHamilMenyusuiData: DetailModul = {
-  id: 4,
+  id: 3, // 🔥 FIX: Changed from 4 to 3 to match modulData.ts
   slug: "ibu-hamil-menyusui",
   title: "Menu Ibu Hamil & Menyusui",
   description:

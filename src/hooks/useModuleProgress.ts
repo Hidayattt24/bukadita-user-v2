@@ -224,6 +224,11 @@ export const useModuleProgress = () => {
         };
       });
 
+      // 🔥 NEW: Dispatch custom event to notify components about progress update
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("progressUpdated"));
+      }
+
       return {
         ...prev,
         modules: updatedModules,

@@ -20,6 +20,7 @@ import {
 import { QuizManager } from "@/components/User/Modul/Quiz";
 import { useAuth } from "@/context/AuthContext";
 import { useProgress } from "@/context/ProgressContext";
+import { useProgressSync } from "@/hooks/useProgressSync";
 
 type PageState = "content" | "quiz";
 
@@ -44,7 +45,73 @@ export default function DetailModulPage() {
     markPoinCompleted,
     saveQuizResult,
     markSubMateriCompleted,
+    getModuleProgress, // 🔥 NEW: untuk check progress state
+    getSubMateriProgress, // 🔥 NEW: untuk check sub-materi progress
   } = useProgress();
+
+  // 🔥 NEW: Progress sync from backend
+  const { syncModuleProgress } = useProgressSync(modul?.id || null);
+
+  // 🔥 NEW: Effect untuk update modul state berdasarkan progress dari localStorage/backend
+  useEffect(() => {
+    if (!modul || !user) return;
+
+    console.log(
+      "[Page] 🔄 Checking if modul needs update based on progress..."
+    );
+
+    const moduleProgress = getModuleProgress(modul.id);
+    if (!moduleProgress) return;
+
+    // Update sub-materi state based on progress
+    let hasChanges = false;
+    const updatedSubMateris = modul.subMateris.map((sub, index) => {
+      const subProgress = moduleProgress.subMateris.find(
+        (sp) => sp.subMateriId === sub.id
+      );
+
+      if (!subProgress) return sub;
+
+      // Check apakah sub-materi harus completed atau unlocked
+      const shouldBeCompleted = subProgress.isCompleted;
+      const shouldBeUnlocked =
+        index === 0 ||
+        moduleProgress.subMateris.some(
+          (sp, i) => i < index && sp.isCompleted
+        ) ||
+        sub.isUnlocked;
+
+      // Jika ada perubahan, update
+      if (
+        sub.isCompleted !== shouldBeCompleted ||
+        sub.isUnlocked !== shouldBeUnlocked
+      ) {
+        hasChanges = true;
+        console.log(`[Page] 📝 Updating sub-materi ${sub.id}:`, {
+          wasCompleted: sub.isCompleted,
+          nowCompleted: shouldBeCompleted,
+          wasUnlocked: sub.isUnlocked,
+          nowUnlocked: shouldBeUnlocked,
+        });
+
+        return {
+          ...sub,
+          isCompleted: shouldBeCompleted,
+          isUnlocked: shouldBeUnlocked,
+        };
+      }
+
+      return sub;
+    });
+
+    if (hasChanges) {
+      console.log("[Page] ✅ Modul state updated based on progress");
+      setModul({
+        ...modul,
+        subMateris: updatedSubMateris,
+      });
+    }
+  }, [modul, user]); // Re-run when modul or user changes
 
   // Detect screen size and adjust sidebar behavior
   useEffect(() => {
@@ -84,24 +151,34 @@ export default function DetailModulPage() {
       const subMateriIds = modulData.subMateris.map((sub) => sub.id);
       initializeModuleProgress(modulData.id, modulSlug, subMateriIds);
 
-      // Set default ke sub materi pertama yang unlocked
-      const firstUnlockedSubMateri = modulData.subMateris.find(
-        (sub: SubMateri) => sub.isUnlocked
-      );
-      if (firstUnlockedSubMateri) {
-        setSelectedSubMateri(firstUnlockedSubMateri);
-        setSelectedPoinIndex(0);
+      // 🔥 FIX: Sync progress dari backend terlebih dahulu sebelum set selected sub-materi
+      const loadModuleWithProgress = async () => {
+        if (user) {
+          console.log("[Page] 🔄 Loading module progress from backend...");
+          await syncModuleProgress();
+        }
 
-        // Update current position in progress tracking
-        updateCurrentPoin(
-          modulData.id,
-          firstUnlockedSubMateri.id,
-          0 // poin index, not poin id
+        // Set default ke sub materi pertama yang unlocked
+        const firstUnlockedSubMateri = modulData.subMateris.find(
+          (sub: SubMateri) => sub.isUnlocked
         );
-      }
+        if (firstUnlockedSubMateri) {
+          setSelectedSubMateri(firstUnlockedSubMateri);
+          setSelectedPoinIndex(0);
 
-      // Note: Last accessed tracking sudah handled oleh backend
-      // melalui last_accessed_at field di user_module_progress
+          // Update current position in progress tracking
+          updateCurrentPoin(
+            modulData.id,
+            firstUnlockedSubMateri.id,
+            0 // poin index, not poin id
+          );
+        }
+
+        // Note: Last accessed tracking sudah handled oleh backend
+        // melalui last_accessed_at field di user_module_progress
+      };
+
+      loadModuleWithProgress();
     }
     setLoading(false);
   }, [params.slug, user]); // Removed initializeModuleProgress and updateCurrentPoin to prevent infinite loop
@@ -258,7 +335,7 @@ export default function DetailModulPage() {
     return !(isFirstPoinInSubMateri && isFirstSubMateri);
   };
 
-  const handleQuizComplete = (result: QuizResult) => {
+  const handleQuizComplete = async (result: QuizResult) => {
     // Update sub materi dengan hasil kuis
     if (selectedSubMateri && modul) {
       const updatedSubMateri = {
@@ -277,6 +354,10 @@ export default function DetailModulPage() {
         passed: result.passed,
       });
 
+      // 🔥 NEW: Trigger progress sync from backend
+      console.log("[Page] 🔄 Triggering progress sync after quiz...");
+      await syncModuleProgress();
+
       // Update modul data (local state only)
       const updatedModul = {
         ...modul,
@@ -286,11 +367,12 @@ export default function DetailModulPage() {
       };
       setModul(updatedModul);
 
-      // Jika lulus, unlock sub materi berikutnya
+      // 🔥 FIX: Jika lulus, unlock sub materi berikutnya DAN auto-navigate
       if (result.passed) {
         const currentSubMateriIndex = modul.subMateris.findIndex(
           (sub) => sub.id === selectedSubMateri.id
         );
+
         if (currentSubMateriIndex < modul.subMateris.length - 1) {
           const nextSubMateri = modul.subMateris[currentSubMateriIndex + 1];
           const updatedNextSubMateri = { ...nextSubMateri, isUnlocked: true };
@@ -302,6 +384,25 @@ export default function DetailModulPage() {
             ),
           };
           setModul(finalUpdatedModul);
+
+          // 🔥 FIX: Auto-navigate ke sub-materi berikutnya setelah quiz lulus
+          console.log("🔄 Quiz passed! Auto-navigating to next sub-materi:", {
+            currentSubMateri: selectedSubMateri.id,
+            nextSubMateri: updatedNextSubMateri.id,
+            nextTitle: updatedNextSubMateri.title,
+          });
+
+          // Tunggu sebentar untuk user melihat hasil quiz
+          setTimeout(() => {
+            setSelectedSubMateri(updatedNextSubMateri);
+            setSelectedPoinIndex(0);
+            setPageState("content");
+            console.log("✅ Navigated to next sub-materi");
+          }, 2000); // Delay 2 detik agar user bisa melihat hasil quiz
+        } else {
+          console.log(
+            "ℹ️ Quiz passed but no next sub-materi (last sub-materi completed)"
+          );
         }
       }
     }

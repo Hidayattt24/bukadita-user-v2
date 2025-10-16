@@ -1,10 +1,7 @@
 import { ArrowUpRight, Clock, BookOpen, Users } from "lucide-react";
 import { ModulData } from "@/data/modulData";
 import Link from "next/link";
-import { useProgress } from "@/context/ProgressContext";
-import { useBackendProgress } from "@/hooks/useBackendProgress";
-import { useAuth } from "@/context/AuthContext";
-import { useEffect, useState } from "react";
+import { useBackendModuleProgress } from "@/hooks/useBackendModuleProgress";
 
 interface ContinueLearningProps {
   lastStudiedModul: ModulData | null;
@@ -13,46 +10,25 @@ interface ContinueLearningProps {
 export default function ContinueLearningSection({
   lastStudiedModul,
 }: ContinueLearningProps) {
-  const { getModuleProgress } = useProgress();
-  const { modulesProgress } = useBackendProgress();
-  const { user } = useAuth();
-  const [actualProgress, setActualProgress] = useState(0);
+  // 🔥 FIX: Use useBackendModuleProgress instead of useBackendProgress
+  // This ensures accurate progress calculation like sidebar
+  const { moduleProgress, isLoading } = useBackendModuleProgress(
+    lastStudiedModul?.id || null
+  );
 
-  // Get real progress from backend if user is logged in, otherwise from localStorage
-  useEffect(() => {
-    if (lastStudiedModul) {
-      if (user && modulesProgress) {
-        // Backend returns progress with module_id
-        // Match with frontend module.id (both are numbers)
-        const backendProgress = modulesProgress.modules.find(
-          (m) => m.module_id === lastStudiedModul.id
-        );
+  // Get actual progress from backend (calculated with static data)
+  const actualProgress = moduleProgress?.progress_percentage || 0;
+  const completedSubMateris =
+    moduleProgress?.sub_materis.filter((s) => s.is_completed).length || 0;
+  const totalSubMateris = moduleProgress?.sub_materis.length || 0;
 
-        if (backendProgress) {
-          const progress = backendProgress.progress_percentage || 0;
-          setActualProgress(progress);
-          console.log("[ContinueLearning] Using backend progress:", {
-            moduleId: lastStudiedModul.id,
-            progress,
-          });
-        } else {
-          // No progress in backend yet, show 0
-          setActualProgress(0);
-          console.log(
-            "[ContinueLearning] No backend progress found, showing 0"
-          );
-        }
-      } else {
-        // User not logged in, use localStorage
-        const localProgress = getModuleProgress(lastStudiedModul.id);
-        setActualProgress(localProgress?.overallProgress ?? 0);
-        console.log(
-          "[ContinueLearning] Using localStorage progress:",
-          localProgress?.overallProgress
-        );
-      }
-    }
-  }, [lastStudiedModul, user, modulesProgress, getModuleProgress]);
+  console.log("[ContinueLearning] Module progress:", {
+    moduleId: lastStudiedModul?.id,
+    actualProgress,
+    completedSubMateris,
+    totalSubMateris,
+    isLoading,
+  });
 
   return (
     <div className="mb-6 sm:mb-8">
@@ -112,7 +88,9 @@ export default function ContinueLearningSection({
                   <div className="flex justify-between items-center">
                     <span className="text-white/80 text-sm">Progress</span>
                     <span className="text-white font-semibold text-sm">
-                      {actualProgress}%
+                      {isLoading
+                        ? "..."
+                        : `${Math.round(actualProgress * 10) / 10}%`}
                     </span>
                   </div>
                   <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
@@ -121,6 +99,12 @@ export default function ContinueLearningSection({
                       style={{ width: `${actualProgress}%` }}
                     ></div>
                   </div>
+                  {totalSubMateris > 0 && (
+                    <div className="text-white/70 text-xs mt-1">
+                      {completedSubMateris} dari {totalSubMateris} materi
+                      selesai
+                    </div>
+                  )}
                 </div>
               </div>
 

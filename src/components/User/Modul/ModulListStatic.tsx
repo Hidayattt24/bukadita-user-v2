@@ -2,10 +2,8 @@
 
 import React, { useState } from "react";
 import { Search, Filter, BookOpen } from "lucide-react";
-import Link from "next/link";
-import { ModulCard } from "@/components/User/Beranda";
-import { modulPosyanduData, ModulData } from "@/data/modulData";
-import { useProgress } from "@/context/ProgressContext";
+import ModuleCardWithBackendProgress from "./ModuleCardWithBackendProgress";
+import { modulPosyanduData } from "@/data/modulData";
 
 interface ModulListStaticProps {
   showHeader?: boolean;
@@ -25,8 +23,8 @@ export default function ModulListStatic({
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
 
-  // Get progress from localStorage
-  const { getModuleProgress } = useProgress();
+  // 🔥 No need to fetch progress here - each card will fetch its own progress
+  // Using same approach as ProgressModuleCard and StatisticsModuleCard
 
   // Filter modul berdasarkan pencarian dan kategori
   const filteredModuls = modulPosyanduData
@@ -114,28 +112,24 @@ export default function ModulListStatic({
       {filteredModuls.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredModuls.map((modul, index) => {
-            // Get real progress from localStorage
-            const moduleProgress = getModuleProgress(modul.id);
-            const actualProgress = moduleProgress?.overallProgress ?? 0;
-            const actualStatus = moduleProgress?.status ?? "not-started";
-
+            // 🔥 Each card fetches its own progress (same as ProgressModuleCard)
             return (
-              <Link href={`/user/modul/${modul.slug}`} key={modul.id}>
-                <ModulCard
-                  title={modul.title}
-                  description={modul.description}
-                  duration={modul.duration}
-                  progress={actualProgress} // ← Use real progress from localStorage
-                  category={modul.category}
-                  variant={
-                    index % 3 === 0
-                      ? "primary"
-                      : index % 3 === 1
-                      ? "secondary"
-                      : "tertiary"
-                  }
-                />
-              </Link>
+              <ModuleCardWithBackendProgress
+                key={modul.id}
+                id={modul.id}
+                slug={modul.slug}
+                title={modul.title}
+                description={modul.description}
+                duration={modul.duration}
+                category={modul.category}
+                variant={
+                  index % 3 === 0
+                    ? "primary"
+                    : index % 3 === 1
+                    ? "secondary"
+                    : "tertiary"
+                }
+              />
             );
           })}
         </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import {
   CheckCircle,
   Clock,
@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { DetailModul, SubMateri } from "@/types/modul";
 import { useToast } from "@/components/ui/toast";
-import { useProgress } from "@/context/ProgressContext";
+import { useBackendModuleProgress } from "@/hooks/useBackendModuleProgress";
 
 interface ModulSidebarProps {
   modul: DetailModul;
@@ -35,28 +35,15 @@ export default function ModulSidebar({
   toggleSubMateriExpanded,
 }: ModulSidebarProps) {
   const { warning } = useToast();
-  const { getModuleProgress, getSubMateriProgress } = useProgress();
 
-  // Force re-render when progress changes
-  const [refreshKey, setRefreshKey] = useState(0);
+  // 🔥 NEW: Use backend progress directly (no localStorage)
+  const { moduleProgress, getSubMateriProgress, isLoading } =
+    useBackendModuleProgress(modul.id);
 
-  useEffect(() => {
-    // Listen to storage events for real-time updates across tabs
-    // Note: Storage event listener tidak diperlukan lagi
-    // Backend sync akan handle updates secara otomatis
-  }, []);
-
-  // Get real progress from backend/localStorage - memoized to prevent unnecessary recalculations
-  const moduleProgress = useMemo(
-    () => getModuleProgress(modul.id),
-    [modul.id, refreshKey, getModuleProgress]
-  );
-
-  const actualProgress = moduleProgress?.overallProgress ?? 0;
-
-  // Calculate completed sub-materis from progress data
+  // Get progress from backend
+  const actualProgress = moduleProgress?.progress_percentage || 0;
   const completedSubMaterisCount =
-    moduleProgress?.subMateris.filter((sub) => sub.isCompleted).length ?? 0;
+    moduleProgress?.sub_materis.filter((s) => s.is_completed).length || 0;
 
   return (
     <>
@@ -126,20 +113,62 @@ export default function ModulSidebar({
         >
           <div className="pb-4">
             {modul?.subMateris.map((subMateri, subIndex) => {
-              // Get sub-materi progress from localStorage
-              const subMateriProgress = getSubMateriProgress(
-                modul.id,
-                subMateri.id
-              );
-              const isSubMateriCompleted =
-                subMateriProgress?.isCompleted ?? false;
-              const completedPoinsIds = subMateriProgress?.completedPoins ?? [];
+              // 🔥 Get sub-materi progress from backend
+              const subMateriProgress = getSubMateriProgress(subMateri.id);
 
-              // Calculate progress percentage
+              // 🐛 DEBUG: Log progress data
+              console.log(
+                `[ModulSidebar] Sub-Materi ${subMateri.id} (${subMateri.title}):`,
+                {
+                  subMateriProgress,
+                  is_completed: subMateriProgress?.is_completed,
+                  completed_poins: subMateriProgress?.completed_poins,
+                  quiz_score: subMateriProgress?.quiz_score,
+                  quiz_attempts: subMateriProgress?.quiz_attempts,
+                }
+              );
+
+              //  Sub-materi is completed when:
+              // 1. All poins completed AND quiz passed (if quiz exists)
+              // 2. All poins completed (if no quiz)
+              const isSubMateriCompleted =
+                subMateriProgress?.is_completed ?? false;
+
+              const completedPoinsIds =
+                subMateriProgress?.completed_poins ?? [];
+
+              // 🔥 Calculate progress percentage
+              // Progress = (completed poins / total items) * 100
+              // Total items = poins + (quiz ? 1 : 0)
               const totalPoins = subMateri.poinDetails.length;
+              const hasQuiz = subMateri.quiz && subMateri.quiz.length > 0;
+              const totalItems = totalPoins + (hasQuiz ? 1 : 0); // Total poin + quiz (if exists)
+
+              // Count completed items
               const completedPoinsCount = completedPoinsIds.length;
+              const quizCompleted = subMateriProgress?.quiz_score
+                ? subMateriProgress.quiz_score >= 70
+                : false;
+              const completedItems =
+                completedPoinsCount + (quizCompleted ? 1 : 0);
+
+              // Calculate percentage
               const progressPercentage =
-                totalPoins > 0 ? (completedPoinsCount / totalPoins) * 100 : 0;
+                totalItems > 0
+                  ? Math.round((completedItems / totalItems) * 100)
+                  : 0;
+
+              // 🐛 DEBUG: Log calculated values
+              console.log(`[ModulSidebar] Calculated for ${subMateri.id}:`, {
+                totalPoins,
+                hasQuiz,
+                totalItems,
+                completedPoinsCount,
+                quizCompleted,
+                completedItems,
+                progressPercentage,
+                isSubMateriCompleted,
+              });
 
               return (
                 <div
@@ -217,7 +246,9 @@ export default function ModulSidebar({
                           className={`h-1.5 rounded-full transition-all duration-300 ${
                             isSubMateriCompleted
                               ? "bg-emerald-500"
-                              : "bg-[#578FCA]"
+                              : progressPercentage > 0
+                              ? "bg-[#578FCA]"
+                              : "bg-gray-300"
                           }`}
                           style={{
                             width: `${progressPercentage}%`,
@@ -225,7 +256,18 @@ export default function ModulSidebar({
                         ></div>
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
-                        {completedPoinsCount} dari {totalPoins} selesai
+                        {completedItems} dari {totalItems} selesai
+                        {hasQuiz && totalItems > 1 && (
+                          <span className="ml-1 text-gray-400">
+                            ({completedPoinsCount}/{totalPoins} poin +{" "}
+                            {quizCompleted ? "✓" : "○"} quiz)
+                          </span>
+                        )}
+                        {!hasQuiz && (
+                          <span className="ml-1 text-gray-400">
+                            ({completedPoinsCount}/{totalPoins} poin)
+                          </span>
+                        )}
                       </div>
                     </div>
 

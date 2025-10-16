@@ -1,7 +1,7 @@
 import { DetailModul } from "./types";
 
 export const bayiBalitaData: DetailModul = {
-  id: 3,
+  id: 2, // 🔥 FIX: Changed from 3 to 2 to match modulData.ts
   slug: "bayi-balita",
   title: "Menu Bayi & Balita",
   description:
