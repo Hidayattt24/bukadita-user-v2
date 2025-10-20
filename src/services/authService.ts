@@ -2,15 +2,15 @@
 import { apiClient, tokenStore, ApiResponse, API_CODES } from "@/lib/apiClient";
 
 export interface LoginRequest {
-  email: string;
+  phone: string;
   password: string;
 }
 
 export interface RegisterRequest {
-  email: string;
+  phone: string;
   password: string;
   full_name: string;
-  phone?: string;
+  email?: string;
 }
 
 export interface AuthUserProfile {
@@ -42,6 +42,8 @@ export interface AuthTokensPayload {
 // Validation helpers (retained but simplified)
 export const validators = {
   email: (email: string): boolean => /[^\s@]+@[^\s@]+\.[^\s@]+/.test(email),
+  phone: (phone: string): boolean =>
+    /^(\+62[8-9][\d]{8,11}|0[8-9][\d]{8,11})$/.test(phone),
   password: (password: string) => ({
     isValid: password.length >= 6,
     message: password.length >= 6 ? undefined : "Password minimal 6 karakter",

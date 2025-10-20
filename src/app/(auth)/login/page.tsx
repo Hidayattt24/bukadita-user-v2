@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Smartphone, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { validators } from "@/services/authService";
 
@@ -13,7 +13,7 @@ export default function LoginPage() {
   const { login } = useAuth();
 
   const [formData, setFormData] = useState({
-    email: "",
+    phone: "",
     password: "",
     rememberMe: false,
   });
@@ -30,11 +30,11 @@ export default function LoginPage() {
     // Validasi
     const newErrors: Record<string, string> = {};
 
-    const emailValidation = validators.required(formData.email, "Email");
-    if (!emailValidation.isValid) {
-      newErrors.email = emailValidation.message!;
-    } else if (!validators.email(formData.email)) {
-      newErrors.email = "Format email tidak valid";
+    const phoneValidation = validators.required(formData.phone, "Nomor HP");
+    if (!phoneValidation.isValid) {
+      newErrors.phone = phoneValidation.message!;
+    } else if (!validators.phone(formData.phone)) {
+      newErrors.phone = "Format nomor HP tidak valid (contoh: 081234567890)";
     }
 
     const passwordValidation = validators.required(
@@ -52,7 +52,7 @@ export default function LoginPage() {
     }
 
     try {
-      const result = await login(formData.email, formData.password);
+      const result = await login(formData.phone, formData.password);
 
       if (result.success) {
         if (result.pendingProfile) {
@@ -129,41 +129,45 @@ export default function LoginPage() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Email Input */}
+        {/* Phone Input */}
         <div className="space-y-2">
           <label
-            htmlFor="email"
+            htmlFor="phone"
             className="block text-sm font-semibold text-[#27548A] font-poppins"
           >
-            Email
+            Nomor HP
           </label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Mail className="h-4 w-4 text-gray-400 group-focus-within:text-[#578FCA] transition-colors" />
+              <Smartphone className="h-4 w-4 text-gray-400 group-focus-within:text-[#578FCA] transition-colors" />
             </div>
             <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
+              type="tel"
+              id="phone"
+              name="phone"
+              value={formData.phone}
               onChange={handleChange}
               required
               className={`w-full pl-10 pr-3 py-2.5 bg-gray-50 border rounded-lg focus:bg-white focus:ring-2 focus:ring-[#578FCA]/20 focus:border-[#578FCA] outline-none transition-all duration-200 font-poppins placeholder:text-gray-400 text-gray-700 text-sm ${
-                errors.email
+                errors.phone
                   ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-red-100"
                   : "border-gray-200 hover:border-[#578FCA]/50"
               }`}
-              placeholder="Masukkan email Anda"
+              placeholder="Contoh: 081234567890"
+              maxLength={15}
             />
           </div>
-          {errors.email && (
+          {errors.phone && (
             <p className="text-red-600 text-xs font-medium flex items-center gap-1">
               <span className="w-3 h-3 bg-red-500 rounded-full flex items-center justify-center text-white text-xs">
                 !
               </span>
-              {errors.email}
+              {errors.phone}
             </p>
           )}
+          <p className="text-xs text-gray-500 font-poppins">
+            Format: 08xxxxxxxxxx atau +628xxxxxxxxxx
+          </p>
         </div>
 
         {/* Password Input */}
