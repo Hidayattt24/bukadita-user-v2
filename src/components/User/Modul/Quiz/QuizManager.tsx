@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { type SubMateri, type QuizResult, type Quiz } from "@/data/modules";
+import { type SubMateri, type QuizResult } from "@/data/modules";
 import QuizInstruction from "./QuizInstruction";
 import QuizPlayer from "./QuizPlayer";
 import QuizResultComponent from "./QuizResult";
@@ -8,10 +8,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useProgressSync } from "@/hooks/useProgressSync";
 
 interface QuizManagerProps {
-  subMateri?: SubMateri; // Optional for module-level quiz
-  moduleId: number;
-  quizzes?: Quiz[]; // Direct quiz array (for module-level quiz)
-  quizType?: "sub-material" | "module"; // Type of quiz
+  subMateri: SubMateri;
+  moduleId: number; // Add moduleId
   onQuizComplete: (result: QuizResult) => void;
   onContinueToNext: () => void;
   onBackToContent: () => void;
@@ -22,8 +20,6 @@ type QuizState = "instruction" | "playing" | "result";
 export default function QuizManager({
   subMateri,
   moduleId,
-  quizzes,
-  quizType = "sub-material",
   onQuizComplete,
   onContinueToNext,
   onBackToContent,
@@ -32,33 +28,52 @@ export default function QuizManager({
   const [currentState, setCurrentState] = useState<QuizState>("instruction");
   const [quizHistory, setQuizHistory] = useState<QuizResult[]>([]);
   const [latestResult, setLatestResult] = useState<QuizResult | null>(
-    subMateri?.quizResult || null
+    subMateri.quizResult || null
   );
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   // 🔥 NEW: Hook to sync progress from backend
   const { syncModuleProgress } = useProgressSync(moduleId);
 
-  // Get actual quiz data
-  const actualQuizzes = quizzes || subMateri?.quiz || [];
-  const subMateriId = quizType === "module" ? "module-quiz" : (subMateri?.id || "");
-
   // Fetch quiz history from backend when component mounts (SIMPLE SYSTEM)
   useEffect(() => {
     const fetchQuizHistory = async () => {
+      console.log("[QuizManager] useEffect triggered:", {
+        hasUser: !!user,
+        moduleId,
+        subMateriId: subMateri.id,
+      });
+
       if (!user) {
+        console.log(
+          "[QuizManager] ❌ No user logged in, skipping history fetch"
+        );
         return;
       }
 
       setIsLoadingHistory(true);
       try {
+        console.log("[QuizManager] 🔄 Fetching quiz history (simple system):", {
+          moduleId,
+          subMateriId: subMateri.id,
+        });
+
         const response = await QuizService.getSimpleQuizResults(
           moduleId,
-          subMateriId
+          subMateri.id
         );
+
+        console.log("[QuizManager] 📦 Backend response:", response);
 
         if (response.data?.attempt) {
           const attempt = response.data.attempt;
+
+          console.log("[QuizManager] ✅ Attempt found:", {
+            id: attempt.id,
+            score: attempt.score,
+            is_passed: attempt.is_passed,
+            answers: attempt.answers,
+          });
 
           // Convert backend attempt to QuizResult format
           const result: QuizResult = {
@@ -69,16 +84,30 @@ export default function QuizManager({
             passed: attempt.is_passed || false,
           };
 
+          console.log(
+            "[QuizManager] 🎯 Quiz history loaded successfully:",
+            result
+          );
           setLatestResult(result);
           setQuizHistory([result]);
 
           // If quiz was already completed, show result directly
           if (attempt.completed_at) {
+            console.log(
+              "[QuizManager] 🎬 Quiz already completed, showing result"
+            );
             setCurrentState("result");
           }
+        } else {
+          console.log("[QuizManager] ℹ️ No quiz history found");
         }
       } catch (error: any) {
-        console.error("[QuizManager] Error fetching quiz history:", error);
+        console.error("[QuizManager] ❌ Error fetching quiz history:", error);
+        console.error("[QuizManager] Error details:", {
+          message: error?.message,
+          status: error?.status,
+          code: error?.code,
+        });
         // Silently fail - user can still take quiz
       } finally {
         setIsLoadingHistory(false);
@@ -86,7 +115,7 @@ export default function QuizManager({
     };
 
     fetchQuizHistory();
-  }, [user, moduleId, subMateriId]);
+  }, [user, moduleId, subMateri.id]);
 
   const handleStartQuiz = () => {
     setCurrentState("playing");
@@ -106,10 +135,13 @@ export default function QuizManager({
     setCurrentState("result");
     onQuizComplete(result);
 
+    // 🔥 CRITICAL: Sync progress from backend after quiz completion
+    console.log("[QuizManager] 🔄 Syncing progress after quiz completion...");
     try {
       await syncModuleProgress();
+      console.log("[QuizManager] ✅ Progress synced successfully");
     } catch (error) {
-      console.error("[QuizManager] Failed to sync progress:", error);
+      console.error("[QuizManager] ❌ Failed to sync progress:", error);
     }
   };
 
@@ -134,13 +166,26 @@ export default function QuizManager({
   }
 
   if (currentState === "playing") {
+    console.log(
+      "[QuizManager] 🎮 Starting quiz with quizId:",
+      subMateri.quizId || "undefined (using local quiz only)"
+    );
+
+    // Show warning if no quizId (quiz not in backend)
+    if (!subMateri.quizId) {
+      console.warn(
+        "[QuizManager] ⚠️ No quizId found - quiz results will NOT be saved to backend!",
+        "\nTo fix: Add quizId to sub-materi in static data files (e.g., pengelolaan-posyandu.ts)",
+        "\nExample: { id: 'sub1', quizId: 'uuid-from-backend', ... }"
+      );
+    }
 
     return (
       <QuizPlayer
-        quizzes={actualQuizzes}
-        quizId={subMateri?.quizId}
+        quizzes={subMateri.quiz}
+        quizId={subMateri.quizId}
         moduleId={moduleId}
-        subMateriId={subMateriId}
+        subMateriId={subMateri.id}
         onQuizComplete={handleQuizComplete}
         onBack={handleBackFromQuiz}
       />
@@ -151,7 +196,7 @@ export default function QuizManager({
     return (
       <QuizResultComponent
         result={latestResult}
-        quizzes={actualQuizzes}
+        quizzes={subMateri.quiz}
         onRetakeQuiz={handleRetakeQuiz}
         onContinue={handleContinue}
         onBackToInstruction={handleBackToInstruction}
@@ -165,9 +210,6 @@ export default function QuizManager({
       onStartQuiz={handleStartQuiz}
       onRetakeQuiz={handleRetakeQuiz}
       quizHistory={quizHistory}
-      quizType={quizType}
-      quizTitle={quizType === "module" ? "Kuis Modul" : undefined}
-      quizCount={actualQuizzes.length}
     />
   );
 }

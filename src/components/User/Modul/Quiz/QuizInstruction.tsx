@@ -13,13 +13,10 @@ import {
 import { type SubMateri, type QuizResult } from "@/data/modules";
 
 interface QuizInstructionProps {
-  subMateri?: SubMateri; // Optional for module-level quiz
+  subMateri: SubMateri;
   onStartQuiz: () => void;
   onRetakeQuiz: () => void;
   quizHistory: QuizResult[];
-  quizType?: "sub-material" | "module";
-  quizTitle?: string; // For module-level quiz
-  quizCount?: number; // For module-level quiz
 }
 
 export default function QuizInstruction({
@@ -27,17 +24,10 @@ export default function QuizInstruction({
   onStartQuiz,
   onRetakeQuiz,
   quizHistory,
-  quizType = "sub-material",
-  quizTitle,
-  quizCount,
 }: QuizInstructionProps) {
-  const latestResult = subMateri?.quizResult;
+  const latestResult = subMateri.quizResult;
   const hasPassedQuiz = latestResult?.passed || false;
   const canRetake = !hasPassedQuiz || true; // Allow retake even if passed for improvement
-
-  // Get quiz title and count
-  const displayTitle = quizTitle || subMateri?.title || "Kuis Modul";
-  const displayQuizCount = quizCount || subMateri?.quiz?.length || 0;
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-emerald-600";
@@ -62,7 +52,7 @@ export default function QuizInstruction({
             </div>
             <div>
               <h1 className="text-3xl font-bold text-[#27548A] mb-2">
-                Kuis: {displayTitle}
+                Kuis: {subMateri.title}
               </h1>
               <p className="text-gray-600">
                 Uji pemahaman Anda tentang materi yang telah dipelajari
@@ -125,7 +115,7 @@ export default function QuizInstruction({
                     <div>
                       <p className="text-sm text-gray-600">Jumlah Soal</p>
                       <p className="font-bold text-[#27548A]">
-                        {displayQuizCount} Pertanyaan
+                        {subMateri.quiz.length} Pertanyaan
                       </p>
                     </div>
                   </div>

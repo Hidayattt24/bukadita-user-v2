@@ -32,223 +32,6 @@ export const bayiBalitaData: DetailModul = {
     "Memahami dasar pelayanan posyandu bayi dan balita",
     "Akses perangkat digital untuk pembelajaran",
   ],
-  quiz: [
-    {
-      id: "quiz-1",
-      question:
-        "Masa bayi dan balita berlangsung sejak bayi dilahirkan hingga usia…",
-      options: ["24 bulan", "36 bulan", "48 bulan", "59 bulan"],
-      correctAnswer: 3,
-      explanation: "59 bulan",
-    },
-    {
-      id: "quiz-2",
-      question: "ASI eksklusif diberikan kepada bayi sejak lahir hingga usia…",
-      options: ["4 bulan", "6 bulan", "9 bulan", "12 bulan"],
-      correctAnswer: 1,
-      explanation: "6 bulan",
-    },
-    {
-      id: "quiz-3",
-      question: "Yang tidak termasuk manfaat ASI eksklusif bagi bayi adalah…",
-      options: [
-        "Mencegah terserang penyakit",
-        "Meningkatkan sistem imun",
-        "Menyebabkan ketergantungan terhadap ASI",
-        "Mendukung perkembangan otak",
-      ],
-      correctAnswer: 2,
-      explanation: "Menyebabkan ketergantungan terhadap ASI",
-    },
-    {
-      id: "quiz-4",
-      question: "Salah satu manfaat ASI eksklusif bagi ibu adalah…",
-      options: [
-        "Meningkatkan risiko kanker payudara",
-        "Mencegah risiko kanker payudara dan ovarium",
-        "Menurunkan daya tahan tubuh",
-        "Menambah berat badan ibu",
-      ],
-      correctAnswer: 1,
-      explanation: "Mencegah risiko kanker payudara dan ovarium",
-    },
-    {
-      id: "quiz-5",
-      question: "MP-ASI sebaiknya mulai diberikan kepada bayi usia…",
-      options: ["4 bulan", "5 bulan", "6 bulan", "7 bulan"],
-      correctAnswer: 2,
-      explanation: "6 bulan",
-    },
-    {
-      id: "quiz-6",
-      question: "MP-ASI disebut adekuat apabila…",
-      options: [
-        "Diberikan kapan saja bayi mau",
-        "Mengandung cukup energi, protein, dan mikronutrien",
-        "Hanya berasal dari makanan instan",
-        "Disimpan lebih dari 12 jam",
-      ],
-      correctAnswer: 1,
-      explanation: "Mengandung cukup energi, protein, dan mikronutrien",
-    },
-    {
-      id: "quiz-7",
-      question:
-        "MP-ASI harus disiapkan dengan cara higienis agar memenuhi syarat…",
-      options: ["Tepat waktu", "Aman", "Terjadwal", "Beragam"],
-      correctAnswer: 1,
-      explanation: "Aman",
-    },
-    {
-      id: "quiz-8",
-      question: "Tujuan pemberian MP-ASI salah satunya adalah…",
-      options: [
-        "Menggantikan ASI sepenuhnya",
-        "Melatih bayi mengunyah dan menelan makanan bergizi",
-        "Menambah berat badan secara cepat",
-        "Mengurangi frekuensi menyusu",
-      ],
-      correctAnswer: 1,
-      explanation: "Melatih bayi mengunyah dan menelan makanan bergizi",
-    },
-    {
-      id: "quiz-9",
-      question: "PMT Penyuluhan diberikan kepada balita usia…",
-      options: ["0–5 bulan", "6–59 bulan", "12–36 bulan", "24–59 bulan"],
-      correctAnswer: 1,
-      explanation: "6–59 bulan",
-    },
-    {
-      id: "quiz-10",
-      question: "PMT Penyuluhan berbahan pangan lokal diberikan untuk…",
-      options: [
-        "Mengobati gizi buruk",
-        "Edukasi pola konsumsi gizi seimbang dan pencegahan stunting",
-        "Meningkatkan imunisasi dasar",
-        "Menggantikan MP-ASI",
-      ],
-      correctAnswer: 1,
-      explanation:
-        "Edukasi pola konsumsi gizi seimbang dan pencegahan stunting",
-    },
-    {
-      id: "quiz-11",
-      question: "Syarat bahan pangan PMT Penyuluhan yang tidak sesuai adalah…",
-      options: [
-        "Terbuat dari pangan lokal",
-        "Mengandung zat berbahaya seperti pewarna buatan",
-        "Kaya gizi dan beragam",
-        "Harga terjangkau",
-      ],
-      correctAnswer: 1,
-      explanation: "Mengandung zat berbahaya seperti pewarna buatan",
-    },
-    {
-      id: "quiz-12",
-      question: "Imunisasi bertujuan untuk…",
-      options: [
-        "Membentuk kekebalan aktif terhadap penyakit",
-        "Mengobati penyakit menular",
-        "Mengurangi kebutuhan vitamin",
-        "Menghindari kunjungan ke Puskesmas",
-      ],
-      correctAnswer: 0,
-      explanation: "Membentuk kekebalan aktif terhadap penyakit",
-    },
-    {
-      id: "quiz-13",
-      question: "PD3I merupakan penyakit yang…",
-      options: [
-        "Dapat disembuhkan dengan antibiotik",
-        "Dapat dicegah melalui imunisasi",
-        "Hanya menyerang bayi baru lahir",
-        "Disebabkan oleh gangguan gizi",
-      ],
-      correctAnswer: 1,
-      explanation: "Dapat dicegah melalui imunisasi",
-    },
-    {
-      id: "quiz-14",
-      question: "Tujuan imunisasi selain melindungi individu adalah…",
-      options: [
-        "Membentuk kekebalan kelompok (herd immunity)",
-        "Mengurangi biaya pengobatan",
-        "Menunda masa pertumbuhan",
-        "Menambah jumlah vaksin",
-      ],
-      correctAnswer: 0,
-      explanation: "Membentuk kekebalan kelompok (herd immunity)",
-    },
-    {
-      id: "quiz-15",
-      question: "Polio dapat menyebabkan kelumpuhan karena…",
-      options: [
-        "Menyerang sistem pencernaan",
-        "Menyerang saraf yang mengatur gerak tubuh",
-        "Menyebabkan tulang rapuh",
-        "Menginfeksi sistem imun",
-      ],
-      correctAnswer: 1,
-      explanation: "Menyerang saraf yang mengatur gerak tubuh",
-    },
-    {
-      id: "quiz-16",
-      question: "Cara penularan penyakit Campak Rubela adalah…",
-      options: [
-        "Melalui air yang terkontaminasi",
-        "Melalui darah",
-        "Melalui percikan ludah penderita",
-        "Melalui gigitan serangga",
-      ],
-      correctAnswer: 2,
-      explanation: "Melalui percikan ludah penderita",
-    },
-    {
-      id: "quiz-17",
-      question: "Komplikasi serius dari penyakit Rubela pada ibu hamil adalah…",
-      options: [
-        "Anemia dan dehidrasi",
-        "Gagal ginjal",
-        "Bayi lahir mati atau cacat bawaan",
-        "Kelahiran prematur tanpa komplikasi",
-      ],
-      correctAnswer: 2,
-      explanation: "Bayi lahir mati atau cacat bawaan",
-    },
-    {
-      id: "quiz-18",
-      question: "Penyebab utama Tetanus Neonatorum adalah…",
-      options: [
-        "Tali pusat yang tidak bersih saat perawatan atau persalinan",
-        "Pemberian susu formula berlebihan",
-        "Kekurangan vitamin K",
-        "Kontak dengan penderita batuk rejan",
-      ],
-      correctAnswer: 0,
-      explanation:
-        "Tali pusat yang tidak bersih saat perawatan atau persalinan",
-    },
-    {
-      id: "quiz-19",
-      question:
-        'Penyakit Pertusis dikenal juga sebagai "batuk 100 hari" karena…',
-      options: [
-        "Durasi batuknya panjang dan sulit sembuh",
-        "Disebabkan oleh virus yang kuat",
-        "Hanya menyerang anak usia 100 hari",
-        "Tidak menular kepada orang dewasa",
-      ],
-      correctAnswer: 0,
-      explanation: "Durasi batuknya panjang dan sulit sembuh",
-    },
-    {
-      id: "quiz-20",
-      question: "Infeksi HPV menjadi penyebab utama penyakit…",
-      options: ["Hepatitis B", "Kanker serviks", "Difteri", "Tetanus"],
-      correctAnswer: 1,
-      explanation: "Kanker serviks",
-    },
-  ],
 
   subMateris: [
     // 1) DEFINISI
@@ -273,7 +56,53 @@ Masa Bayi Balita adalah masa setelah dilahirkan sampai sebelum berumur 59 bulan,
           type: "text",
         },
       ],
-      quiz: [], // Quiz moved to module level
+      quiz: [
+        {
+          id: "quiz1-1",
+          question: "Rentang usia balita menurut modul adalah…",
+          options: ["0–11 bulan", "0–28 hari", "12–59 bulan", "6–24 bulan"],
+          correctAnswer: 2,
+          explanation:
+            "Balita adalah anak usia 12–59 bulan (bawah lima tahun).",
+        },
+        {
+          id: "quiz1-2",
+          question: "Usia bayi baru lahir didefinisikan sebagai…",
+          options: ["0–7 hari", "0–14 hari", "0–28 hari", "0–30 hari"],
+          correctAnswer: 2,
+          explanation:
+            "Bayi baru lahir adalah 0–28 hari sesuai definisi pada modul.",
+        },
+        {
+          id: "quiz1-3",
+          question: "Masa bayi mencakup usia…",
+          options: ["0–11 bulan", "12–59 bulan", "0–28 hari", "6–24 bulan"],
+          correctAnswer: 0,
+          explanation:
+            "Masa bayi adalah 0–11 bulan, sebelum masuk kategori balita.",
+        },
+        {
+          id: "quiz1-4",
+          question:
+            "Mengapa periode 0–59 bulan sering disebut masa emas pertumbuhan?",
+          options: [
+            "Karena anak mulai sekolah",
+            "Karena pertumbuhan otak dan fisik sangat pesat",
+            "Karena anak sudah mandiri",
+            "Karena anak tidak butuh imunisasi",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Pertumbuhan dan perkembangan pesat terjadi pada usia 0–59 bulan.",
+        },
+        {
+          id: "quiz1-5",
+          question: "Seorang anak berusia 10 bulan dikategorikan sebagai…",
+          options: ["Bayi", "Balita", "Remaja", "Pra-sekolah (definisi modul)"],
+          correctAnswer: 0,
+          explanation: "0–11 bulan termasuk kategori bayi.",
+        },
+      ],
     },
 
     // 2) ASI EKSKLUSIF
@@ -310,7 +139,69 @@ ASI eksklusif artinya bayi hanya diberikan ASI saja, tanpa ada tambahan makanan 
           type: "text",
         },
       ],
-      quiz: [], // Quiz moved to module level
+      quiz: [
+        {
+          id: "quiz2-1",
+          question: "ASI eksklusif menurut modul diberikan sampai usia…",
+          options: ["3 bulan", "4 bulan", "6 bulan", "12 bulan"],
+          correctAnswer: 2,
+          explanation:
+            "ASI eksklusif diberikan sejak lahir hingga usia 6 bulan.",
+        },
+        {
+          id: "quiz2-2",
+          question:
+            "Tambahan berikut yang masih diperbolehkan saat ASI eksklusif adalah…",
+          options: [
+            "Air putih",
+            "Susu formula",
+            "Obat dalam bentuk sirup bila diperlukan",
+            "Teh manis",
+          ],
+          correctAnswer: 2,
+          explanation:
+            "Modul menyebut pengecualian obat-obatan dalam bentuk sirup.",
+        },
+        {
+          id: "quiz2-3",
+          question: "Salah satu manfaat ASI eksklusif bagi bayi adalah…",
+          options: [
+            "Menurunkan sistem imun",
+            "Meningkatkan sistem imun",
+            "Meningkatkan risiko alergi",
+            "Menghambat pertumbuhan otak",
+          ],
+          correctAnswer: 1,
+          explanation: "ASI meningkatkan sistem imun bayi.",
+        },
+        {
+          id: "quiz2-4",
+          question: "Salah satu manfaat ASI eksklusif bagi ibu adalah…",
+          options: [
+            "Meningkatkan risiko kanker payudara",
+            "Mengatasi trauma pasca persalinan dan meningkatkan kesehatan mental",
+            "Menghambat produksi hormon",
+            "Meningkatkan stres",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Modul menuliskan manfaat untuk kesehatan mental serta pencegahan kanker.",
+        },
+        {
+          id: "quiz2-5",
+          question:
+            "Pernyataan berikut yang benar tentang ASI eksklusif adalah…",
+          options: [
+            "Bayi boleh diberikan air dan teh",
+            "Bayi hanya diberikan ASI, tanpa makanan/minuman lain",
+            "ASI eksklusif dimulai usia 3 bulan",
+            "ASI eksklusif mengurangi imunitas",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Definisi modul: hanya ASI tanpa tambahan makanan/minuman.",
+        },
+      ],
     },
 
     // 3) MPASI
@@ -369,7 +260,66 @@ Bedasarkan buku kemenkes terlampir file`,
           type: "text",
         },
       ],
-      quiz: [], // Quiz moved to module level
+      quiz: [
+        {
+          id: "quiz3-1",
+          question: "Usia yang tepat memulai MPASI menurut modul adalah…",
+          options: ["4 bulan", "5 bulan", "6 bulan", "9 bulan"],
+          correctAnswer: 2,
+          explanation:
+            "MPASI diberikan mulai 6 bulan karena kebutuhan energi meningkat.",
+        },
+        {
+          id: "quiz3-2",
+          question: "Salah satu manfaat MPASI yang disebut di modul adalah…",
+          options: [
+            "Membuat bayi ketergantungan pada ASI",
+            "Sumber nutrisi lebih lengkap",
+            "Mengurangi minum air",
+            "Menggantikan imunisasi",
+          ],
+          correctAnswer: 1,
+          explanation: "Modul menyebut MPASI menambah kelengkapan nutrisi.",
+        },
+        {
+          id: "quiz3-3",
+          question: "MPASI tergolong adekuat bila…",
+          options: [
+            "Hanya tinggi karbohidrat",
+            "Memenuhi energi, protein, dan mikronutrien",
+            "Disajikan tanpa memperhatikan kebersihan",
+            "Diberikan tanpa jadwal",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Adekuat artinya memenuhi energi, protein, mikronutrien.",
+        },
+        {
+          id: "quiz3-4",
+          question: "Salah satu pertimbangan penting pada syarat MPASI adalah…",
+          options: [
+            "Preferensi TV anak",
+            "Konsistensi/tekstur sesuai usia",
+            "Harga alat makan",
+            "Warna piring",
+          ],
+          correctAnswer: 1,
+          explanation: "Tekstur/konsistensi sesuai usia termasuk syarat MPASI.",
+        },
+        {
+          id: "quiz3-5",
+          question:
+            "Pernyataan benar tentang 'diberikan dengan cara benar' adalah…",
+          options: [
+            "Tidak perlu jadwal makan",
+            "Tidak perlu lingkungan pendukung",
+            "Perlu jadwal, lingkungan mendukung, dan prosedur makan tepat",
+            "Cukup satu jenis makanan saja",
+          ],
+          correctAnswer: 2,
+          explanation: "Modul menuliskan tiga aspek cara pemberian yang benar.",
+        },
+      ],
     },
 
     // 4) PMT PENYULUHAN
@@ -415,7 +365,73 @@ Ada di file ppt kemenkes`,
           type: "text",
         },
       ],
-      quiz: [], // Quiz moved to module level
+      quiz: [
+        {
+          id: "quiz4-1",
+          question: "Sasaran PMT Penyuluhan menurut modul adalah…",
+          options: [
+            "Ibu hamil",
+            "Balita 6–59 bulan tanpa gangguan gizi",
+            "Remaja putri",
+            "Lansia",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Sasarannya adalah balita sehat usia 6–59 bulan sebagai pencegahan.",
+        },
+        {
+          id: "quiz4-2",
+          question: "Tujuan PMT Penyuluhan yang disebutkan modul adalah…",
+          options: [
+            "Menggantikan ASI",
+            "Sarana edukasi dan meningkatkan kehadiran di posyandu",
+            "Menaikkan biaya posyandu",
+            "Mengurangi variasi makanan",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Dua tujuan yang ditulis: edukasi dan meningkatkan kehadiran.",
+        },
+        {
+          id: "quiz4-3",
+          question: "Salah satu syarat bahan pangan PMT adalah…",
+          options: [
+            "Tinggi pewarna dan pemanis",
+            "Berbahan pangan lokal dan beragam",
+            "Hanya dari makanan ringan",
+            "Harus impor",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Modul menekankan bahan lokal, beragam, kaya gizi, dan aman.",
+        },
+        {
+          id: "quiz4-4",
+          question: "PMT Penyuluhan termasuk makanan…",
+          options: [
+            "Pokok sehari-hari keluarga",
+            "Tambahan di luar MP-ASI sebagai contoh edukasi",
+            "Hanya diberikan saat sakit",
+            "Khusus anak di atas 5 tahun",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Diberikan sebagai contoh edukasi di luar MP-ASI/makanan keluarga.",
+        },
+        {
+          id: "quiz4-5",
+          question: "Mengapa keamanan pangan penting pada PMT?",
+          options: [
+            "Agar rasa lebih manis",
+            "Agar bisa disimpan lama dengan pengawet",
+            "Untuk mencegah paparan zat berbahaya",
+            "Supaya warna makanan menarik",
+          ],
+          correctAnswer: 2,
+          explanation:
+            "Modul melarang bahan berbahaya seperti pengawet/pewarna.",
+        },
+      ],
     },
 
     // 5) IMUNISASI
@@ -463,7 +479,66 @@ Ada pada table kemenkes
           type: "text",
         },
       ],
-      quiz: [], // Quiz moved to module level
+      quiz: [
+        {
+          id: "quiz5-1",
+          question: "Tujuan utama imunisasi menurut modul adalah…",
+          options: [
+            "Membuat anak cepat lapar",
+            "Menimbulkan/meningkatkan kekebalan terhadap penyakit",
+            "Menggantikan peran ASI",
+            "Menaikkan berat badan",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Definisi modul menyebut menimbulkan/meningkatkan kekebalan.",
+        },
+        {
+          id: "quiz5-2",
+          question: "Kepanjangan PD3I adalah…",
+          options: [
+            "Program Deteksi Dini dan Imunitas",
+            "Penyakit Dapat Dicegah Dengan Imunisasi",
+            "Pemberian Dosis 3 Imunisasi",
+            "Panduan Dasar Data Imunisasi",
+          ],
+          correctAnswer: 1,
+          explanation: "PD3I adalah Penyakit Dapat Dicegah Dengan Imunisasi.",
+        },
+        {
+          id: "quiz5-3",
+          question:
+            "Salah satu manfaat imunisasi pada tingkat populasi adalah…",
+          options: [
+            "Meningkatkan alergi populasi",
+            "Membentuk herd immunity",
+            "Menambah konsumsi gula",
+            "Mengurangi aktivitas fisik",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Herd immunity adalah salah satu tujuan yang disebutkan modul.",
+        },
+        {
+          id: "quiz5-4",
+          question: "Contoh penyakit PD3I yang ada di daftar modul adalah…",
+          options: ["Hipertensi", "Diabetes", "Polio", "Asma"],
+          correctAnswer: 2,
+          explanation: "Polio termasuk dalam daftar 5.4.1 modul.",
+        },
+        {
+          id: "quiz5-5",
+          question: "Informasi jadwal imunisasi rutin lengkap menurut modul…",
+          options: [
+            "Ada pada tabel Kemenkes",
+            "Tidak diperlukan",
+            "Hanya untuk dewasa",
+            "Bisa diabaikan",
+          ],
+          correctAnswer: 0,
+          explanation: "Modul menyebut referensinya pada tabel Kemenkes.",
+        },
+      ],
     },
 
     // 6) TUMBUH KEMBANG
@@ -486,7 +561,72 @@ Ada pada table kemenkes
           type: "text",
         },
       ],
-      quiz: [], // Quiz moved to module level
+      quiz: [
+        {
+          id: "quiz6-1",
+          question: "Mengapa deteksi dini tumbuh kembang penting dilakukan?",
+          options: [
+            "Untuk mendeteksi gangguan sejak awal agar tertangani cepat",
+            "Untuk menambah jadwal imunisasi",
+            "Untuk mengurangi waktu tidur anak",
+            "Untuk mengganti ASI",
+          ],
+          correctAnswer: 0,
+          explanation:
+            "Deteksi dini membantu intervensi cepat bila ada keterlambatan/gangguan.",
+        },
+        {
+          id: "quiz6-2",
+          question: "Stimulasi dini umumnya bertujuan untuk…",
+          options: [
+            "Mengoptimalkan perkembangan motorik, bahasa, kognitif, dan sosial-emosional",
+            "Mengurangi nafsu makan",
+            "Membatasi aktivitas anak",
+            "Mengurangi interaksi dengan orang tua",
+          ],
+          correctAnswer: 0,
+          explanation:
+            "Stimulasi bertujuan mengoptimalkan berbagai aspek perkembangan.",
+        },
+        {
+          id: "quiz6-3",
+          question:
+            "Pihak yang berkolaborasi memantau tumbuh kembang di posyandu adalah…",
+          options: [
+            "Kader posyandu dan orang tua",
+            "Pedagang pasar",
+            "Relawan umum",
+            "Pekerja bangunan",
+          ],
+          correctAnswer: 0,
+          explanation:
+            "Pemantauan dilakukan oleh kader bersama keluarga/orang tua.",
+        },
+        {
+          id: "quiz6-4",
+          question: "Indikator fisik pertumbuhan yang umum dipantau adalah…",
+          options: [
+            "Berat badan, tinggi/panjang badan, lingkar kepala",
+            "Warna baju",
+            "Jumlah mainan",
+            "Jam menonton TV",
+          ],
+          correctAnswer: 0,
+          explanation: "Itu indikator standar pemantauan pertumbuhan fisik.",
+        },
+        {
+          id: "quiz6-5",
+          question: "Kapan sebaiknya stimulasi perkembangan diberikan?",
+          options: [
+            "Sejak dini dan dilakukan rutin",
+            "Hanya saat sakit",
+            "Setelah anak 5 tahun",
+            "Jika anak sudah sekolah",
+          ],
+          correctAnswer: 0,
+          explanation: "Stimulasi dilakukan sedini mungkin dan konsisten.",
+        },
+      ],
     },
   ],
 };

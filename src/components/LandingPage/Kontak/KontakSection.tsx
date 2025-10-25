@@ -255,6 +255,12 @@ export default function KontakSection() {
                 FAQ
               </Link>
               <Link
+                href="/register"
+                className="block text-blue-100 hover:text-white transition-colors font-poppins"
+              >
+                Daftar
+              </Link>
+              <Link
                 href="/login"
                 className="block text-blue-100 hover:text-white transition-colors font-poppins"
               >

@@ -31,7 +31,7 @@ export interface SubMateri {
   isCompleted: boolean;
   isUnlocked: boolean;
   poinDetails: PoinDetail[];
-  quiz: Quiz[]; // Deprecated: Quizzes moved to module level
+  quiz: Quiz[];
   quizId?: string; // Backend quiz ID for saving results
   currentPoinIndex: number;
   quizResult?: QuizResult;
@@ -57,6 +57,4 @@ export interface DetailModul {
   overview: string;
   learningObjectives: string[];
   requirements: string[];
-  quiz: Quiz[]; // Module-level quiz (appears after all sub-materials completed)
-  quizResult?: QuizResult; // Module quiz result
 }

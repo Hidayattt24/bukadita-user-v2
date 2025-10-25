@@ -52,20 +52,36 @@ function AuthButtons({
   }
 
   return (
-    <Link
-      href="/login"
-      className={`${
-        isMobile
-          ? "w-full text-center px-4 py-3 rounded-md text-sm font-medium text-[#27548A] bg-white hover:bg-white/90 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
-          : `px-4 py-2 rounded-full text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-              isScrolled
-                ? "text-[#27548A] bg-white hover:bg-white/90 focus:ring-white"
-                : "text-white bg-[#578FCA] hover:bg-[#578FCA]/90 focus:ring-[#578FCA]"
-            }`
-      }`}
-    >
-      Masuk
-    </Link>
+    <>
+      <Link
+        href="/login"
+        className={`${
+          isMobile
+            ? "w-full text-center px-4 py-3 rounded-md text-sm font-medium text-white border border-white/20 hover:bg-white/10 transition-all"
+            : `px-4 py-2 text-sm font-medium transition-colors ${
+                isScrolled
+                  ? "text-white/80 hover:text-white"
+                  : "text-[#578FCA]/80 hover:text-[#578FCA]"
+              }`
+        }`}
+      >
+        Masuk
+      </Link>
+      <Link
+        href="/register"
+        className={`${
+          isMobile
+            ? "w-full text-center px-4 py-3 rounded-md text-sm font-medium text-[#27548A] bg-white hover:bg-white/90 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
+            : `px-4 py-2 rounded-full text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                isScrolled
+                  ? "text-[#27548A] bg-white hover:bg-white/90 focus:ring-white"
+                  : "text-white bg-[#578FCA] hover:bg-[#578FCA]/90 focus:ring-[#578FCA]"
+              }`
+        }`}
+      >
+        Daftar
+      </Link>
+    </>
   );
 }
 
@@ -346,11 +362,10 @@ export default function ResizableNavbar() {
             ? "mt-4 rounded-full bg-[#27548A]/95 backdrop-blur-md shadow-lg border border-white/10"
             : "bg-transparent"
         }`}
-        style={
-          {
-            perspective: 1000,
-          } as React.CSSProperties
-        }
+        style={{
+          backfaceVisibility: "hidden",
+          perspective: 1000,
+        }}
       >
         <div className={`${isScrolled ? "px-6 lg:px-8" : "px-6 lg:px-8"}`}>
           <div

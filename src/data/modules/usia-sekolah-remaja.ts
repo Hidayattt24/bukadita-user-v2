@@ -32,253 +32,6 @@ export const usiaSekolahRemajaData: DetailModul = {
     "Tertarik pada promosi kesehatan berbasis masyarakat",
     "Siap mempraktikkan edukasi kesehatan kepada sasaran remaja",
   ],
-  quiz: [
-    {
-      id: "quiz-1",
-      question:
-        "Masa remaja merupakan periode peralihan dari masa anak menuju dewasa yang ditandai oleh…",
-      options: [
-        "Peningkatan tanggung jawab sosial dan emosional",
-        "Berhentinya pertumbuhan fisik",
-        "Penurunan hormon reproduksi",
-        "Penurunan kemampuan berpikir abstrak",
-      ],
-      correctAnswer: 0,
-      explanation: "Peningkatan tanggung jawab sosial dan emosional",
-    },
-    {
-      id: "quiz-2",
-      question: "Salah satu tanda awal pubertas pada remaja perempuan adalah…",
-      options: [
-        "Suara membesar",
-        "Tumbuh jakun",
-        "Menstruasi",
-        "Otot mengecil",
-      ],
-      correctAnswer: 2,
-      explanation: "Menstruasi",
-    },
-    {
-      id: "quiz-3",
-      question:
-        "Zat gizi yang berperan penting dalam pembentukan sel darah merah adalah…",
-      options: ["Kalsium", "Zat besi (Fe)", "Vitamin D", "Fosfor"],
-      correctAnswer: 1,
-      explanation: "Zat besi (Fe)",
-    },
-    {
-      id: "quiz-4",
-      question: "Kekurangan zat besi pada remaja dapat menyebabkan…",
-      options: [
-        "Berat badan naik",
-        "Anemia",
-        "Hipertensi",
-        "Kolesterol tinggi",
-      ],
-      correctAnswer: 1,
-      explanation: "Anemia",
-    },
-    {
-      id: "quiz-5",
-      question:
-        "Salah satu faktor risiko utama anemia pada remaja perempuan adalah…",
-      options: [
-        "Kurang tidur",
-        "Konsumsi tinggi protein",
-        "Menstruasi tanpa asupan zat besi yang cukup",
-        "Aktivitas fisik berlebihan",
-      ],
-      correctAnswer: 2,
-      explanation: "Menstruasi tanpa asupan zat besi yang cukup",
-    },
-    {
-      id: "quiz-6",
-      question:
-        "Tablet tambah darah (TTD) sebaiknya diminum oleh remaja putri…",
-      options: [
-        "Setiap hari sepanjang tahun",
-        "Seminggu sekali",
-        "Hanya saat menstruasi",
-        "Dua kali sehari",
-      ],
-      correctAnswer: 1,
-      explanation: "Seminggu sekali",
-    },
-    {
-      id: "quiz-7",
-      question: "Salah satu tanda remaja yang mengalami anemia adalah…",
-      options: [
-        "Berat badan naik drastis",
-        "Sering pusing, pucat, dan mudah lelah",
-        "Tidur berlebihan",
-        "Nafsu makan meningkat",
-      ],
-      correctAnswer: 1,
-      explanation: "Sering pusing, pucat, dan mudah lelah",
-    },
-    {
-      id: "quiz-8",
-      question: "Salah satu upaya pencegahan anemia pada remaja adalah…",
-      options: [
-        "Menghindari sayuran hijau",
-        "Mengonsumsi makanan kaya zat besi dan vitamin C",
-        "Mengurangi konsumsi air putih",
-        "Berolahraga berat setiap hari",
-      ],
-      correctAnswer: 1,
-      explanation: "Mengonsumsi makanan kaya Fe & vitamin C",
-    },
-    {
-      id: "quiz-9",
-      question:
-        "Zat yang dapat menghambat penyerapan zat besi dalam tubuh adalah…",
-      options: [
-        "Vitamin C",
-        "Kafein atau tanin dalam teh dan kopi",
-        "Protein hewani",
-        "Karbohidrat kompleks",
-      ],
-      correctAnswer: 1,
-      explanation: "Tanin menghambat penyerapan zat besi",
-    },
-    {
-      id: "quiz-10",
-      question: "PHBS di sekolah bertujuan untuk…",
-      options: [
-        "Membentuk perilaku sehat sejak dini",
-        "Menurunkan prestasi akademik",
-        "Membatasi interaksi sosial",
-        "Mengurangi aktivitas fisik",
-      ],
-      correctAnswer: 0,
-      explanation: "Membentuk perilaku sehat sejak dini",
-    },
-    {
-      id: "quiz-11",
-      question: "Salah satu contoh penerapan PHBS di sekolah adalah…",
-      options: [
-        "Membuang sampah di halaman sekolah",
-        "Cuci tangan pakai sabun sebelum makan",
-        "Membawa jajanan tinggi gula",
-        "Tidak sarapan sebelum berangkat",
-      ],
-      correctAnswer: 1,
-      explanation: "Cuci tangan pakai sabun",
-    },
-    {
-      id: "quiz-12",
-      question: "Salah satu indikator PHBS di rumah tangga adalah…",
-      options: [
-        "Tidak menyediakan air bersih",
-        "Buang air besar di sungai",
-        "Menyediakan tempat sampah tertutup",
-        "Mengabaikan imunisasi anak",
-      ],
-      correctAnswer: 2,
-      explanation: "Menyediakan tempat sampah tertutup",
-    },
-    {
-      id: "quiz-13",
-      question:
-        "Remaja yang aktif berolahraga namun tidak menjaga pola makan berisiko mengalami…",
-      options: [
-        "Kekurangan energi kronis",
-        "Hipertensi",
-        "Gangguan tidur",
-        "Kelebihan lemak tubuh",
-      ],
-      correctAnswer: 0,
-      explanation: "Kekurangan energi kronis",
-    },
-    {
-      id: "quiz-14",
-      question: "Kesehatan reproduksi remaja bertujuan untuk…",
-      options: [
-        "Menunda pubertas",
-        "Menyiapkan remaja menjadi dewasa sehat secara fisik, mental, dan sosial",
-        "Mengurangi rasa ingin tahu remaja",
-        "Membatasi akses terhadap informasi kesehatan",
-      ],
-      correctAnswer: 1,
-      explanation: "Menyiapkan remaja menjadi dewasa sehat",
-    },
-    {
-      id: "quiz-15",
-      question:
-        "Mengapa remaja perempuan lebih rentan terhadap anemia dibandingkan laki-laki?",
-      options: [
-        "Karena pola makan lebih baik",
-        "Karena kehilangan darah saat menstruasi",
-        "Karena jarang berolahraga",
-        "Karena metabolisme zat besi lebih tinggi",
-      ],
-      correctAnswer: 1,
-      explanation: "Kehilangan darah saat menstruasi",
-    },
-    {
-      id: "quiz-16",
-      question:
-        "Jika seorang remaja mengonsumsi tablet tambah darah bersama teh hangat, maka…",
-      options: [
-        "Penyerapan zat besi meningkat",
-        "Penyerapan zat besi terhambat karena tanin",
-        "Tidak ada pengaruh sama sekali",
-        "Dapat meningkatkan kadar gula darah",
-      ],
-      correctAnswer: 1,
-      explanation: "Tanin menghambat penyerapan zat besi",
-    },
-    {
-      id: "quiz-17",
-      question:
-        "Salah satu peran penting guru dalam mendukung kesehatan remaja di sekolah adalah…",
-      options: [
-        "Mengawasi perilaku sosial saja",
-        "Memberi edukasi gizi dan pemantauan konsumsi TTD",
-        "Mengatur jadwal pelajaran akademik",
-        "Menentukan menu kantin",
-      ],
-      correctAnswer: 1,
-      explanation: "Guru memberi edukasi gizi & pantau TTD",
-    },
-    {
-      id: "quiz-18",
-      question: "Lingkungan sekolah yang sehat ditandai oleh…",
-      options: [
-        "Ventilasi cukup, air bersih, dan area bebas rokok",
-        "Kantin tertutup rapat tanpa ventilasi",
-        "Siswa tidak diizinkan berolahraga",
-        "Semua siswa membawa makanan cepat saji",
-      ],
-      correctAnswer: 0,
-      explanation: "Ventilasi cukup, air bersih, dan bebas rokok",
-    },
-    {
-      id: "quiz-19",
-      question: "Salah satu ciri kesehatan mental remaja yang baik adalah…",
-      options: [
-        "Mudah tersinggung dan tertutup",
-        "Mampu menerima diri dan berinteraksi positif dengan orang lain",
-        "Selalu mengikuti tekanan teman sebaya",
-        "Tidak mau berbagi pendapat",
-      ],
-      correctAnswer: 1,
-      explanation: "Interaksi positif dan penerimaan diri",
-    },
-    {
-      id: "quiz-20",
-      question:
-        "Program pemberian tablet tambah darah di sekolah menjadi penting karena…",
-      options: [
-        "Membantu remaja terbiasa dengan obat-obatan",
-        "Upaya preventif menurunkan anemia remaja yang berdampak pada generasi berikutnya",
-        "Meningkatkan rasa kantuk siswa",
-        "Hanya memenuhi target pemerintah",
-      ],
-      correctAnswer: 1,
-      explanation: "Pencegahan anemia berdampak lintas generasi",
-    },
-  ],
   subMateris: [
     {
       id: "sub1",
@@ -382,7 +135,70 @@ Cara pengolahan juga sangat menentukan kandungan gizi sayur. Sebaiknya sayur dim
 Contoh sayur-sayuran antara lain terong, timun, bayam, kangkung, buncis, brokoli, wortel, tomat, kol dan lain sebagainya.`,
         },
       ],
-      quiz: [], // Quiz moved to module level
+      quiz: [
+        {
+          id: "quiz1-1",
+          question:
+            "Menurut definisi Kemenkes RI 2014, gizi seimbang adalah susunan pangan yang...",
+          options: [
+            "Hanya berisi sayur dan buah",
+            "Mengandung zat gizi sesuai kebutuhan dengan memperhatikan keanekaragaman, aktivitas fisik, PHBS, dan pemantauan berat badan",
+            "Berbasis pola diet tinggi protein",
+            "Menghilangkan konsumsi karbohidrat",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Gizi seimbang memperhatikan jenis & jumlah zat gizi, keanekaragaman pangan, aktivitas fisik, perilaku hidup bersih, dan pemantauan berat badan.",
+        },
+        {
+          id: "quiz1-2",
+          question: "Manakah yang BUKAN termasuk 4 Pilar Gizi Seimbang?",
+          options: [
+            "Mengkonsumsi aneka ragam pangan",
+            "Membiasakan perilaku hidup bersih",
+            "Melakukan aktivitas fisik",
+            "Menghindari seluruh lemak hewani",
+          ],
+          correctAnswer: 3,
+          explanation:
+            "Empat pilar tidak menyebutkan menghindari seluruh lemak hewani; yang benar adalah konsumsi beragam pangan, PHBS, aktivitas fisik, dan memantau berat badan.",
+        },
+        {
+          id: "quiz1-3",
+          question:
+            "Dalam konsep 'Isi Piringku', porsi buah-buahan per makan adalah sekitar...",
+          options: ["1/4 piring", "1/3 piring", "1/2 piring", "2/3 piring"],
+          correctAnswer: 1,
+          explanation:
+            "Buah menempati sekitar sepertiga (⅓) bagian piring; sayur juga besar porsinya.",
+        },
+        {
+          id: "quiz1-4",
+          question: "Vitamin C membantu mencegah anemia karena...",
+          options: [
+            "Meningkatkan produksi sel darah merah di sumsum tulang",
+            "Meningkatkan penyerapan zat besi dari makanan",
+            "Mengganti fungsi hemoglobin",
+            "Mengurangi kebutuhan protein",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Vitamin C meningkatkan penyerapan zat besi non-heme sehingga mendukung pencegahan anemia.",
+        },
+        {
+          id: "quiz1-5",
+          question: "Contoh pesan gizi seimbang adalah...",
+          options: [
+            "Tidak perlu sarapan asal makan malam besar",
+            "Batasi makanan asin, manis, dan berlemak",
+            "Hindari membaca label kemasan",
+            "Kurangi minum air putih",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Salah satu dari 10 pesan gizi seimbang adalah membatasi makanan asin/manis/berlemak.",
+        },
+      ],
     },
     {
       id: "sub2",
@@ -431,7 +247,69 @@ Anak dan remaja dengan disabilitas termasuk ADHD dan keterbatasan intelektual (u
 9.\tMengendalikan stres dan mengurangi kecemasan`,
         },
       ],
-      quiz: [], // Quiz moved to module level
+      quiz: [
+        {
+          id: "quiz2-1",
+          question:
+            "Berapa menit aktivitas fisik sedang-berat direkomendasikan per hari untuk usia 5–17 tahun?",
+          options: ["30 menit", "45 menit", "60 menit", "90 menit"],
+          correctAnswer: 2,
+          explanation:
+            "WHO merekomendasikan ≥60 menit per hari untuk anak dan remaja.",
+        },
+        {
+          id: "quiz2-2",
+          question: "Aktivitas penguatan otot dan tulang dilakukan minimal...",
+          options: [
+            "1 hari/minggu",
+            "2 hari/minggu",
+            "3 hari/minggu",
+            "5 hari/minggu",
+          ],
+          correctAnswer: 2,
+          explanation: "Direkomendasikan minimal 3 hari per minggu.",
+        },
+        {
+          id: "quiz2-3",
+          question:
+            "Contoh aktivitas fisik yang disebutkan dalam materi adalah...",
+          options: [
+            "Membaca buku",
+            "Berjalan kaki",
+            "Tidur siang",
+            "Mendengarkan musik",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Contoh yang disebut: berjalan kaki, bersepeda, menari, yoga, tai chi.",
+        },
+        {
+          id: "quiz2-4",
+          question: "Salah satu manfaat aktivitas fisik bagi remaja adalah...",
+          options: [
+            "Meningkatkan tekanan darah secara tetap",
+            "Menurunkan risiko tulang keropos",
+            "Meningkatkan kadar kolesterol",
+            "Mengurangi kebugaran",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Aktivitas fisik menurunkan risiko osteoporosis dan meningkatkan kesehatan.",
+        },
+        {
+          id: "quiz2-5",
+          question: "Mengurangi waktu sedentari artinya...",
+          options: [
+            "Lebih banyak duduk tanpa bergerak",
+            "Mengganti waktu duduk lama dengan berbagai aktivitas",
+            "Menghindari aktivitas aerobik",
+            "Hanya berolahraga di akhir pekan",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Materi menyarankan membatasi sedentari dan menggantinya dengan aktivitas.",
+        },
+      ],
     },
     {
       id: "sub3",
@@ -493,7 +371,66 @@ Skrining kesehatan, seperti pemeriksaan kadar hemoglobin (Hb), perlu dilakukan s
 Lingkungan sehat dan perilaku hidup bersih juga mendukung pencegahan anemia, misalnya menjaga kebersihan makanan, mencuci tangan, serta pencegahan infeksi cacing melalui perilaku higienis dan pemberian obat cacing secara berkala.`,
         },
       ],
-      quiz: [], // Quiz moved to module level
+      quiz: [
+        {
+          id: "quiz3-1",
+          question: "Anemia terjadi ketika kadar hemoglobin...",
+          options: [
+            "Lebih tinggi dari normal",
+            "Lebih rendah dari normal",
+            "Sama dengan normal",
+            "Tidak terkait dengan hemoglobin",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Definisi anemia adalah kadar Hb lebih rendah dari normal.",
+        },
+        {
+          id: "quiz3-2",
+          question: "Yang BUKAN termasuk penyebab anemia pada materi adalah...",
+          options: [
+            "Defisiensi zat gizi",
+            "Perdarahan",
+            "Hemolitik",
+            "Kelebihan vitamin C",
+          ],
+          correctAnswer: 3,
+          explanation:
+            "Kelebihan vitamin C tidak disebut sebagai penyebab; justru membantu penyerapan zat besi.",
+        },
+        {
+          id: "quiz3-3",
+          question: "Indikator fisik anemia 5L TIDAK termasuk...",
+          options: ["Lemah", "Letih", "Lesu", "Lapar"],
+          correctAnswer: 3,
+          explanation:
+            "5L: Lemah, Letih, Lesu, Lunglai, Lalai; 'Lapar' tidak termasuk.",
+        },
+        {
+          id: "quiz3-4",
+          question: "TTD untuk remaja putri dianjurkan minimal...",
+          options: [
+            "1 tablet/bulan",
+            "1 tablet/minggu",
+            "2 tablet/hari",
+            "1 tablet/hari",
+          ],
+          correctAnswer: 1,
+          explanation: "Anjuran minimal 1 tablet per minggu.",
+        },
+        {
+          id: "quiz3-5",
+          question: "Mengapa teh/kopi setelah makan perlu dibatasi?",
+          options: [
+            "Mengurangi rasa kenyang",
+            "Menghambat penyerapan zat besi",
+            "Meningkatkan gula darah",
+            "Mempercepat metabolisme zat besi",
+          ],
+          correctAnswer: 1,
+          explanation: "Taninyateh/kopi bisa menghambat penyerapan zat besi.",
+        },
+      ],
     },
     {
       id: "sub4",
@@ -551,7 +488,67 @@ Selain penyakit kanker, terdapat beberapa dampak buruk lainnya yang mungkin terj
 \tKegagalan berhenti merokok sering berujung pada frustasi dan putus asa, bahkan berkontribusi pada gangguan mental seperti depresi dan kecemasan. Oleh karena itu, penting bagi perokok untuk mendapatkan dukungan dalam mengatasi kecanduan dan belajar strategi koping yang lebih adaptif. Secara keseluruhan, merokok menurunkan kualitas hidup tidak hanya dari sisi fisik, tetapi juga sosial, ekonomi, dan psikologis. Upaya berhenti merokok, didukung dengan kebijakan Kawasan Tanpa Rokok (KTR), sangat penting untuk menjaga kesehatan masyarakat dan memberikan kehidupan yang lebih sehat, bermakna, serta bermanfaat bagi individu, keluarga, dan negara.`,
         },
       ],
-      quiz: [], // Quiz moved to module level
+      quiz: [
+        {
+          id: "quiz4-1",
+          question:
+            "Dalam rokok terkandung lebih dari ... jenis bahan kimia berbahaya.",
+          options: ["400", "1.000", "4.000", "10.000"],
+          correctAnswer: 2,
+          explanation: "Materi menyebut >4.000 jenis bahan kimia berbahaya.",
+        },
+        {
+          id: "quiz4-2",
+          question: "Dampak kesehatan merokok TIDAK termasuk...",
+          options: [
+            "Penyakit jantung",
+            "PPOK",
+            "Meningkatkan daya tahan tubuh",
+            "Kanker paru",
+          ],
+          correctAnswer: 2,
+          explanation:
+            "Merokok menurunkan daya tahan tubuh, bukan meningkatkan.",
+        },
+        {
+          id: "quiz4-3",
+          question: "Perokok pasif adalah...",
+          options: [
+            "Orang yang berhenti merokok",
+            "Orang yang terpapar asap rokok orang lain",
+            "Orang yang merokok elektronik",
+            "Orang yang tidak pernah terpapar asap",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Perokok pasif terpapar asap orang lain dan tetap berisiko.",
+        },
+        {
+          id: "quiz4-4",
+          question: "Dari sisi ekonomi, kebiasaan merokok...",
+          options: [
+            "Mengurangi pengeluaran rumah tangga",
+            "Menaikkan produktivitas kerja",
+            "Meningkatkan biaya kesehatan dan menurunkan produktivitas",
+            "Tidak berdampak pada ekonomi",
+          ],
+          correctAnswer: 2,
+          explanation: "Biaya kesehatan meningkat, produktivitas menurun.",
+        },
+        {
+          id: "quiz4-5",
+          question: "Dampak psikologis merokok antara lain...",
+          options: [
+            "Rasa cemas saat tidak merokok",
+            "Tidak ada rasa bersalah",
+            "Meningkatkan coping sehat",
+            "Menghilangkan stres secara tuntas",
+          ],
+          correctAnswer: 0,
+          explanation:
+            "Nikotin memicu ketergantungan dan kecemasan saat putus zat.",
+        },
+      ],
     },
     {
       id: "sub5",
@@ -601,7 +598,63 @@ Peran orang tua antara lain :
 \tUntuk mencegah terjadinya gangguan penggunaan NAPZA pada remaja merupakan tanggung jawab kita bersama terutama orang tua, karena remaja adalah masa depan dan penentu nasib bangsa kita.`,
         },
       ],
-      quiz: [], // Quiz moved to module level
+      quiz: [
+        {
+          id: "quiz5-1",
+          question: "NAPZA adalah singkatan dari...",
+          options: [
+            "Narkotika, Psikotropika, Zat Adiktif",
+            "Natrium, Protein, Zat Asam",
+            "Nikotin, Alkohol, Zat Aditif",
+            "Narkoba, Alkohol, Zat Asam",
+          ],
+          correctAnswer: 0,
+          explanation:
+            "NAPZA: Narkotika, Psikotropika, dan Zat Adiktif lainnya.",
+        },
+        {
+          id: "quiz5-2",
+          question: "Contoh NAPZA golongan stimulan yang disebutkan adalah...",
+          options: ["Diazepam", "Amfetamin", "Psilocybin", "Fenobarbital"],
+          correctAnswer: 1,
+          explanation:
+            "Amfetamin (dan nikotin) disebut sebagai contoh stimulan.",
+        },
+        {
+          id: "quiz5-3",
+          question: "Efek samping depresan antara lain...",
+          options: [
+            "Peningkatan detak jantung",
+            "Paranoia berat",
+            "Tenang/euforia, sempoyongan, mual",
+            "Pelebaran pupil",
+          ],
+          correctAnswer: 2,
+          explanation:
+            "Materi menyebutkan efek depresan: tenang/euforia, sempoyongan, mual, bicara cadel.",
+        },
+        {
+          id: "quiz5-4",
+          question: "Contoh halusinogen yang disebutkan adalah...",
+          options: ["Diazepam", "Nikotin", "Jamur Psylocibin", "Amfetamin"],
+          correctAnswer: 2,
+          explanation: "Contoh halusinogen: Jamur Psylocibin (mushroom).",
+        },
+        {
+          id: "quiz5-5",
+          question:
+            "Salah satu peran orang tua dalam pencegahan NAPZA adalah...",
+          options: [
+            "Menyarankan mencoba sedikit agar tahu efeknya",
+            "Mendorong bergaul dengan teman berpengaruh positif",
+            "Menyimpan rokok di rumah",
+            "Memberi hadiah dari orang tak dikenal",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Bergaul dengan teman yang membawa pengaruh positif termasuk peran orang tua.",
+        },
+      ],
     },
     {
       id: "sub6",
@@ -656,7 +709,67 @@ d. Petugas Kesehatan;
 •\tmemecahkan masalah kesehatan spesifik sesuai dengan keluhan yang dialaminya`,
         },
       ],
-      quiz: [], // Quiz moved to module level
+      quiz: [
+        {
+          id: "quiz6-1",
+          question: "Rentang usia remaja pada materi ini adalah...",
+          options: ["8–15 tahun", "10–18 tahun", "12–21 tahun", "15–24 tahun"],
+          correctAnswer: 1,
+          explanation:
+            "Materi mendefinisikan remaja sebagai usia 10 sampai sebelum 18 tahun.",
+        },
+        {
+          id: "quiz6-2",
+          question: "Tujuan umum Posyandu Remaja adalah...",
+          options: [
+            "Meningkatkan angka kelahiran",
+            "Mendekatkan akses dan meningkatkan cakupan layanan kesehatan bagi remaja",
+            "Mengurangi kegiatan olahraga",
+            "Menghapus layanan kesehatan reproduksi",
+          ],
+          correctAnswer: 1,
+          explanation: "Disebutkan eksplisit sebagai tujuan umum.",
+        },
+        {
+          id: "quiz6-3",
+          question: "Salah satu tujuan khusus Posyandu Remaja adalah...",
+          options: [
+            "Mengurangi pendidikan keterampilan hidup sehat",
+            "Meningkatkan pengetahuan kesehatan reproduksi remaja",
+            "Meningkatkan konsumsi teh dan kopi",
+            "Menghapus evaluasi kegiatan",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Tujuan khusus meliputi peningkatan pengetahuan kesehatan reproduksi remaja.",
+        },
+        {
+          id: "quiz6-4",
+          question: "Sasaran kegiatan Posyandu Remaja meliputi...",
+          options: [
+            "Hanya remaja laki-laki",
+            "Remaja 10–18 tahun, termasuk dengan disabilitas",
+            "Hanya remaja bersekolah",
+            "Hanya masyarakat umum di atas 18 tahun",
+          ],
+          correctAnswer: 1,
+          explanation:
+            "Disebutkan remaja 10–18 tahun tanpa memandang status pendidikan/perkawinan, termasuk disabilitas.",
+        },
+        {
+          id: "quiz6-5",
+          question: "Fungsi Posyandu Remaja TIDAK termasuk...",
+          options: [
+            "Pemberdayaan alih informasi dan keterampilan hidup sehat",
+            "Pencegahan penyalahgunaan NAPZA",
+            "Pencegahan kekerasan pada remaja",
+            "Peningkatan konsumsi rokok pada remaja",
+          ],
+          correctAnswer: 3,
+          explanation:
+            "Sebaliknya, Posyandu Remaja mendorong perilaku sehat dan pencegahan risiko.",
+        },
+      ],
     },
   ],
 };
