@@ -31,6 +31,247 @@ export const ibuHamilMenyusuiData: DetailModul = {
     "Mengenal alur rujukan di wilayah kerja",
     "Perangkat untuk pembelajaran daring",
   ],
+  quiz: [
+    {
+      id: "quiz-1",
+      question: "Gizi seimbang adalah pola makan yang…",
+      options: [
+        "Hanya terdiri dari sayur dan buah",
+        "Mengandung zat gizi sesuai kebutuhan tubuh",
+        "Mengandung banyak karbohidrat saja",
+        "Berfokus pada makanan tinggi lemak",
+      ],
+      correctAnswer: 1,
+      explanation: "Mengandung zat gizi sesuai kebutuhan tubuh",
+    },
+    {
+      id: "quiz-2",
+      question: "Kekurangan asam folat pada ibu hamil dapat menyebabkan…",
+      options: [
+        "Berat badan berlebih",
+        "Tekanan darah rendah",
+        "Preeklamsia dan gangguan pertumbuhan janin",
+        "Gangguan tidur",
+      ],
+      correctAnswer: 2,
+      explanation: "Preeklamsia dan gangguan pertumbuhan janin",
+    },
+    {
+      id: "quiz-3",
+      question: "Kebutuhan energi tambahan untuk ibu hamil adalah…",
+      options: [
+        "50–100 kkal per hari",
+        "180–300 kkal per hari",
+        "400–600 kkal per hari",
+        "700 kkal per hari",
+      ],
+      correctAnswer: 1,
+      explanation: "180–300 kkal per hari",
+    },
+    {
+      id: "quiz-4",
+      question: "Ibu hamil dikatakan berisiko KEK jika LiLA kurang dari…",
+      options: ["20 cm", "21,5 cm", "22 cm", "23,5 cm"],
+      correctAnswer: 3,
+      explanation: "23,5 cm",
+    },
+    {
+      id: "quiz-5",
+      question: "Salah satu sumber zat besi yang baik untuk ibu hamil adalah…",
+      options: [
+        "Susu rendah lemak",
+        "Daging merah tanpa lemak",
+        "Roti tawar",
+        "Ubi jalar",
+      ],
+      correctAnswer: 1,
+      explanation: "Daging merah tanpa lemak",
+    },
+    {
+      id: "quiz-6",
+      question:
+        "Tanda bahaya pada kehamilan trimester kedua yang memerlukan perhatian medis segera adalah…",
+      options: [
+        "Sering buang air kecil",
+        "Mual ringan di pagi hari",
+        "Gerakan janin berkurang drastis",
+        "Nafsu makan meningkat",
+      ],
+      correctAnswer: 2,
+      explanation: "Gerakan janin berkurang drastis",
+    },
+    {
+      id: "quiz-7",
+      question:
+        "Pembengkakan kaki yang disertai pusing kepala dan pandangan kabur dapat menjadi tanda…",
+      options: [
+        "Infeksi saluran kemih",
+        "Preeklamsia",
+        "Anemia",
+        "Kekurangan cairan",
+      ],
+      correctAnswer: 1,
+      explanation: "Preeklamsia",
+    },
+    {
+      id: "quiz-8",
+      question:
+        'Salah satu penyebab tidak langsung kehamilan risiko tinggi berdasarkan istilah "4T" adalah…',
+      options: [
+        "Terlalu jarang olahraga",
+        "Terlalu banyak melahirkan",
+        "Terlalu sering makan manis",
+        "Terlalu lama menyusui",
+      ],
+      correctAnswer: 1,
+      explanation: "Terlalu banyak melahirkan",
+    },
+    {
+      id: "quiz-9",
+      question: 'Risiko dari "3 Terlambat" pada ibu hamil adalah…',
+      options: [
+        "Kegemukan",
+        "Penanganan medis yang terlambat",
+        "Kelebihan zat gizi",
+        "Kehamilan ganda",
+      ],
+      correctAnswer: 1,
+      explanation: "Penanganan medis yang terlambat",
+    },
+    {
+      id: "quiz-10",
+      question:
+        "Salah satu bahaya dari kehamilan risiko tinggi yang dapat menyebabkan kejang dan koma adalah…",
+      options: ["Preeklamsia", "Eklamsia", "PJT", "IUFD"],
+      correctAnswer: 1,
+      explanation: "Eklamsia",
+    },
+    {
+      id: "quiz-11",
+      question: "Salah satu manfaat senam hamil adalah…",
+      options: [
+        "Membuat bayi lebih besar",
+        "Mencegah varises dan memperpanjang napas",
+        "Menambah tekanan darah",
+        "Mengurangi kontraksi",
+      ],
+      correctAnswer: 1,
+      explanation: "Mencegah varises dan memperpanjang napas",
+    },
+    {
+      id: "quiz-12",
+      question: 'Gerakan senam "Kegel" bermanfaat untuk…',
+      options: [
+        "Menguatkan otot panggul",
+        "Melatih pernapasan",
+        "Mengurangi sakit kepala",
+        "Membakar lemak perut",
+      ],
+      correctAnswer: 0,
+      explanation: "Menguatkan otot panggul",
+    },
+    {
+      id: "quiz-13",
+      question:
+        "Waktu yang disarankan untuk mulai melakukan senam hamil adalah…",
+      options: [
+        "8–12 minggu",
+        "14–20 minggu",
+        "22–36 minggu",
+        "Setelah melahirkan",
+      ],
+      correctAnswer: 1,
+      explanation: "14–20 minggu",
+    },
+    {
+      id: "quiz-14",
+      question: "Tujuan utama senam hamil adalah…",
+      options: [
+        "Mengajarkan ibu makan bergizi",
+        "Mempersiapkan fisik dan mental menghadapi persalinan",
+        "Menurunkan berat badan",
+        "Menambah kekuatan tangan",
+      ],
+      correctAnswer: 1,
+      explanation: "Mempersiapkan fisik dan mental menghadapi persalinan",
+    },
+    {
+      id: "quiz-15",
+      question: "Salah satu olahraga yang aman bagi ibu hamil adalah…",
+      options: [
+        "Lari cepat",
+        "Angkat beban berat",
+        "Berenang gaya dada",
+        "Lompat tali",
+      ],
+      correctAnswer: 2,
+      explanation: "Berenang gaya dada",
+    },
+    {
+      id: "quiz-16",
+      question:
+        "Salah satu penyebab tidak langsung tingginya angka kematian ibu hamil adalah…",
+      options: [
+        "Terlambat mengambil keputusan, terlambat sampai ke faskes, dan terlambat mendapat penanganan",
+        "Kurangnya olahraga selama kehamilan",
+        "Terlalu banyak mengonsumsi protein",
+        "Kurang tidur di malam hari",
+      ],
+      correctAnswer: 0,
+      explanation:
+        "Terlambat mengambil keputusan, terlambat sampai ke faskes, dan terlambat mendapat penanganan",
+    },
+    {
+      id: "quiz-17",
+      question: "Pencegahan kehamilan risiko tinggi dapat dilakukan dengan…",
+      options: [
+        "Menghindari imunisasi",
+        "Makan tanpa memperhatikan gizi",
+        "Rutin pemeriksaan kehamilan dan konsumsi asam folat",
+        "Menghindari olahraga sama sekali",
+      ],
+      correctAnswer: 2,
+      explanation: "Rutin pemeriksaan kehamilan dan konsumsi asam folat",
+    },
+    {
+      id: "quiz-18",
+      question: "Bayi yang tidak diberi ASI eksklusif berisiko mengalami…",
+      options: [
+        "Peningkatan daya tahan tubuh",
+        "Kecerdasan optimal",
+        "Kekurangan gizi dan infeksi kronis",
+        "Berat badan ideal",
+      ],
+      correctAnswer: 2,
+      explanation: "Kekurangan gizi dan infeksi kronis",
+    },
+    {
+      id: "quiz-19",
+      question:
+        "Frekuensi ideal bayi menyusu pada minggu pertama kehidupan adalah…",
+      options: [
+        "3–5 kali per hari",
+        "5–7 kali per hari",
+        "8–12 kali per hari",
+        "15 kali per hari",
+      ],
+      correctAnswer: 2,
+      explanation: "8–12 kali per hari",
+    },
+    {
+      id: "quiz-20",
+      question: "Cara pelekatan menyusui yang benar adalah…",
+      options: [
+        "Bayi membuka mulut kecil dan mengisap ujung puting",
+        "Dagu bayi menjauh dari payudara",
+        "Bibir bawah bayi memutar keluar dan dagu menempel pada payudara",
+        "Ibu menekan kepala bayi agar menempel",
+      ],
+      correctAnswer: 2,
+      explanation:
+        "Bibir bawah bayi memutar keluar dan dagu menempel pada payudara",
+    },
+  ],
 
   subMateris: [
     // 1) Gizi seimbang dan PMT pemulihan
@@ -162,67 +403,7 @@ Jangan lupa minum vitamin dan suplemen yang diberikan dokter/bidan.`,
           type: "text",
         },
       ],
-      quiz: [
-        {
-          id: "quiz1-1",
-          question: "Tambahan kebutuhan energi ibu hamil per hari adalah…",
-          options: ["50–100 kkal", "180–300 kkal", "400–500 kkal", "≥700 kkal"],
-          correctAnswer: 1,
-          explanation:
-            "Modul menyebut tambahan 180–300 kkal/hari untuk ibu hamil.",
-        },
-        {
-          id: "quiz1-2",
-          question: "Kriteria risiko KEK pada ibu hamil menurut modul adalah…",
-          options: [
-            "LiLA ≥ 23,5 cm atau IMT ≥ 18,5 kg/m²",
-            "LiLA < 23,5 cm atau IMT < 18,5 kg/m²",
-            "LiLA 30 cm",
-            "IMT 25 kg/m²",
-          ],
-          correctAnswer: 1,
-          explanation: "KEK: LiLA < 23,5 cm atau IMT trimester 1 < 18,5 kg/m².",
-        },
-        {
-          id: "quiz1-3",
-          question:
-            "Sumber lemak sehat yang dianjurkan untuk ibu hamil antara lain…",
-          options: [
-            "Gorengan",
-            "Alpukat, kacang-kacangan, ikan berlemak",
-            "Mentega tinggi trans fat",
-            "Santan kental berlebihan",
-          ],
-          correctAnswer: 1,
-          explanation: "Modul merekomendasikan lemak sehat (omega-3 & DHA).",
-        },
-        {
-          id: "quiz1-4",
-          question: "Salah satu pesan umum gizi seimbang yang benar adalah…",
-          options: [
-            "Hindari makan pagi",
-            "Minum minuman beralkohol",
-            "Baca label pada makanan kemasan",
-            "Kurangi minum air putih",
-          ],
-          correctAnswer: 2,
-          explanation:
-            "Termasuk 13 pesan umum: baca label pada makanan kemasan.",
-        },
-        {
-          id: "quiz1-5",
-          question: "Saat puasa, pola makan yang dianjurkan adalah…",
-          options: [
-            "Porsi besar saat berbuka",
-            "Makan sedikit tapi sering di waktu yang diatur",
-            "Tidak perlu minum air",
-            "Hindari susu",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Modul menganjurkan makan sedikit tapi sering dan cukup cairan.",
-        },
-      ],
+      quiz: [], // Quiz moved to module level
     },
 
     // 2) Edukasi tanda bahaya kehamilan
@@ -268,69 +449,7 @@ _(konten lanjutan sesuai dokumen bila ada)_`,
           type: "text",
         },
       ],
-      quiz: [
-        {
-          id: "quiz2-1",
-          question: "Gerak janin kurang dari 10 kali dalam 2 jam menandakan…",
-          options: [
-            "Kondisi normal",
-            "Kekurangan oksigen/gizi, perlu evaluasi",
-            "Alergi makanan",
-            "Waktu tidur janin",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Modul menyebut perlu segera diperiksakan bila gerak janin sangat berkurang.",
-        },
-        {
-          id: "quiz2-2",
-          question:
-            "Pembengkakan pada kaki/tangan/wajah disertai pusing dan pandangan kabur mengarah ke…",
-          options: ["Pre-eklampsia", "Anemia", "Hipoglikemia", "Dehidrasi"],
-          correctAnswer: 0,
-          explanation: "Kombinasi gejala tersebut mengarah ke pre-eklampsia.",
-        },
-        {
-          id: "quiz2-3",
-          question: "Pecah ketuban sebelum waktunya berisiko menyebabkan…",
-          options: [
-            "Infeksi intrauterin",
-            "Berat badan ibu naik",
-            "Mual berkurang",
-            "Hiperemesis",
-          ],
-          correctAnswer: 0,
-          explanation:
-            "Modul menekankan risiko infeksi, perlu evaluasi segera.",
-        },
-        {
-          id: "quiz2-4",
-          question:
-            "Mual muntah berlebihan yang menyebabkan dehidrasi pada ibu hamil termasuk…",
-          options: [
-            "Keluhan ringan",
-            "Tanda bahaya kehamilan",
-            "Gejala flu biasa",
-            "Adaptasi trimester 2",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Termasuk tanda bahaya dan harus ditangani tenaga kesehatan.",
-        },
-        {
-          id: "quiz2-5",
-          question: "Perdarahan pada kehamilan trimester tua dapat menandakan…",
-          options: [
-            "Plasenta menutupi jalan lahir",
-            "Alergi makanan",
-            "Konstipasi",
-            "Infeksi telinga",
-          ],
-          correctAnswer: 0,
-          explanation:
-            "Modul menyebut plasenta previa sebagai salah satu kemungkinan.",
-        },
-      ],
+      quiz: [], // Quiz moved to module level
     },
 
     // 3) Risiko penyulit kehamilan
@@ -380,73 +499,7 @@ _(lanjutan bahaya/penyulit lain bila ada pada dokumen yang sama)_`,
           type: "text",
         },
       ],
-      quiz: [
-        {
-          id: "quiz3-1",
-          question:
-            "Contoh faktor risiko tidak langsung (4T) ‘terlalu tua’ didefinisikan sebagai…",
-          options: [
-            "Melahirkan usia > 35 tahun",
-            "Melahirkan usia < 20 tahun",
-            "Jarak kehamilan > 5 tahun",
-            "Melahirkan anak tunggal",
-          ],
-          correctAnswer: 0,
-          explanation: "4T meliputi terlalu tua: >35 tahun.",
-        },
-        {
-          id: "quiz3-2",
-          question: "‘3 terlambat’ berikut yang benar adalah…",
-          options: [
-            "Terlambat makan, tidur, imunisasi",
-            "Terlambat keputusan, sampai fasilitas, dan penanganan",
-            "Terlambat cek gigi, minum TTD, timbang",
-            "Terlambat menstruasi",
-          ],
-          correctAnswer: 1,
-          explanation: "Tiga keterlambatan: keputusan, akses, dan penanganan.",
-        },
-        {
-          id: "quiz3-3",
-          question: "Preeklamsia ditandai oleh…",
-          options: [
-            "Tekanan darah normal dan anemia",
-            "Tekanan darah tinggi dan kerusakan organ",
-            "Demam 3 hari",
-            "Diare",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Modul menuliskan TD tinggi dan kerusakan organ (ginjal/hati).",
-        },
-        {
-          id: "quiz3-4",
-          question: "Eklampsia merupakan bentuk…",
-          options: [
-            "Lebih ringan dari preeklamsia",
-            "Lebih parah dari preeklamsia dengan kejang",
-            "Tidak berbahaya",
-            "Infeksi menular",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Eklampsia adalah komplikasi lebih berat disertai kejang.",
-        },
-        {
-          id: "quiz3-5",
-          question:
-            "Riwayat berikut yang meningkatkan risiko kehamilan risiko tinggi adalah…",
-          options: [
-            "Bekas operasi sesar",
-            "Tidak pernah hamil",
-            "Olahraga teratur",
-            "Asupan sayur cukup",
-          ],
-          correctAnswer: 0,
-          explanation:
-            "Termasuk pada daftar riwayat kehamilan/persalinan berisiko.",
-        },
-      ],
+      quiz: [], // Quiz moved to module level
     },
 
     // 4) Senam kehamilan
@@ -523,74 +576,7 @@ Luangkan waktu 30 menit setiap pagi atau sore untuk berjalan-jalan di sekitar ru
           type: "text",
         },
       ],
-      quiz: [
-        {
-          id: "quiz4-1",
-          question:
-            "Usia kandungan yang umumnya dianjurkan untuk senam hamil adalah…",
-          options: [
-            "≤12 minggu",
-            "22–36 minggu (atau ≥28 minggu menurut beberapa anjuran)",
-            "Di bawah 8 minggu",
-            "Saat menjelang persalinan saja",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Modul menyebut 22–36 minggu; sebagian menganjurkan mulai 28 minggu.",
-        },
-        {
-          id: "quiz4-2",
-          question: "Gerakan yang termasuk dalam daftar di modul adalah…",
-          options: [
-            "Headstand",
-            "Tailor sit (kupu-kupu)",
-            "Backflip",
-            "Sprint",
-          ],
-          correctAnswer: 1,
-          explanation: "Tailor sit/kupu-kupu tercantum dalam list gerakan.",
-        },
-        {
-          id: "quiz4-3",
-          question: "Salah satu tujuan senam hamil adalah…",
-          options: [
-            "Menghambat relaksasi",
-            "Melatih teknik pernapasan untuk relaksasi dan atasi nyeri kontraksi",
-            "Menaikkan tekanan darah",
-            "Mengurangi elastisitas otot panggul",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Tujuan penting: teknik napas & relaksasi saat kehamilan/persalinan.",
-        },
-        {
-          id: "quiz4-4",
-          question:
-            "Hal yang harus dihindari sebelum/selama senam hamil adalah…",
-          options: [
-            "Gerakan memutar dan berdiri cepat",
-            "Pemanasan dan pendinginan",
-            "Minum air yang cukup",
-            "Pakaian nyaman",
-          ],
-          correctAnswer: 0,
-          explanation:
-            "Modul menegaskan menghindari gerakan memutar/berdiri cepat.",
-        },
-        {
-          id: "quiz4-5",
-          question: "Salah satu manfaat senam hamil yang disebut modul ialah…",
-          options: [
-            "Meningkatkan insomnia",
-            "Mengurangi keluhan dan meningkatkan kualitas tidur",
-            "Meningkatkan risiko varises",
-            "Menurunkan sirkulasi darah",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Modul mencantumkan manfaat pada kualitas tidur dan keluhan umum.",
-        },
-      ],
+      quiz: [], // Quiz moved to module level
     },
 
     // 5) Edukasi ASI eksklusif (untuk bumil/menyusui)
@@ -648,68 +634,7 @@ _(lanjutan sesuai dokumen jika ada poin tambahan setelah baris ini)_`,
           type: "text",
         },
       ],
-      quiz: [
-        {
-          id: "quiz5-1",
-          question: "ASI eksklusif diberikan hingga usia…",
-          options: ["3 bulan", "4 bulan", "6 bulan", "12 bulan"],
-          correctAnswer: 2,
-          explanation: "Konsisten dengan edukasi: ASI eksklusif 6 bulan.",
-        },
-        {
-          id: "quiz5-2",
-          question:
-            "Salah satu alasan ASI meningkatkan daya tahan tubuh adalah karena…",
-          options: [
-            "Mengandung gula tinggi",
-            "Mengandung antibodi dari ibu",
-            "Mengurangi cairan tubuh bayi",
-            "Mengandung pengawet alami",
-          ],
-          correctAnswer: 1,
-          explanation: "Antibodi ibu di dalam ASI memperkuat imunitas bayi.",
-        },
-        {
-          id: "quiz5-3",
-          question: "ASI berperan pada berat badan ideal bayi karena…",
-          options: [
-            "Menghambat leptin",
-            "Mengatur leptin dan metabolisme lemak",
-            "Meningkatkan kandungan garam",
-            "Mengurangi bakteri usus baik",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Modul menyebut pengaruh pada leptin dan mikrobiota usus.",
-        },
-        {
-          id: "quiz5-4",
-          question:
-            "Salah satu risiko bila tidak diberikan ASI eksklusif adalah…",
-          options: [
-            "Risiko malnutrisi/stunting meningkat",
-            "Anak lebih cepat berjalan",
-            "Anak tidak perlu imunisasi",
-            "Anak kebal alergi",
-          ],
-          correctAnswer: 0,
-          explanation: "Disebutkan risiko masalah gizi dan stunting.",
-        },
-        {
-          id: "quiz5-5",
-          question:
-            "Manfaat psikososial penting dari menyusui menurut modul adalah…",
-          options: [
-            "Mengurangi bonding ibu-anak",
-            "Membangun keintiman ibu dan bayi",
-            "Meningkatkan jarak dengan bayi",
-            "Mengurangi tatapan mata",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Kontak kulit dan interaksi saat menyusui memperkuat ikatan.",
-        },
-      ],
+      quiz: [], // Quiz moved to module level
     },
   ],
 };

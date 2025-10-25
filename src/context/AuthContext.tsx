@@ -41,7 +41,7 @@ export interface AuthState {
 
 export interface AuthContextType extends AuthState {
   login: (
-    email: string,
+    phone: string,
     password: string
   ) => Promise<{ success: boolean; pendingProfile?: boolean; error?: string }>;
   setUser: (
@@ -72,10 +72,10 @@ export interface AuthContextType extends AuthState {
 }
 
 export interface RegisterData {
-  email: string;
+  phone: string;
   password: string;
   full_name: string;
-  phone: string;
+  email?: string;
 }
 
 // Create Context
@@ -132,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Login function
   const login = async (
-    email: string,
+    phone: string,
     password: string
   ): Promise<{
     success: boolean;
@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error?: string;
   }> => {
     try {
-      const res = await authService.login({ email, password });
+      const res = await authService.login({ phone, password });
       const pending = isProfilePending(res.code) || !res.data?.user.profile;
       if (res.data) {
         const backendProfile = res.data!.user.profile as

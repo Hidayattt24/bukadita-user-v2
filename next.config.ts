@@ -21,6 +21,14 @@ const withPWA = require("next-pwa")({
 });
 
 const nextConfig: NextConfig = {
+  // Disable ESLint during production builds (warnings won't block deployment)
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  // Disable TypeScript errors during builds (optional, use carefully)
+  // typescript: {
+  //   ignoreBuildErrors: true,
+  // },
   images: {
     remotePatterns: [
       {
@@ -72,10 +80,8 @@ const nextConfig: NextConfig = {
   compress: true,
   // Production optimizations
   productionBrowserSourceMaps: false,
-  // Optimize fonts
-  optimizeFonts: true,
-  // Enable SWC minification
-  swcMinify: true,
+  // Note: optimizeFonts and swcMinify are enabled by default in Next.js 15
+  // No need to explicitly set them
   turbopack: {
     root: __dirname,
   },

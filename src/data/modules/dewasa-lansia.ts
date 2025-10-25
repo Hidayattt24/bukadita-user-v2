@@ -30,6 +30,265 @@ export const dewasaLansiaData: DetailModul = {
     "Kader posyandu yang menangani usia dewasa dan lansia.",
     "Tertarik meningkatkan pengetahuan pencegahan penyakit berbasis masyarakat.",
   ],
+  quiz: [
+    {
+      id: "quiz-1",
+      question:
+        "Lansia merupakan kelompok umur yang termasuk dalam siklus kehidupan manusia mulai usia…",
+      options: [
+        "40 tahun ke atas",
+        "50 tahun ke atas",
+        "60 tahun ke atas",
+        "70 tahun ke atas",
+      ],
+      correctAnswer: 2,
+      explanation: "60 tahun ke atas",
+    },
+    {
+      id: "quiz-2",
+      question: "Salah satu tujuan utama Posyandu Lansia adalah…",
+      options: [
+        "Memberikan layanan perawatan intensif",
+        "Meningkatkan kemandirian dan kualitas hidup lansia",
+        "Mengganti peran Puskesmas",
+        "Menyediakan bantuan finansial bagi lansia",
+      ],
+      correctAnswer: 1,
+      explanation: "Meningkatkan kemandirian dan kualitas hidup lansia",
+    },
+    {
+      id: "quiz-3",
+      question: "Pelayanan utama yang diberikan di Posyandu Lansia meliputi…",
+      options: [
+        "Imunisasi anak dan remaja",
+        "Pemeriksaan tekanan darah, berat badan, dan status gizi lansia",
+        "Perawatan luka berat",
+        "Pemeriksaan kehamilan",
+      ],
+      correctAnswer: 1,
+      explanation:
+        "Pemeriksaan tekanan darah, berat badan, dan status gizi lansia",
+    },
+    {
+      id: "quiz-4",
+      question: "Penyakit degeneratif adalah penyakit yang…",
+      options: [
+        "Disebabkan oleh infeksi virus",
+        "Terjadi karena penurunan fungsi organ tubuh secara bertahap",
+        "Ditularkan melalui udara",
+        "Hanya dialami oleh anak-anak",
+      ],
+      correctAnswer: 1,
+      explanation: "Terjadi karena penurunan fungsi organ tubuh secara bertahap",
+    },
+    {
+      id: "quiz-5",
+      question: "Contoh penyakit degeneratif yang umum dialami lansia adalah…",
+      options: [
+        "Campak dan rubela",
+        "Hipertensi dan diabetes melitus",
+        "Tetanus dan polio",
+        "Difteri dan pertusis",
+      ],
+      correctAnswer: 1,
+      explanation: "Hipertensi dan diabetes melitus",
+    },
+    {
+      id: "quiz-6",
+      question: "Salah satu ciri penuaan fisiologis adalah…",
+      options: [
+        "Kekuatan otot meningkat",
+        "Kulit menjadi kendur dan kering",
+        "Penglihatan semakin tajam",
+        "Metabolisme meningkat",
+      ],
+      correctAnswer: 1,
+      explanation: "Kulit menjadi kendur dan kering",
+    },
+    {
+      id: "quiz-7",
+      question:
+        "Kegiatan Posyandu Lansia yang bersifat promotif bertujuan untuk…",
+      options: [
+        "Menangani penyakit berat",
+        "Meningkatkan pengetahuan dan perilaku hidup sehat",
+        "Memberikan rujukan ke rumah sakit",
+        "Memberikan obat jangka panjang",
+      ],
+      correctAnswer: 1,
+      explanation: "Meningkatkan pengetahuan dan perilaku hidup sehat",
+    },
+    {
+      id: "quiz-8",
+      question:
+        "Upaya preventif yang dapat dilakukan lansia untuk mencegah hipertensi adalah…",
+      options: [
+        "Meningkatkan konsumsi garam",
+        "Menurunkan aktivitas fisik",
+        "Mengonsumsi makanan rendah garam dan berolahraga teratur",
+        "Menghindari sayur dan buah",
+      ],
+      correctAnswer: 2,
+      explanation: "Mengonsumsi makanan rendah garam dan berolahraga teratur",
+    },
+    {
+      id: "quiz-9",
+      question: "Mengapa aktivitas fisik penting bagi lansia?",
+      options: [
+        "Dapat mempercepat penuaan",
+        "Membantu menjaga kebugaran dan fungsi organ tubuh",
+        "Mengurangi kebutuhan tidur",
+        "Menghambat sistem kekebalan tubuh",
+      ],
+      correctAnswer: 1,
+      explanation: "Membantu menjaga kebugaran dan fungsi organ tubuh",
+    },
+    {
+      id: "quiz-10",
+      question: "Indikator keberhasilan Posyandu Lansia dapat dilihat dari…",
+      options: [
+        "Jumlah tenaga kesehatan",
+        "Partisipasi aktif lansia dan peningkatan kesehatannya",
+        "Banyaknya obat yang dibagikan",
+        "Jumlah kunjungan ke rumah sakit",
+      ],
+      correctAnswer: 1,
+      explanation: "Partisipasi aktif lansia dan peningkatan kesehatannya",
+    },
+    {
+      id: "quiz-11",
+      question: "Asupan kalsium penting bagi lansia karena…",
+      options: [
+        "Menyebabkan kolesterol tinggi",
+        "Membantu menjaga kepadatan tulang dan mencegah osteoporosis",
+        "Menghambat penyerapan vitamin D",
+        "Menurunkan tekanan darah",
+      ],
+      correctAnswer: 1,
+      explanation:
+        "Membantu menjaga kepadatan tulang dan mencegah osteoporosis",
+    },
+    {
+      id: "quiz-12",
+      question:
+        "Salah satu prinsip penting dalam memberikan edukasi kesehatan kepada lansia adalah…",
+      options: [
+        "Gunakan istilah medis yang sulit agar terlihat profesional",
+        "Sampaikan dengan bahasa sederhana dan contoh nyata",
+        "Lakukan penyuluhan tanpa visual",
+        "Hindari sesi tanya jawab",
+      ],
+      correctAnswer: 1,
+      explanation: "Sampaikan dengan bahasa sederhana dan contoh nyata",
+    },
+    {
+      id: "quiz-13",
+      question:
+        "Lansia dengan kadar gula darah tinggi perlu memperhatikan konsumsi makanan karena…",
+      options: [
+        "Makanan tinggi gula memperburuk kondisi diabetes",
+        "Makanan berlemak justru menurunkan gula darah",
+        "Tidak ada hubungan antara makanan dan kadar gula",
+        "Semua makanan aman dikonsumsi",
+      ],
+      correctAnswer: 0,
+      explanation: "Makanan tinggi gula memperburuk kondisi diabetes",
+    },
+    {
+      id: "quiz-14",
+      question: "Upaya pemberdayaan lansia di masyarakat bertujuan untuk…",
+      options: [
+        "Membatasi aktivitas fisik lansia",
+        "Membuat lansia bergantung pada keluarga",
+        "Mendorong lansia tetap aktif dan berperan dalam kegiatan sosial",
+        "Meningkatkan jumlah pengobatan medis",
+      ],
+      correctAnswer: 2,
+      explanation:
+        "Mendorong lansia tetap aktif dan berperan dalam kegiatan sosial",
+    },
+    {
+      id: "quiz-15",
+      question:
+        "Salah satu tantangan dalam pengelolaan Posyandu Lansia di desa terpencil adalah…",
+      options: [
+        "Kelebihan fasilitas kesehatan",
+        "Keterbatasan tenaga kader dan transportasi bagi lansia",
+        "Terlalu banyak program digital",
+        "Minimnya kebutuhan pelayanan",
+      ],
+      correctAnswer: 1,
+      explanation: "Keterbatasan tenaga kader dan transportasi bagi lansia",
+    },
+    {
+      id: "quiz-16",
+      question:
+        "Mengapa pendekatan keluarga penting dalam pelayanan kesehatan lansia?",
+      options: [
+        "Karena keluarga berperan dalam dukungan emosional dan pemantauan kesehatan lansia",
+        "Karena keluarga wajib menggantikan tenaga medis",
+        "Agar lansia tidak perlu datang ke Posyandu",
+        "Untuk memindahkan tanggung jawab pemerintah ke rumah tangga",
+      ],
+      correctAnswer: 0,
+      explanation:
+        "Karena keluarga berperan dalam dukungan emosional dan pemantauan kesehatan lansia",
+    },
+    {
+      id: "quiz-17",
+      question:
+        "Lansia dengan hipertensi yang tidak terkontrol berisiko mengalami komplikasi seperti…",
+      options: [
+        "Anemia dan infeksi kulit",
+        "Stroke dan gagal jantung",
+        "Batuk kronis",
+        "Gangguan pencernaan ringan",
+      ],
+      correctAnswer: 1,
+      explanation: "Stroke dan gagal jantung",
+    },
+    {
+      id: "quiz-18",
+      question:
+        "Mengapa pola makan seimbang menjadi strategi penting dalam mencegah penyakit degeneratif?",
+      options: [
+        "Karena dapat memperlambat penurunan fungsi tubuh dan menjaga imunitas",
+        "Karena makanan tinggi lemak membuat tubuh lebih bugar",
+        "Karena lansia harus mengurangi semua jenis makanan",
+        "Karena makanan bergizi menyebabkan tekanan darah tinggi",
+      ],
+      correctAnswer: 0,
+      explanation:
+        "Karena dapat memperlambat penurunan fungsi tubuh dan menjaga imunitas",
+    },
+    {
+      id: "quiz-19",
+      question:
+        "Salah satu indikator keberhasilan Posyandu Lansia dalam aspek keberlanjutan adalah…",
+      options: [
+        "Dukungan aktif lintas sektor dan keterlibatan keluarga",
+        "Banyaknya alat kesehatan mahal",
+        "Kader yang berganti setiap bulan",
+        "Hanya mengandalkan bantuan luar negeri",
+      ],
+      correctAnswer: 0,
+      explanation: "Dukungan aktif lintas sektor dan keterlibatan keluarga",
+    },
+    {
+      id: "quiz-20",
+      question:
+        "Keterkaitan antara Posyandu Lansia dan pencegahan stunting lintas generasi terletak pada…",
+      options: [
+        "Lansia menjadi contoh perilaku hidup sehat dan sumber edukasi keluarga",
+        "Lansia berperan menggantikan bidan",
+        "Lansia tidak memiliki peran dalam tumbuh kembang anak",
+        "Stunting hanya berhubungan dengan bayi",
+      ],
+      correctAnswer: 0,
+      explanation:
+        "Lansia menjadi contoh perilaku hidup sehat dan sumber edukasi keluarga",
+    },
+  ],
   subMateris: [
     {
       id: "sub1",
@@ -75,58 +334,7 @@ E. Peran Pemerintah dan Masyarakat
 Pemerintah berperan sebagai fasilitator dan penggerak dalam pelaksanaan GERMAS, sedangkan masyarakat menjadi pelaku utama yang menjalankan perilaku hidup sehat dalam kehidupan sehari-hari.`,
         },
       ],
-      quiz: [
-        {
-          id: "quiz1-1",
-          question: "GERMAS dicanangkan pertama kali pada tahun...",
-          options: ["2014", "2015", "2016", "2017"],
-          correctAnswer: 2,
-          explanation: "GERMAS diprakarsai oleh Presiden RI pada tahun 2016.",
-        },
-        {
-          id: "quiz1-2",
-          question: "Berapa langkah utama GERMAS yang dijelaskan dalam materi?",
-          options: ["5", "6", "7", "8"],
-          correctAnswer: 2,
-          explanation:
-            "Ada 7 langkah utama GERMAS, termasuk aktivitas fisik, konsumsi buah sayur, dll.",
-        },
-        {
-          id: "quiz1-3",
-          question: "Salah satu tujuan GERMAS adalah...",
-          options: [
-            "Meningkatkan penyakit menular",
-            "Menurunkan beban penyakit dan meningkatkan produktivitas",
-            "Mengurangi aktivitas fisik masyarakat",
-            "Menambah konsumsi rokok",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Tujuan GERMAS untuk menurunkan beban penyakit dan meningkatkan produktivitas.",
-        },
-        {
-          id: "quiz1-4",
-          question:
-            "Langkah GERMAS yang termasuk perilaku pencegahan penyakit adalah...",
-          options: [
-            "Tidak mencuci tangan",
-            "Mengonsumsi buah dan sayur",
-            "Tidur berlebihan",
-            "Minum alkohol",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Konsumsi buah dan sayur termasuk perilaku hidup sehat dalam GERMAS.",
-        },
-        {
-          id: "quiz1-5",
-          question: "Siapa pelaku utama dalam pelaksanaan GERMAS?",
-          options: ["Pemerintah", "Masyarakat", "Tenaga medis saja", "Swasta"],
-          correctAnswer: 1,
-          explanation:
-            "Masyarakat merupakan pelaku utama GERMAS dengan dukungan pemerintah.",
-        },
-      ],
+      quiz: [], // Quiz moved to module level
     },
     {
       id: "sub2",
@@ -181,62 +389,7 @@ G. Peran Posyandu
 Posyandu dewasa & lansia berperan dalam edukasi, deteksi dini risiko PTM, promosi Germas, dan PHBS.`,
         },
       ],
-      quiz: [
-        {
-          id: "quiz2-1",
-          question: "Contoh penyakit tidak menular adalah...",
-          options: ["Influenza", "Hipertensi", "TBC", "Diare"],
-          correctAnswer: 1,
-          explanation: "Hipertensi merupakan contoh PTM.",
-        },
-        {
-          id: "quiz2-2",
-          question: "CERDIK digunakan untuk...",
-          options: [
-            "Mendeteksi penyakit menular",
-            "Mencegah PTM",
-            "Mengobati infeksi",
-            "Mengukur gizi anak",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "CERDIK merupakan strategi pencegahan PTM dari Kemenkes.",
-        },
-        {
-          id: "quiz2-3",
-          question: "Penyakit menular disebabkan oleh...",
-          options: ["Gaya hidup", "Agen infeksius", "Stres", "Kurang tidur"],
-          correctAnswer: 1,
-          explanation:
-            "Disebabkan oleh agen infeksius seperti virus, bakteri, parasit.",
-        },
-        {
-          id: "quiz2-4",
-          question: "Upaya pencegahan P2M yang benar adalah...",
-          options: [
-            "Menghindari imunisasi",
-            "Menjaga kebersihan dan cuci tangan",
-            "Tidur lebih lama",
-            "Makan berlemak tinggi",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Menjaga kebersihan dan cuci tangan mencegah penyakit menular.",
-        },
-        {
-          id: "quiz2-5",
-          question: "Peran posyandu dalam pencegahan PTM dan P2M adalah...",
-          options: [
-            "Edukasi dan deteksi dini masyarakat",
-            "Menjual obat",
-            "Menyediakan rumah sakit",
-            "Hanya vaksinasi bayi",
-          ],
-          correctAnswer: 0,
-          explanation:
-            "Posyandu dewasa dan lansia berperan dalam edukasi dan deteksi dini kesehatan.",
-        },
-      ],
+      quiz: [], // Quiz moved to module level
     },
     {
       id: "sub3",
@@ -315,62 +468,7 @@ Skor ≥6 menunjukkan indikasi gangguan emosional atau psikologis dan memerlukan
 - Mendorong masyarakat mengikuti program KB dan pemeriksaan berkala.`,
         },
       ],
-      quiz: [
-        {
-          id: "quiz3-1",
-          question: "Tujuan utama program KB adalah...",
-          options: [
-            "Menambah jumlah anak",
-            "Menurunkan angka kelahiran dan meningkatkan kesejahteraan keluarga",
-            "Melarang kehamilan",
-            "Meningkatkan populasi",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Tujuan KB untuk mengatur kelahiran dan meningkatkan kesejahteraan keluarga.",
-        },
-        {
-          id: "quiz3-2",
-          question: "Alat kontrasepsi yang digunakan pria adalah...",
-          options: ["Pil", "IUD", "Kondom dan vasektomi", "Implant"],
-          correctAnswer: 2,
-          explanation:
-            "Kondom dan vasektomi adalah alat kontrasepsi untuk pria.",
-        },
-        {
-          id: "quiz3-3",
-          question: "SRQ-20 digunakan untuk mendeteksi...",
-          options: ["Hipertensi", "PPOK", "Kesehatan jiwa", "Obesitas"],
-          correctAnswer: 2,
-          explanation: "SRQ-20 adalah kuesioner untuk skrining kesehatan jiwa.",
-        },
-        {
-          id: "quiz3-4",
-          question: "Kuesioner PUMA digunakan untuk menilai risiko...",
-          options: [
-            "Diabetes Melitus",
-            "PPOK",
-            "Gangguan Penglihatan",
-            "Hipertensi",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "PUMA digunakan untuk skrining penyakit paru obstruktif kronik (PPOK).",
-        },
-        {
-          id: "quiz3-5",
-          question: "Skor ≥6 pada SRQ-20 menunjukkan...",
-          options: [
-            "Tidak ada masalah kesehatan",
-            "Indikasi gangguan emosional atau psikologis",
-            "Risiko PPOK",
-            "Gangguan pendengaran",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Skor ≥6 menandakan adanya kemungkinan gangguan emosional atau psikologis.",
-        },
-      ],
+      quiz: [], // Quiz moved to module level
     },
   ],
 };

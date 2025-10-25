@@ -56,10 +56,6 @@ export default function DetailModulPage() {
   useEffect(() => {
     if (!modul || !user) return;
 
-    console.log(
-      "[Page] 🔄 Checking if modul needs update based on progress..."
-    );
-
     const moduleProgress = getModuleProgress(modul.id);
     if (!moduleProgress) return;
 
@@ -87,12 +83,6 @@ export default function DetailModulPage() {
         sub.isUnlocked !== shouldBeUnlocked
       ) {
         hasChanges = true;
-        console.log(`[Page] 📝 Updating sub-materi ${sub.id}:`, {
-          wasCompleted: sub.isCompleted,
-          nowCompleted: shouldBeCompleted,
-          wasUnlocked: sub.isUnlocked,
-          nowUnlocked: shouldBeUnlocked,
-        });
 
         return {
           ...sub,
@@ -105,7 +95,6 @@ export default function DetailModulPage() {
     });
 
     if (hasChanges) {
-      console.log("[Page] ✅ Modul state updated based on progress");
       setModul({
         ...modul,
         subMateris: updatedSubMateris,
@@ -132,7 +121,6 @@ export default function DetailModulPage() {
   useEffect(() => {
     // Wait for auth to be ready before initializing module
     if (user === undefined) {
-      console.log("⏳ Waiting for auth to be ready...");
       return; // Auth still loading
     }
 
@@ -142,11 +130,6 @@ export default function DetailModulPage() {
     if (modulData) {
       setModul(modulData);
 
-      console.log(
-        "👤 User ready, initializing module:",
-        user?.email || "guest"
-      );
-
       // Initialize progress tracking for this module
       const subMateriIds = modulData.subMateris.map((sub) => sub.id);
       initializeModuleProgress(modulData.id, modulSlug, subMateriIds);
@@ -154,7 +137,6 @@ export default function DetailModulPage() {
       // 🔥 FIX: Sync progress dari backend terlebih dahulu sebelum set selected sub-materi
       const loadModuleWithProgress = async () => {
         if (user) {
-          console.log("[Page] 🔄 Loading module progress from backend...");
           await syncModuleProgress();
         }
 
@@ -173,9 +155,6 @@ export default function DetailModulPage() {
             0 // poin index, not poin id
           );
         }
-
-        // Note: Last accessed tracking sudah handled oleh backend
-        // melalui last_accessed_at field di user_module_progress
       };
 
       loadModuleWithProgress();
@@ -255,12 +234,42 @@ export default function DetailModulPage() {
     ) {
       setSelectedPoinIndex(selectedPoinIndex + 1);
     } else {
-      // Selesai semua poin, ke kuis
-      if (selectedSubMateri && selectedSubMateri.quiz.length > 0) {
-        setPageState("quiz");
-      } else {
-        // Lanjut ke sub materi berikutnya jika tidak ada kuis
-        handleContinueToNextSubMateri();
+      // Selesai semua poin di sub-materi ini
+      if (modul && selectedSubMateri) {
+        // Mark sub-materi as completed
+        markSubMateriCompleted(modul.id, selectedSubMateri.id);
+
+        const currentSubMateriIndex = modul.subMateris.findIndex(
+          (sub) => sub.id === selectedSubMateri.id
+        );
+        const isLastSubMateri = currentSubMateriIndex === modul.subMateris.length - 1;
+
+        // Update local state to mark current sub-materi as completed
+        const updatedSubMateris = modul.subMateris.map((sub, idx) => {
+          if (idx === currentSubMateriIndex) {
+            return { ...sub, isCompleted: true };
+          }
+          // Unlock next sub-materi
+          if (idx === currentSubMateriIndex + 1) {
+            return { ...sub, isUnlocked: true };
+          }
+          return sub;
+        });
+
+        setModul({
+          ...modul,
+          subMateris: updatedSubMateris,
+        });
+
+        if (isLastSubMateri) {
+          // Ini sub-materi terakhir, cek apakah ada kuis modul
+          if (modul.quiz && modul.quiz.length > 0) {
+            setPageState("quiz");
+          }
+        } else {
+          // Masih ada sub-materi lainnya, lanjut ke berikutnya
+          handleContinueToNextSubMateri();
+        }
       }
     }
   };
@@ -315,11 +324,12 @@ export default function DetailModulPage() {
     const isLastSubMateri =
       currentSubMateriIndex === modul.subMateris.length - 1;
 
-    // Jika ada kuis dan ini poin terakhir, bisa lanjut ke kuis
-    if (isLastPoinInSubMateri && selectedSubMateri.quiz.length > 0) {
+    // Jika ini poin terakhir di sub-materi terakhir dan ada kuis modul, bisa lanjut ke kuis
+    if (isLastPoinInSubMateri && isLastSubMateri && modul.quiz && modul.quiz.length > 0) {
       return true;
     }
 
+    // Jika bukan poin terakhir di sub-materi terakhir, masih bisa lanjut
     return !(isLastPoinInSubMateri && isLastSubMateri);
   };
 
@@ -336,75 +346,18 @@ export default function DetailModulPage() {
   };
 
   const handleQuizComplete = async (result: QuizResult) => {
-    // Update sub materi dengan hasil kuis
-    if (selectedSubMateri && modul) {
-      const updatedSubMateri = {
-        ...selectedSubMateri,
-        quizResult: result,
-        isCompleted: result.passed,
-      };
-
-      setSelectedSubMateri(updatedSubMateri);
-
-      // Note: Quiz result and sub-materi progress are automatically saved by backend
-      // when QuizPlayer calls QuizService.submitQuizAnswers()
-      // No need to call saveQuizResult or markSubMateriCompleted here
-      console.log("✅ Quiz completed locally, backend already saved:", {
-        score: result.score,
-        passed: result.passed,
-      });
-
-      // 🔥 NEW: Trigger progress sync from backend
-      console.log("[Page] 🔄 Triggering progress sync after quiz...");
-      await syncModuleProgress();
-
-      // Update modul data (local state only)
+    // Update modul dengan hasil kuis
+    if (modul) {
       const updatedModul = {
         ...modul,
-        subMateris: modul.subMateris.map((sub) =>
-          sub.id === selectedSubMateri.id ? updatedSubMateri : sub
-        ),
+        quizResult: result,
+        status: result.passed ? ("completed" as const) : ("in-progress" as const),
       };
+
       setModul(updatedModul);
 
-      // 🔥 FIX: Jika lulus, unlock sub materi berikutnya DAN auto-navigate
-      if (result.passed) {
-        const currentSubMateriIndex = modul.subMateris.findIndex(
-          (sub) => sub.id === selectedSubMateri.id
-        );
-
-        if (currentSubMateriIndex < modul.subMateris.length - 1) {
-          const nextSubMateri = modul.subMateris[currentSubMateriIndex + 1];
-          const updatedNextSubMateri = { ...nextSubMateri, isUnlocked: true };
-
-          const finalUpdatedModul = {
-            ...updatedModul,
-            subMateris: updatedModul.subMateris.map((sub, index) =>
-              index === currentSubMateriIndex + 1 ? updatedNextSubMateri : sub
-            ),
-          };
-          setModul(finalUpdatedModul);
-
-          // 🔥 FIX: Auto-navigate ke sub-materi berikutnya setelah quiz lulus
-          console.log("🔄 Quiz passed! Auto-navigating to next sub-materi:", {
-            currentSubMateri: selectedSubMateri.id,
-            nextSubMateri: updatedNextSubMateri.id,
-            nextTitle: updatedNextSubMateri.title,
-          });
-
-          // Tunggu sebentar untuk user melihat hasil quiz
-          setTimeout(() => {
-            setSelectedSubMateri(updatedNextSubMateri);
-            setSelectedPoinIndex(0);
-            setPageState("content");
-            console.log("✅ Navigated to next sub-materi");
-          }, 2000); // Delay 2 detik agar user bisa melihat hasil quiz
-        } else {
-          console.log(
-            "ℹ️ Quiz passed but no next sub-materi (last sub-materi completed)"
-          );
-        }
-      }
+      // Trigger progress sync from backend
+      await syncModuleProgress();
     }
   };
 
@@ -438,10 +391,11 @@ export default function DetailModulPage() {
       />
 
       <main className="flex flex-1 relative min-h-[calc(100vh-73px)] pb-safe">
-        {pageState === "quiz" && selectedSubMateri && modul ? (
+        {pageState === "quiz" && modul ? (
           <QuizManager
-            subMateri={selectedSubMateri}
             moduleId={modul.id}
+            quizzes={modul.quiz}
+            quizType="module"
             onQuizComplete={handleQuizComplete}
             onBackToContent={handleBackToContent}
             onContinueToNext={handleContinueToNextSubMateri}
