@@ -50,7 +50,7 @@ export interface SubMateri {
   isCompleted: boolean; // Derived from progress
   isUnlocked: boolean; // Derived from progress
   poinDetails: PoinDetail[];
-  quiz: Quiz[];
+  quiz: Quiz[]; // Deprecated: Will be moved to module level
   currentPoinIndex: number;
   quizResult?: QuizResult;
   // API fields for compatibility
@@ -82,6 +82,8 @@ export interface DetailModul {
   overview: string;
   learningObjectives: string[];
   requirements: string[];
+  quiz: Quiz[]; // Module-level quiz (appears after all sub-materials completed)
+  quizResult?: QuizResult; // Module quiz result
 }
 
 // Progress tracking interfaces
@@ -198,6 +200,8 @@ export class ModuleDataConverter {
         "Akses internet yang stabil",
         "Waktu belajar yang konsisten",
       ],
+      quiz: [], // Module quiz - to be populated from backend
+      quizResult: undefined,
     };
   }
 
