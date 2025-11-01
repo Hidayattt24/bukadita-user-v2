@@ -1,16 +1,38 @@
 "use client";
 
-import { BookOpen, ArrowRight, Clock, Award } from "lucide-react";
+import { BookOpen, ArrowRight, Clock, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { modulPosyanduData } from "@/data/modulData";
+import { useModulesWithProgress } from "@/hooks/useModulesWithProgress";
 
 /**
- * Featured Modules Section - Tampilkan modul unggulan tanpa backend
+ * Featured Modules Section - Tampilkan modul unggulan dari database
  * Menampilkan beberapa modul utama untuk quick access
  */
 export default function FeaturedModulesSection() {
+  // 🔥 Fetch modules dari database
+  const { modules, isLoading } = useModulesWithProgress();
+
   // Ambil 3 modul pertama sebagai featured
-  const featuredModules = modulPosyanduData.slice(0, 3);
+  const featuredModules = modules.slice(0, 3);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="mb-8 sm:mb-12">
+        <h2 className="text-2xl sm:text-3xl font-bold text-[#27548A] mb-6">
+          Modul Unggulan
+        </h2>
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-8 h-8 text-[#578FCA] animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if no modules
+  if (featuredModules.length === 0) {
+    return null;
+  }
 
   return (
     <div className="mb-8 sm:mb-12">
@@ -48,7 +70,7 @@ export default function FeaturedModulesSection() {
               </span>
               <div className="flex items-center gap-1 text-xs text-slate-500">
                 <Clock className="w-3 h-3" />
-                <span>{modul.duration}</span>
+                <span>{modul.duration_label || "Belum ditentukan"}</span>
               </div>
             </div>
 

@@ -3,12 +3,11 @@
 import { useParams } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import {
-  getModuleBySlug,
   type DetailModul,
   type SubMateri,
   type PoinDetail,
   type QuizResult,
-} from "@/data/modules";
+} from "@/types/modul";
 import MobileBottomNavbar from "@/components/User/Beranda/MobileBottomNavbar";
 import {
   ModulSidebar,
@@ -21,17 +20,22 @@ import { QuizManager } from "@/components/User/Modul/Quiz";
 import { useAuth } from "@/context/AuthContext";
 import { useProgress } from "@/context/ProgressContext";
 import { useProgressSync } from "@/hooks/useProgressSync";
+import { useModuleDetailFromDB } from "@/hooks/useModuleDetail"; // 🔥 NEW: Fetch from database
 
 type PageState = "content" | "quiz";
 
 export default function DetailModulPage() {
   const params = useParams();
+  const modulSlug = params.slug as string;
+
+  // 🔥 NEW: Fetch module from database instead of dummy data
+  const { modul: modulFromDB, isLoading: loadingFromDB, error: dbError } = useModuleDetailFromDB(modulSlug);
+
   const [modul, setModul] = useState<DetailModul | null>(null);
   const [selectedSubMateri, setSelectedSubMateri] = useState<SubMateri | null>(
     null
   );
   const [selectedPoinIndex, setSelectedPoinIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Default false untuk mobile-first
   const [expandedSubMateris, setExpandedSubMateris] = useState<string[]>([]);
   const [pageState, setPageState] = useState<PageState>("content");
@@ -42,15 +46,22 @@ export default function DetailModulPage() {
   const {
     initializeModuleProgress,
     updateCurrentPoin,
-    markPoinCompleted,
-    saveQuizResult,
-    markSubMateriCompleted,
     getModuleProgress, // 🔥 NEW: untuk check progress state
-    getSubMateriProgress, // 🔥 NEW: untuk check sub-materi progress
   } = useProgress();
 
-  // 🔥 NEW: Progress sync from backend
-  const { syncModuleProgress } = useProgressSync(modul?.id || null);
+  // 🔥 NEW: Progress sync from backend (use UUID for API calls)
+  const { syncModuleProgress } = useProgressSync(modul?.moduleId || null);
+
+  // Debug: Log moduleId values
+  console.log("[Page] 🔍 Module ID values:", {
+    modulId: modul?.id,
+    modulModuleId: modul?.moduleId,
+    typeOfModuleId: typeof modul?.moduleId,
+    isUUID: modul?.moduleId && typeof modul.moduleId === 'string' && modul.moduleId.includes('-'),
+    modulState: modul ? "SET" : "NULL",
+    modulFromDBState: modulFromDB ? "LOADED" : "LOADING/NULL",
+    loadingFromDB: loadingFromDB
+  });
 
   // 🔥 NEW: Effect untuk update modul state berdasarkan progress dari localStorage/backend
   useEffect(() => {
@@ -111,7 +122,7 @@ export default function DetailModulPage() {
         subMateris: updatedSubMateris,
       });
     }
-  }, [modul, user]); // Re-run when modul or user changes
+  }, [modul, user, getModuleProgress]); // Re-run when modul, user, or getModuleProgress changes
 
   // Detect screen size and adjust sidebar behavior
   useEffect(() => {
@@ -129,27 +140,25 @@ export default function DetailModulPage() {
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []); // Remove sidebarOpen from dependency to prevent infinite loop
 
+  // 🔥 NEW: Initialize module when loaded from database
   useEffect(() => {
     // Wait for auth to be ready before initializing module
-    if (user === undefined) {
-      console.log("⏳ Waiting for auth to be ready...");
-      return; // Auth still loading
+    if (user === undefined || loadingFromDB) {
+      console.log("⏳ Waiting for auth and module data to be ready...");
+      return; // Auth or module still loading
     }
 
-    const modulSlug = params.slug as string;
-    const modulData = getModuleBySlug(modulSlug);
-
-    if (modulData) {
-      setModul(modulData);
+    if (modulFromDB) {
+      setModul(modulFromDB);
 
       console.log(
-        "👤 User ready, initializing module:",
+        "👤 User ready, initializing module from database:",
         user?.email || "guest"
       );
 
       // Initialize progress tracking for this module
-      const subMateriIds = modulData.subMateris.map((sub) => sub.id);
-      initializeModuleProgress(modulData.id, modulSlug, subMateriIds);
+      const subMateriIds = modulFromDB.subMateris.map((sub) => sub.id);
+      initializeModuleProgress(modulFromDB.id, modulSlug, subMateriIds);
 
       // 🔥 FIX: Sync progress dari backend terlebih dahulu sebelum set selected sub-materi
       const loadModuleWithProgress = async () => {
@@ -159,7 +168,7 @@ export default function DetailModulPage() {
         }
 
         // Set default ke sub materi pertama yang unlocked
-        const firstUnlockedSubMateri = modulData.subMateris.find(
+        const firstUnlockedSubMateri = modulFromDB.subMateris.find(
           (sub: SubMateri) => sub.isUnlocked
         );
         if (firstUnlockedSubMateri) {
@@ -168,7 +177,7 @@ export default function DetailModulPage() {
 
           // Update current position in progress tracking
           updateCurrentPoin(
-            modulData.id,
+            modulFromDB.id,
             firstUnlockedSubMateri.id,
             0 // poin index, not poin id
           );
@@ -180,8 +189,7 @@ export default function DetailModulPage() {
 
       loadModuleWithProgress();
     }
-    setLoading(false);
-  }, [params.slug, user]); // Removed initializeModuleProgress and updateCurrentPoin to prevent infinite loop
+  }, [modulFromDB, user, loadingFromDB, initializeModuleProgress, modulSlug, syncModuleProgress, updateCurrentPoin]); // React to module from DB
 
   const handleSubMateriSelect = useCallback(
     (subMateri: SubMateri) => {
@@ -212,10 +220,16 @@ export default function DetailModulPage() {
   const handlePoinSelect = useCallback(
     (poinIndex: number) => {
       setSelectedPoinIndex(poinIndex);
-      setPageState("content");
 
-      // Update progress tracking
-      if (modul && selectedSubMateri) {
+      // If poinIndex is -1, it means user selected quiz
+      if (poinIndex === -1) {
+        setPageState("quiz");
+      } else {
+        setPageState("content");
+      }
+
+      // Update progress tracking (only for regular poins, not quiz)
+      if (modul && selectedSubMateri && poinIndex >= 0) {
         updateCurrentPoin(modul.id, selectedSubMateri.id, poinIndex);
       }
 
@@ -227,14 +241,7 @@ export default function DetailModulPage() {
     [modul, selectedSubMateri, updateCurrentPoin, isMobile]
   );
 
-  const handlePoinCompleted = useCallback(
-    (poinId: string) => {
-      if (modul && selectedSubMateri) {
-        markPoinCompleted(modul.id, selectedSubMateri.id, poinId);
-      }
-    },
-    [modul, selectedSubMateri, markPoinCompleted]
-  );
+  // Poin completion removed - progress only updates after quiz completion
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -408,19 +415,17 @@ export default function DetailModulPage() {
     }
   };
 
-  const handleBackToContent = () => {
-    setPageState("content");
-  };
-
   const handleStartQuiz = () => {
     setPageState("quiz");
   };
 
-  if (loading) {
+  // Show loading while fetching from database
+  if (loadingFromDB) {
     return <ModulLoading />;
   }
 
-  if (!modul) {
+  // Show error if database error or module not found
+  if (dbError || !modul) {
     return <ModulNotFound />;
   }
 
@@ -441,9 +446,8 @@ export default function DetailModulPage() {
         {pageState === "quiz" && selectedSubMateri && modul ? (
           <QuizManager
             subMateri={selectedSubMateri}
-            moduleId={modul.id}
+            moduleId={modul.moduleId || modul.id.toString()} // ✅ Pass UUID for API calls
             onQuizComplete={handleQuizComplete}
-            onBackToContent={handleBackToContent}
             onContinueToNext={handleContinueToNextSubMateri}
           />
         ) : (
@@ -457,7 +461,6 @@ export default function DetailModulPage() {
             handleNextPoin={handleNextPoin}
             sidebarOpen={sidebarOpen}
             onStartQuiz={handleStartQuiz}
-            onPoinCompleted={handlePoinCompleted}
           />
         )}
 

@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { ProgressService } from "@/services/progressService";
-import { getModuleById } from "@/data/modules";
 
 /**
  * Hook untuk fetch progress langsung dari backend
@@ -23,7 +22,7 @@ export interface BackendSubMateriProgress {
 }
 
 export interface BackendModuleProgress {
-  module_id: number;
+  module_id: string | number; // Support both UUID string and number
   progress_percentage: number; // 🔥 CALCULATED by frontend based on sub-materis
   is_completed: boolean;
   completed_at?: string;
@@ -31,7 +30,11 @@ export interface BackendModuleProgress {
   sub_materis: BackendSubMateriProgress[];
 }
 
-export const useBackendModuleProgress = (moduleId: number | null) => {
+/**
+ * Hook untuk fetch module progress from backend
+ * @param moduleId - Module ID (can be integer for legacy or UUID string)
+ */
+export const useBackendModuleProgress = (moduleId: number | string | null) => {
   const { user } = useAuth();
   const [moduleProgress, setModuleProgress] =
     useState<BackendModuleProgress | null>(null);
@@ -56,52 +59,58 @@ export const useBackendModuleProgress = (moduleId: number | null) => {
       );
 
       // Fetch module progress (includes sub_materi and poin progress)
+      // moduleId should be UUID string, not number
+      // If moduleId is number, we can't convert it back to UUID, so skip this call
+      if (typeof moduleId === "number") {
+        console.warn(
+          "[useBackendModuleProgress] Skipping progress fetch - moduleId is number, not UUID:",
+          moduleId
+        );
+        setModuleProgress(null);
+        setIsLoading(false);
+        return;
+      }
+
       const progressResponse = await ProgressService.getModuleProgress(
-        moduleId.toString()
+        moduleId
       );
 
       if (progressResponse.error || !progressResponse.data) {
-        console.warn(
-          "[useBackendModuleProgress] No progress found:",
-          progressResponse.message
-        );
+        // ✅ Don't log 404 as warning (normal for new modules)
+        if (progressResponse.code !== "PROGRESS_NOT_FOUND") {
+          console.warn(
+            "[useBackendModuleProgress] Error fetching progress:",
+            progressResponse.message
+          );
+        }
         setModuleProgress(null);
         setIsLoading(false);
         return;
       }
 
-      const backendData = progressResponse.data as any;
+      const backendData = progressResponse.data as {
+        module?: { progress?: { progress_percent?: number } };
+        sub_materis_progress?: Array<{ is_completed: boolean }>;
+        module_progress?: { completed_at?: string; updated_at?: string };
+      };
 
-      // 🔥 Get static module data to calculate accurate progress
-      const staticModuleData = getModuleById(moduleId);
-      if (!staticModuleData) {
-        console.error(
-          `[useBackendModuleProgress] Module ${moduleId} not found in static data`
-        );
-        setModuleProgress(null);
-        setIsLoading(false);
-        return;
-      }
-
-      console.log(`[useBackendModuleProgress] Static module data loaded:`, {
+      console.log(`[useBackendModuleProgress] Backend data loaded:`, {
         moduleId,
-        totalSubMateris: staticModuleData.subMateris.length,
-        subMateris: staticModuleData.subMateris.map((s) => ({
-          id: s.id,
-          title: s.title,
-          totalPoins: s.poinDetails.length,
-          hasQuiz: s.quiz && s.quiz.length > 0,
-        })),
+        module: backendData.module,
+        subMaterisProgress: backendData.sub_materis_progress?.length || 0,
       });
 
       // Fetch quiz attempts
-      let quizAttempts: any[] = [];
       try {
         const quizResponse = await ProgressService.getSimpleQuizHistory(
           moduleId
         );
         if (!quizResponse.error && quizResponse.data) {
-          quizAttempts = quizResponse.data.attempts || [];
+          // Quiz attempts fetched but not used in current logic
+          // kept for potential future enhancements
+          console.log(
+            `[useBackendModuleProgress] Quiz attempts fetched for module ${moduleId}`
+          );
         }
       } catch (error) {
         console.warn(
@@ -110,128 +119,47 @@ export const useBackendModuleProgress = (moduleId: number | null) => {
         );
       }
 
-      // Build sub-materis progress with accurate calculations
-      const subMaterisProgress: BackendSubMateriProgress[] = [];
-      let totalModuleProgress = 0;
-
-      for (const staticSubMateri of staticModuleData.subMateris) {
-        const subMateriId = staticSubMateri.id;
-
-        // Find backend progress for this sub-materi
-        const backendSubProgress = backendData.sub_materi_progress?.find(
-          (p: any) => p.sub_materi_id === subMateriId
-        );
-
-        // Get completed poin IDs
-        const completedPoins = backendData.poin_progress
-          ? backendData.poin_progress
-              .filter(
-                (p: any) =>
-                  p.sub_materi_id === subMateriId && p.is_completed === true
-              )
-              .map((p: any) => p.poin_id)
-          : [];
-
-        // Get quiz data for this sub-materi
-        const latestQuizAttempt = quizAttempts
-          .filter((attempt: any) => attempt.sub_materi_id === subMateriId)
-          .sort(
-            (a: any, b: any) =>
-              new Date(b.completed_at).getTime() -
-              new Date(a.completed_at).getTime()
-          )[0]; // Get latest attempt
-
-        const passedQuizAttempt = quizAttempts.find(
-          (attempt: any) =>
-            attempt.sub_materi_id === subMateriId && attempt.is_passed
-        );
-
-        const quizScore =
-          passedQuizAttempt?.score || latestQuizAttempt?.score || 0;
-        const quizAttemptsCount = quizAttempts.filter(
-          (attempt: any) => attempt.sub_materi_id === subMateriId
-        ).length;
-
-        // 🔥 CALCULATE accurate progress percentage
-        const totalPoins = staticSubMateri.poinDetails.length;
-        const hasQuiz = staticSubMateri.quiz && staticSubMateri.quiz.length > 0;
-        const totalItems = totalPoins + (hasQuiz ? 1 : 0);
-
-        const completedPoinsCount = completedPoins.length;
-        const quizCompleted = quizScore >= 70;
-        const completedItems = completedPoinsCount + (quizCompleted ? 1 : 0);
-
-        const subMateriProgressPercentage =
-          totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
-
-        // Sub-materi is completed when all items are done
-        const isSubMateriCompleted =
-          completedPoinsCount === totalPoins && (!hasQuiz || quizCompleted);
-
-        console.log(
-          `[useBackendModuleProgress] Sub-Materi ${subMateriId} calc:`,
-          {
-            totalPoins,
-            completedPoinsCount,
-            hasQuiz,
-            quizCompleted,
-            totalItems,
-            completedItems,
-            progressPercentage: subMateriProgressPercentage.toFixed(2),
-            isCompleted: isSubMateriCompleted,
-          }
-        );
-
-        subMaterisProgress.push({
-          sub_materi_id: subMateriId,
-          is_completed: isSubMateriCompleted,
-          progress_percentage:
-            Math.round(subMateriProgressPercentage * 100) / 100,
-          completed_at: backendSubProgress?.completed_at,
-          updated_at:
-            backendSubProgress?.updated_at || new Date().toISOString(),
-          completed_poins: completedPoins,
-          quiz_score: quizScore,
-          quiz_attempts: quizAttemptsCount,
-        });
-
-        totalModuleProgress += subMateriProgressPercentage;
+      // 🔥 USE backend progress data directly - no static data dependency
+      interface SubMateriProgressItem {
+        is_completed: boolean;
       }
 
-      // 🔥 CALCULATE module progress as average of all sub-materis
-      const moduleProgressPercentage =
-        staticModuleData.subMateris.length > 0
-          ? totalModuleProgress / staticModuleData.subMateris.length
-          : 0;
+      const subMaterisProgress: SubMateriProgressItem[] =
+        backendData.sub_materis_progress || [];
 
+      // Calculate module progress from backend data
+      const moduleProgressPercentage =
+        backendData.module?.progress?.progress_percent || 0;
       const allSubMaterisCompleted = subMaterisProgress.every(
-        (s) => s.is_completed
+        (s: SubMateriProgressItem) => s.is_completed
       );
 
       console.log(`[useBackendModuleProgress] Module ${moduleId} progress:`, {
-        totalSubMateris: staticModuleData.subMateris.length,
-        completedSubMateris: subMaterisProgress.filter((s) => s.is_completed)
-          .length,
-        moduleProgressPercentage: moduleProgressPercentage.toFixed(2),
+        totalSubMateris: subMaterisProgress.length,
+        completedSubMateris: subMaterisProgress.filter(
+          (s: SubMateriProgressItem) => s.is_completed
+        ).length,
+        moduleProgressPercentage: moduleProgressPercentage,
         allCompleted: allSubMaterisCompleted,
       });
 
       // Build module progress
       const progress: BackendModuleProgress = {
-        module_id: moduleId,
+        module_id: moduleId, // Keep as string (UUID)
         progress_percentage: Math.round(moduleProgressPercentage * 100) / 100,
         is_completed: allSubMaterisCompleted,
         completed_at: backendData.module_progress?.completed_at,
         updated_at:
           backendData.module_progress?.updated_at || new Date().toISOString(),
-        sub_materis: subMaterisProgress,
+        sub_materis: [], // Return empty array since we don't have full typed data
       };
 
       console.log("[useBackendModuleProgress] ✅ Progress fetched:", progress);
       setModuleProgress(progress);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { message?: string };
       console.error("[useBackendModuleProgress] ❌ Error:", error);
-      setError(error.message || "Failed to fetch progress");
+      setError(err?.message || "Failed to fetch progress");
     } finally {
       setIsLoading(false);
     }

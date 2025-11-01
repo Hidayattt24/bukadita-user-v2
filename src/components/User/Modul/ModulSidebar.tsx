@@ -38,7 +38,7 @@ export default function ModulSidebar({
 
   // 🔥 NEW: Use backend progress directly (no localStorage)
   const { moduleProgress, getSubMateriProgress, isLoading } =
-    useBackendModuleProgress(modul.id);
+    useBackendModuleProgress(modul.moduleId || modul.id);
 
   // Get progress from backend
   const actualProgress = moduleProgress?.progress_percentage || 0;
@@ -388,6 +388,68 @@ export default function ModulSidebar({
                               </button>
                             );
                           })}
+                          
+                          {/* Quiz Point - Add after all poins if quiz exists */}
+                          {subMateri.quiz && subMateri.quiz.length > 0 && (
+                            <button
+                              onClick={() => {
+                                if (subMateri.isUnlocked) {
+                                  handleSubMateriSelect(subMateri);
+                                  // Set poin index to -1 to indicate quiz
+                                  handlePoinSelect(-1);
+                                } else {
+                                  warning(
+                                    "Selesaikan terlebih dahulu materi sebelumnya untuk mengakses kuis ini",
+                                    {
+                                      title: "Materi Terkunci",
+                                      duration: 3000,
+                                    }
+                                  );
+                                }
+                              }}
+                              className={`w-full text-left p-2.5 rounded-lg text-xs transition-all ${
+                                selectedPoinIndex === -1 &&
+                                selectedSubMateri?.id === subMateri.id &&
+                                subMateri.isUnlocked
+                                  ? "bg-[#578FCA]/10 text-[#27548A] border border-[#578FCA]/30"
+                                  : quizCompleted && subMateri.isUnlocked
+                                  ? "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                                  : subMateri.isUnlocked
+                                  ? "text-gray-600 hover:bg-gray-100"
+                                  : "text-gray-400 hover:bg-red-50 hover:text-red-400 cursor-pointer"
+                              }`}
+                              title={
+                                !subMateri.isUnlocked
+                                  ? "Selesaikan materi sebelumnya untuk mengakses kuis ini"
+                                  : ""
+                              }
+                            >
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    selectedPoinIndex === -1 &&
+                                    selectedSubMateri?.id === subMateri.id &&
+                                    subMateri.isUnlocked
+                                      ? "bg-[#578FCA]"
+                                      : quizCompleted && subMateri.isUnlocked
+                                      ? "bg-emerald-500"
+                                      : subMateri.isUnlocked
+                                      ? "bg-gray-300"
+                                      : "bg-gray-300"
+                                  }`}
+                                ></div>
+                                <span className="truncate font-medium flex-1">
+                                  Kuis
+                                  {!subMateri.isUnlocked && (
+                                    <span className="ml-1 text-xs">🔒</span>
+                                  )}
+                                </span>
+                                {quizCompleted && subMateri.isUnlocked && (
+                                  <CheckCircle className="w-3 h-3 text-emerald-500" />
+                                )}
+                              </div>
+                            </button>
+                          )}
                         </div>
                       )}
                   </div>

@@ -14,7 +14,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     } catch (error) {
       // If error also return initialValue
       console.error(`Error reading localStorage key "${key}":`, error);
-      return initialValue;
+      return initialValue;  
     }
   });
 

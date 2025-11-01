@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { type SubMateri, type QuizResult } from "@/data/modules";
+import { type SubMateri, type QuizResult } from "@/types/modul";
 import QuizInstruction from "./QuizInstruction";
 import QuizPlayer from "./QuizPlayer";
 import QuizResultComponent from "./QuizResult";
@@ -9,10 +9,9 @@ import { useProgressSync } from "@/hooks/useProgressSync";
 
 interface QuizManagerProps {
   subMateri: SubMateri;
-  moduleId: number; // Add moduleId
+  moduleId: number | string; // ✅ Accept both for compatibility (should be UUID string for API)
   onQuizComplete: (result: QuizResult) => void;
   onContinueToNext: () => void;
-  onBackToContent: () => void;
 }
 
 type QuizState = "instruction" | "playing" | "result";
@@ -22,7 +21,6 @@ export default function QuizManager({
   moduleId,
   onQuizComplete,
   onContinueToNext,
-  onBackToContent,
 }: QuizManagerProps) {
   const { user } = useAuth();
   const [currentState, setCurrentState] = useState<QuizState>("instruction");
@@ -31,9 +29,60 @@ export default function QuizManager({
     subMateri.quizResult || null
   );
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [quizQuestions, setQuizQuestions] = useState<SubMateri["quiz"]>(subMateri.quiz || []);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+
+  // ✅ CRITICAL FIX: Store actual quiz ID from backend (not question ID)
+  const [quizId, setQuizId] = useState<string | undefined>();
 
   // 🔥 NEW: Hook to sync progress from backend
   const { syncModuleProgress } = useProgressSync(moduleId);
+
+  // Fetch quiz questions from backend when component mounts
+  useEffect(() => {
+    const fetchQuizQuestions = async () => {
+      console.log("[QuizManager] 📋 Fetching quiz questions for sub-materi:", subMateri.id);
+
+      setIsLoadingQuestions(true);
+      try {
+        const response = await QuizService.getQuestionsForSubMateri(subMateri.id);
+
+        console.log("[QuizManager] 📥 Questions response:", response);
+
+        if (!response.error && response.data?.questions && response.data.questions.length > 0) {
+          // ✅ CRITICAL FIX: Extract quiz_id from response (not from question ID)
+          const actualQuizId = response.data.quiz_id;
+          console.log("[QuizManager] ✅ Extracted quiz_id from response:", actualQuizId);
+          setQuizId(actualQuizId);
+
+          // Convert backend questions to frontend Quiz type
+          const frontendQuestions = response.data.questions.map((q) => ({
+            id: q.id,
+            question: q.question_text,
+            options: q.options.map((opt) => opt.text),
+            correctAnswer: q.correct_answer_index,
+            explanation: q.explanation,
+          }));
+
+          console.log("[QuizManager] ✅ Loaded", frontendQuestions.length, "quiz questions:", frontendQuestions);
+          setQuizQuestions(frontendQuestions);
+        } else {
+          console.log("[QuizManager] ⚠️ No questions found, using placeholder questions");
+          setQuizQuestions(subMateri.quiz || []);
+          setQuizId(undefined);
+        }
+      } catch (error: unknown) {
+        console.error("[QuizManager] ❌ Error fetching questions:", error);
+        // Fallback to existing quiz
+        setQuizQuestions(subMateri.quiz || []);
+        setQuizId(undefined);
+      } finally {
+        setIsLoadingQuestions(false);
+      }
+    };
+
+    fetchQuizQuestions();
+  }, [subMateri.id, subMateri.quiz]);
 
   // Fetch quiz history from backend when component mounts (SIMPLE SYSTEM)
   useEffect(() => {
@@ -58,55 +107,73 @@ export default function QuizManager({
           subMateriId: subMateri.id,
         });
 
-        const response = await QuizService.getSimpleQuizResults(
-          moduleId,
-          subMateri.id
-        );
+        const response = await QuizService.getQuizHistoryByModule(moduleId);
 
         console.log("[QuizManager] 📦 Backend response:", response);
 
-        if (response.data?.attempt) {
-          const attempt = response.data.attempt;
+        if (response.data?.attempts && response.data.attempts.length > 0) {
+          // Find the most recent attempt for this sub-materi
+          const attemptsRaw = response.data.attempts as Array<Record<string, unknown>>;
 
-          console.log("[QuizManager] ✅ Attempt found:", {
-            id: attempt.id,
-            score: attempt.score,
-            is_passed: attempt.is_passed,
-            answers: attempt.answers,
+          const subMateriAttempts = attemptsRaw.filter((attempt) => {
+            if (typeof attempt !== "object" || attempt === null) return false;
+            const materis_quizzes = attempt["materis_quizzes"] as Record<string, unknown> | undefined;
+            if (!materis_quizzes) return false;
+            const sub_materis = materis_quizzes["sub_materis"] as Record<string, unknown> | undefined;
+            if (!sub_materis) return false;
+            return String(sub_materis["id"]) === subMateri.id;
           });
 
-          // Convert backend attempt to QuizResult format
-          const result: QuizResult = {
-            score: attempt.score || 0,
-            totalQuestions: attempt.total_questions || 0,
-            correctAnswers: attempt.correct_answers || 0,
-            answers: attempt.answers || [],
-            passed: attempt.is_passed || false,
-          };
+          if (subMateriAttempts.length > 0) {
+            const latestAttempt = subMateriAttempts[0]; // Most recent attempt
 
-          console.log(
-            "[QuizManager] 🎯 Quiz history loaded successfully:",
-            result
-          );
-          setLatestResult(result);
-          setQuizHistory([result]);
+            const attemptRecord = latestAttempt as Record<string, unknown>;
+            const attemptId = attemptRecord["id"];
+            const attemptScore = typeof attemptRecord["score"] === "number" ? (attemptRecord["score"] as number) : Number(attemptRecord["score"] || 0);
+            const attemptPassed = Boolean(attemptRecord["passed"]);
 
-          // If quiz was already completed, show result directly
-          if (attempt.completed_at) {
+            console.log("[QuizManager] ✅ Attempt found:", {
+              id: attemptId,
+              score: attemptScore,
+              passed: attemptPassed,
+            });
+
+            // Convert backend attempt to QuizResult format
+            const result: QuizResult = {
+              score: attemptScore,
+              totalQuestions: 0, // Will be updated when we have the actual quiz
+              correctAnswers: 0, // Will be calculated from score
+              answers: [], // Not available in this response
+              passed: attemptPassed,
+            };
+
             console.log(
-              "[QuizManager] 🎬 Quiz already completed, showing result"
+              "[QuizManager] 🎯 Quiz history loaded successfully:",
+              result
             );
-            setCurrentState("result");
+            setLatestResult(result);
+            setQuizHistory([result]);
+
+            // If quiz was already completed, show result directly
+            if (latestAttempt.completed_at) {
+              console.log(
+                "[QuizManager] 🎬 Quiz already completed, showing result"
+              );
+              setCurrentState("result");
+            }
+          } else {
+            console.log("[QuizManager] ℹ️ No quiz history found for this sub-materi");
           }
         } else {
           console.log("[QuizManager] ℹ️ No quiz history found");
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("[QuizManager] ❌ Error fetching quiz history:", error);
+        const errRec = error as Record<string, unknown>;
         console.error("[QuizManager] Error details:", {
-          message: error?.message,
-          status: error?.status,
-          code: error?.code,
+          message: typeof errRec["message"] === "string" ? (errRec["message"] as string) : undefined,
+          status: errRec["status"],
+          code: errRec["code"],
         });
         // Silently fail - user can still take quiz
       } finally {
@@ -130,10 +197,83 @@ export default function QuizManager({
   };
 
   const handleQuizComplete = async (result: QuizResult) => {
-    setLatestResult(result);
-    setQuizHistory((prev) => [...prev, result]);
-    setCurrentState("result");
-    onQuizComplete(result);
+    // 🔥 NEW: Fetch detailed results from backend to get correct answer indices
+    console.log("[QuizManager] 📥 Fetching detailed results from backend...");
+
+    // ✅ Use quizId from state (not from question ID)
+    if (quizId) {
+      try {
+        const detailedResults = await QuizService.getQuizResults(quizId);
+        console.log("[QuizManager] 📦 Detailed results from backend:", detailedResults);
+
+        // ✅ Handle null return (expected on 404)
+        if (detailedResults) {
+          const answerDetails = Array.isArray(detailedResults.answer_details)
+            ? detailedResults.answer_details
+            : [];
+
+          // Enrich result with correct answer details from backend
+          const enrichedAnswers = result.answers?.map((answer) => {
+            const backendAnswer = answerDetails?.find(
+              (ba: unknown) => {
+                const baObj = ba as Record<string, unknown>;
+                const qData = baObj["materis_quiz_questions"] as Record<string, unknown>;
+                return String(qData?.["id"]) === String(answer.questionId);
+              }
+            );
+
+            if (backendAnswer) {
+              const baObj = backendAnswer as Record<string, unknown>;
+              const qData = baObj["materis_quiz_questions"] as Record<string, unknown>;
+              return {
+                questionId: answer.questionId,
+                selectedAnswer: answer.selectedAnswer,
+                isCorrect: Boolean(baObj["is_correct"]),  // ✅ Use backend flag
+                correctAnswer: Number(qData["correct_answer_index"]),  // ✅ Use backend value
+                question: String(qData["question_text"]),
+                options: Array.isArray(qData["options"]) ? qData["options"].map((o: unknown) => {
+                  if (typeof o === "string") return o;
+                  const oObj = o as Record<string, unknown>;
+                  return String(oObj["text"] || o);
+                }) : [],
+                explanation: String(qData["explanation"] || ""),
+              };
+            }
+            return answer;
+          }) || [];
+
+          const enrichedResult: QuizResult = {
+            ...result,
+            answers: enrichedAnswers,
+          };
+
+          console.log("[QuizManager] ✅ Result enriched with backend data");
+          setLatestResult(enrichedResult);
+          setQuizHistory((prev) => [...prev, enrichedResult]);
+          setCurrentState("result");
+          onQuizComplete(enrichedResult);
+        } else {
+          // Fallback to original result if backend returns null (404)
+          console.warn("[QuizManager] ⚠️ No detailed results from backend (404), using local calculation");
+          setLatestResult(result);
+          setQuizHistory((prev) => [...prev, result]);
+          setCurrentState("result");
+          onQuizComplete(result);
+        }
+      } catch (error) {
+        console.error("[QuizManager] ❌ Error fetching detailed results:", error);
+        // Fallback to original result
+        setLatestResult(result);
+        setQuizHistory((prev) => [...prev, result]);
+        setCurrentState("result");
+        onQuizComplete(result);
+      }
+    } else {
+      setLatestResult(result);
+      setQuizHistory((prev) => [...prev, result]);
+      setCurrentState("result");
+      onQuizComplete(result);
+    }
 
     // 🔥 CRITICAL: Sync progress from backend after quiz completion
     console.log("[QuizManager] 🔄 Syncing progress after quiz completion...");
@@ -153,37 +293,44 @@ export default function QuizManager({
     setCurrentState("instruction");
   };
 
-  // Show loading state while fetching quiz history
-  if (isLoadingHistory) {
+  // Show loading state while fetching quiz history or questions
+  if (isLoadingHistory || isLoadingQuestions) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
-          <p className="mt-4 text-gray-600">Memuat history kuis...</p>
+          <p className="mt-4 text-gray-600">
+            {isLoadingQuestions ? "Memuat soal kuis..." : "Memuat history kuis..."}
+          </p>
         </div>
       </div>
     );
   }
 
   if (currentState === "playing") {
+    // ✅ CRITICAL FIX: Use actual quiz ID from state (not question ID from questions[0].id)
     console.log(
-      "[QuizManager] 🎮 Starting quiz with quizId:",
-      subMateri.quizId || "undefined (using local quiz only)"
+      "[QuizManager] 🎮 Starting quiz with:",
+      {
+        questionsCount: quizQuestions.length,
+        quizId, // ✅ Now using correct quiz ID
+        moduleId,
+        subMateriId: subMateri.id,
+      }
     );
 
-    // Show warning if no quizId (quiz not in backend)
-    if (!subMateri.quizId) {
+    // Show warning if no questions loaded
+    if (quizQuestions.length === 0) {
       console.warn(
-        "[QuizManager] ⚠️ No quizId found - quiz results will NOT be saved to backend!",
-        "\nTo fix: Add quizId to sub-materi in static data files (e.g., pengelolaan-posyandu.ts)",
-        "\nExample: { id: 'sub1', quizId: 'uuid-from-backend', ... }"
+        "[QuizManager] ⚠️ No quiz questions loaded!",
+        "\nTo fix: Ensure quiz questions are fetched from backend endpoint: /api/v1/materials/:subMateriId/quiz"
       );
     }
 
     return (
       <QuizPlayer
-        quizzes={subMateri.quiz}
-        quizId={subMateri.quizId}
+        quizzes={quizQuestions}
+        quizId={quizId}
         moduleId={moduleId}
         subMateriId={subMateri.id}
         onQuizComplete={handleQuizComplete}
@@ -196,7 +343,7 @@ export default function QuizManager({
     return (
       <QuizResultComponent
         result={latestResult}
-        quizzes={subMateri.quiz}
+        quizzes={quizQuestions}
         onRetakeQuiz={handleRetakeQuiz}
         onContinue={handleContinue}
         onBackToInstruction={handleBackToInstruction}
@@ -206,7 +353,7 @@ export default function QuizManager({
 
   return (
     <QuizInstruction
-      subMateri={subMateri}
+      subMateri={{ ...subMateri, quiz: quizQuestions }}
       onStartQuiz={handleStartQuiz}
       onRetakeQuiz={handleRetakeQuiz}
       quizHistory={quizHistory}

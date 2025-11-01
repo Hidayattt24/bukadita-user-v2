@@ -13,7 +13,7 @@ export default function ContinueLearningSection({
   // 🔥 FIX: Use useBackendModuleProgress instead of useBackendProgress
   // This ensures accurate progress calculation like sidebar
   const { moduleProgress, isLoading } = useBackendModuleProgress(
-    lastStudiedModul?.id || null
+    lastStudiedModul?.moduleId || lastStudiedModul?.id || null
   );
 
   // Get actual progress from backend (calculated with static data)

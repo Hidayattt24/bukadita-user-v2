@@ -13,6 +13,8 @@ export interface Quiz {
   options: string[];
   correctAnswer: number;
   explanation: string;
+  timeLimit?: number; // Time limit in minutes
+  passingScore?: number; // Passing score percentage
 }
 
 export interface QuizResult {
@@ -38,7 +40,8 @@ export interface SubMateri {
 }
 
 export interface DetailModul {
-  id: number;
+  id: number; // For legacy compatibility (converted from UUID)
+  moduleId?: string; // ✅ NEW: Store actual UUID for API calls
   slug: string;
   title: string;
   description: string;

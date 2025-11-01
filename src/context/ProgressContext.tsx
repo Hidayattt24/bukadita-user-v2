@@ -25,11 +25,6 @@ interface ProgressContextType {
     subMateriId: string,
     updates: Partial<SubMateriProgress>
   ) => void;
-  markPoinCompleted: (
-    moduleId: number,
-    subMateriId: string,
-    poinId: string
-  ) => void;
   updateCurrentPoin: (
     moduleId: number,
     subMateriId: string,

@@ -27,6 +27,7 @@ export default function ProgressLearningSection({
             <ProgressModuleCard
               key={modul.id}
               id={modul.id}
+              moduleId={modul.moduleId}
               slug={modul.slug}
               title={modul.title}
               description={modul.description}

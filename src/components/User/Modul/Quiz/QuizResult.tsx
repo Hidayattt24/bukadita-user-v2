@@ -6,10 +6,9 @@ import {
   RotateCcw,
   ArrowRight,
   Target,
-  Clock,
   Award,
 } from "lucide-react";
-import { type QuizResult, type Quiz } from "@/data/modules";
+import { type QuizResult, type Quiz } from "@/types/modul";
 
 interface QuizResultProps {
   result: QuizResult;
@@ -90,11 +89,10 @@ export default function QuizResultComponent({
 
         {/* Status Card */}
         <div
-          className={`mb-6 sm:mb-8 p-4 sm:p-6 rounded-xl sm:rounded-2xl ${
-            passed
+          className={`mb-6 sm:mb-8 p-4 sm:p-6 rounded-xl sm:rounded-2xl ${passed
               ? "bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-emerald-200"
               : "bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-200"
-          }`}
+            }`}
         >
           <div className="flex items-center gap-3 sm:gap-4">
             {passed ? (
@@ -104,16 +102,14 @@ export default function QuizResultComponent({
             )}
             <div>
               <h3
-                className={`text-lg sm:text-xl font-bold ${
-                  passed ? "text-emerald-800" : "text-red-800"
-                }`}
+                className={`text-lg sm:text-xl font-bold ${passed ? "text-emerald-800" : "text-red-800"
+                  }`}
               >
                 {passed ? "Selamat! Anda Lulus ✨" : "Belum Lulus 📚"}
               </h3>
               <p
-                className={`text-sm sm:text-base ${
-                  passed ? "text-emerald-700" : "text-red-700"
-                }`}
+                className={`text-sm sm:text-base ${passed ? "text-emerald-700" : "text-red-700"
+                  }`}
               >
                 {passed
                   ? "Anda dapat melanjutkan ke materi berikutnya"
@@ -171,9 +167,8 @@ export default function QuizResultComponent({
                   </span>
                 </div>
                 <span
-                  className={`text-sm sm:text-base font-bold ${
-                    passed ? "text-emerald-600" : "text-red-600"
-                  }`}
+                  className={`text-sm sm:text-base font-bold ${passed ? "text-emerald-600" : "text-red-600"
+                    }`}
                 >
                   {passed ? "LULUS" : "TIDAK LULUS"}
                 </span>
@@ -190,18 +185,22 @@ export default function QuizResultComponent({
             <div className="space-y-3 max-h-[400px] sm:max-h-96 overflow-y-auto pr-2 custom-scrollbar">
               {answers.map((answer, index) => {
                 const quiz = quizzes[index];
-                const isCorrect = answer.isCorrect;
+                // ✅ Use isCorrect from enriched answer data (from backend)
+                const isCorrect = answer.isCorrect ?? (quiz.correctAnswer === answer.selectedAnswer);
                 const userAnswerIndex = answer.selectedAnswer;
-                const correctAnswerIndex = quiz.correctAnswer;
+                // ✅ Use correctAnswer from enriched data, fallback to quiz.correctAnswer
+                const correctAnswerIndex = answer.correctAnswer ?? quiz.correctAnswer ?? 0;
+                // ✅ Use question/options from enriched data if available
+                const questionText = answer.question ?? quiz.question;
+                const questionOptions = answer.options ?? quiz.options;
 
                 return (
                   <div
                     key={index}
-                    className={`p-3 sm:p-4 rounded-xl border-l-4 transition-all hover:shadow-md ${
-                      isCorrect
+                    className={`p-3 sm:p-4 rounded-xl border-l-4 transition-all hover:shadow-md ${isCorrect
                         ? "bg-emerald-50 border-emerald-500 hover:bg-emerald-100"
                         : "bg-red-50 border-red-500 hover:bg-red-100"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-start gap-2 sm:gap-3">
                       {isCorrect ? (
@@ -218,30 +217,28 @@ export default function QuizResultComponent({
                           <span className="text-[#578FCA]">
                             Soal {index + 1}:
                           </span>{" "}
-                          {quiz.question.length > 80
-                            ? `${quiz.question.substring(0, 80)}...`
-                            : quiz.question}
+                          {questionText.length > 80
+                            ? `${questionText.substring(0, 80)}...`
+                            : questionText}
                         </p>
                         <div className="space-y-1.5 text-xs sm:text-sm">
                           {/* User's Answer */}
                           <div
-                            className={`p-2 rounded-lg ${
-                              isCorrect
+                            className={`p-2 rounded-lg ${isCorrect
                                 ? "bg-white/50 border border-emerald-200"
                                 : "bg-white/50 border border-red-200"
-                            }`}
+                              }`}
                           >
                             <p className="font-medium text-gray-600 mb-0.5">
                               Jawaban Anda:
                             </p>
                             <p
-                              className={`font-semibold ${
-                                isCorrect ? "text-emerald-700" : "text-red-700"
-                              }`}
+                              className={`font-semibold ${isCorrect ? "text-emerald-700" : "text-red-700"
+                                }`}
                             >
                               {userAnswerIndex !== undefined &&
-                              userAnswerIndex >= 0
-                                ? quiz.options[userAnswerIndex]
+                                userAnswerIndex >= 0
+                                ? questionOptions[userAnswerIndex]
                                 : "Tidak dijawab"}
                             </p>
                           </div>
@@ -253,19 +250,19 @@ export default function QuizResultComponent({
                                 ✓ Jawaban Benar:
                               </p>
                               <p className="font-semibold text-emerald-700">
-                                {quiz.options[correctAnswerIndex]}
+                                {questionOptions[correctAnswerIndex]}
                               </p>
                             </div>
                           )}
 
                           {/* Explanation if available */}
-                          {quiz.explanation && (
+                          {(answer.explanation ?? quiz.explanation) && (
                             <div className="p-2 rounded-lg bg-blue-50 border border-blue-200 mt-2">
                               <p className="font-medium text-gray-600 mb-0.5">
                                 💡 Penjelasan:
                               </p>
                               <p className="text-gray-700 leading-relaxed">
-                                {quiz.explanation}
+                                {answer.explanation ?? quiz.explanation}
                               </p>
                             </div>
                           )}

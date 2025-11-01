@@ -116,16 +116,6 @@ const FloatingNotes: React.FC = () => {
     setNotes(updatedNotes);
   };
 
-  // Handle greeting hover/touch - disabled for auto-show only
-  const handleIconHover = () => {
-    // Disabled - greeting only shows on first visit automatically
-  };
-
-  // Handle mobile touch for greeting - disabled
-  const handleIconTouch = () => {
-    // Disabled - greeting only shows on first visit automatically
-  };
-
   // Handle manual close of greeting
   const handleCloseGreeting = () => {
     setShowGreeting(false);
@@ -144,9 +134,8 @@ const FloatingNotes: React.FC = () => {
   ) => {
     const toastDiv = document.createElement("div");
     toastDiv.textContent = message;
-    toastDiv.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-[70] text-sm text-white ${
-      type === "success" ? "bg-green-500" : "bg-red-500"
-    }`;
+    toastDiv.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-[70] text-sm text-white ${type === "success" ? "bg-green-500" : "bg-red-500"
+      }`;
     document.body.appendChild(toastDiv);
 
     // Add fade in animation
@@ -265,9 +254,8 @@ const FloatingNotes: React.FC = () => {
       }
 
       // Save PDF
-      const fileName = `catatan-bukadita-${
-        new Date().toISOString().split("T")[0]
-      }.pdf`;
+      const fileName = `catatan-bukadita-${new Date().toISOString().split("T")[0]
+        }.pdf`;
       pdf.save(fileName);
 
       showToast(`Catatan berhasil diekspor ke ${fileName}`);
@@ -392,7 +380,7 @@ const FloatingNotes: React.FC = () => {
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={{ opacity: 0, x: 20, scale: 0.8 }}
                 onClick={handleGreetingClick}
-                className="absolute bottom-16 right-0 bg-white shadow-lg rounded-lg p-3 sm:p-4 min-w-[200px] max-w-[260px] sm:min-w-[240px] sm:max-w-[280px] border border-gray-200 relative cursor-pointer hover:bg-gray-50 transition-colors mr-0 sm:mr-0"
+                className="absolute bottom-16 right-0 bg-white shadow-lg rounded-lg p-3 sm:p-4 min-w-[200px] max-w-[260px] sm:min-w-[240px] sm:max-w-[280px] border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors mr-0 sm:mr-0 z-40"
               >
                 <button
                   onClick={(e) => {
@@ -414,9 +402,8 @@ const FloatingNotes: React.FC = () => {
           {/* Main Icon */}
           <button
             onClick={() => setIsOpen(true)}
-            className={`w-14 h-14 sm:w-14 sm:h-14 bg-gradient-to-br from-[#578FCA] to-[#27548A] text-white rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-300 flex items-center justify-center ${
-              showGreeting ? "animate-subtle-glow" : ""
-            }`}
+            className={`w-14 h-14 sm:w-14 sm:h-14 bg-gradient-to-br from-[#578FCA] to-[#27548A] text-white rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-300 flex items-center justify-center ${showGreeting ? "animate-subtle-glow" : ""
+              }`}
             aria-label="Buka Catatan"
           >
             <BookOpen size={22} className="sm:w-6 sm:h-6" />
@@ -687,8 +674,8 @@ const FloatingNotes: React.FC = () => {
                     {isLoading
                       ? "Menyimpan..."
                       : editingNote
-                      ? "Update"
-                      : "Simpan"}
+                        ? "Update"
+                        : "Simpan"}
                   </button>
                 </div>
               </div>
@@ -727,7 +714,7 @@ const FloatingNotes: React.FC = () => {
                 <p className="text-xs sm:text-sm text-center text-gray-600 mb-5 sm:mb-6 px-2">
                   Apakah Anda yakin ingin menghapus catatan{" "}
                   <span className="font-medium">
-                    "{deleteConfirm.noteTitle}"
+                    {deleteConfirm.noteTitle}
                   </span>
                   ? Tindakan ini tidak dapat dibatalkan.
                 </p>
