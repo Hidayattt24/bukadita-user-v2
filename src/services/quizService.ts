@@ -53,11 +53,11 @@ export interface QuizResult {
   score: number; // numeric type from database
   total_questions?: number;
   correct_answers?: number;
-  passed: boolean;
+  passed: boolean; // correct field name in database
   answers?: Record<string, unknown>; // JSONB field
   created_at?: string;
   started_at?: string;
-  completed_at?: string;
+  completed_at?: string; // correct field name in database
 }
 
 export interface QuizAttempt {
@@ -66,11 +66,11 @@ export interface QuizAttempt {
   user_id: string;
   questions?: QuizQuestion[];
   started_at?: string;
-  completed_at?: string;
+  completed_at?: string; // correct field name in database
   score?: number;
   total_questions?: number;
   correct_answers?: number;
-  passed?: boolean;
+  passed?: boolean; // correct field name in database
   answers?: Record<string, unknown>; // JSONB field
   created_at?: string;
 }
@@ -137,33 +137,35 @@ export class QuizService {
 
   /**
    * Get quiz questions by quiz ID
-   * Uses the user quiz endpoint for taking quizzes
+   * Uses the main quiz system endpoint
    */
   static async getQuestions(
     quizId: string
   ): Promise<ApiResponse<QuizQuestion[]>> {
     try {
-      return await apiClient.get<QuizQuestion[]>(
-        `/user-quizzes/${quizId}/questions`,
+      console.log("[QUIZ_SERVICE] 🔍 Getting questions for quizId:", quizId);
+      const response = await apiClient.get<QuizQuestion[]>(
+        `/quizzes/${quizId}/questions`,
         {
           auth: true, // Requires authentication
         }
       );
+      console.log("[QUIZ_SERVICE] ✅ Questions response:", response);
+      return response;
     } catch (err) {
+      console.error("[QUIZ_SERVICE] ❌ Error getting questions:", err);
       throw err;
     }
   }
 
   /**
    * Start a quiz attempt (requires auth)
-   * Note: This might not be needed if questions endpoint directly provides questions
+   * Uses the main quiz system endpoint
    */
   static async startAttempt(quizId: string): Promise<ApiResponse<QuizAttempt>> {
     try {
-      // Based on documentation, questions are directly available via /user-quizzes/:id/questions
-      // This method might not be needed, but keeping for compatibility
       return await apiClient.post<QuizAttempt>(
-        `/user-quizzes/${quizId}/attempt`,
+        `/quizzes/${quizId}/start`,
         {},
         { auth: true }
       );
@@ -174,7 +176,7 @@ export class QuizService {
 
   /**
    * Submit quiz answers (requires auth)
-   * Uses the correct user quiz submission endpoint
+   * Uses the main quiz system endpoint
    */
   static async submitAnswers(
     quizId: string,
@@ -188,7 +190,7 @@ export class QuizService {
       };
 
       return await apiClient.post<QuizResult>(
-        `/user-quizzes/${quizId}/submit`,
+        `/quizzes/${quizId}/submit`,
         submission,
         { auth: true }
       );
@@ -205,15 +207,12 @@ export class QuizService {
     try {
       if (quizId) {
         // Get results for specific quiz
-        return await apiClient.get<QuizResult[]>(
-          `/user-quizzes/my-results/${quizId}`,
-          {
-            auth: true,
-          }
-        );
+        return await apiClient.get<QuizResult[]>(`/quizzes/${quizId}/results`, {
+          auth: true,
+        });
       } else {
         // Get all user's quiz results
-        return await apiClient.get<QuizResult[]>(`/user-quizzes/my-results`, {
+        return await apiClient.get<QuizResult[]>(`/quizzes/attempts/my`, {
           auth: true,
         });
       }
@@ -224,11 +223,11 @@ export class QuizService {
 
   /**
    * Get quiz by ID
-   * Uses the user endpoint for viewing published quizzes
+   * Uses the main quiz system endpoint
    */
   static async getById(quizId: string): Promise<ApiResponse<Quiz>> {
     try {
-      return await apiClient.get<Quiz>(`/kuis/${quizId}`, { auth: true });
+      return await apiClient.get<Quiz>(`/quizzes/${quizId}`, { auth: true });
     } catch (err) {
       throw err;
     }
@@ -239,7 +238,7 @@ export class QuizService {
    */
   static async getAllQuizzes(): Promise<ApiResponse<Quiz[]>> {
     try {
-      return await apiClient.get<Quiz[]>(`/kuis`, { auth: true });
+      return await apiClient.get<Quiz[]>(`/quizzes`, { auth: true });
     } catch (err) {
       throw err;
     }
@@ -247,7 +246,7 @@ export class QuizService {
 
   /**
    * Start a new quiz attempt (requires auth)
-   * POST /api/v1/user-quizzes/:quizId/start
+   * POST /api/v1/quizzes/:quizId/start
    */
   static async startQuizAttempt(quizId: string): Promise<
     ApiResponse<{
@@ -258,7 +257,7 @@ export class QuizService {
   > {
     try {
       return await apiClient.post(
-        `/user-quizzes/${quizId}/start`,
+        `/quizzes/${quizId}/start`,
         {},
         { auth: true }
       );
@@ -274,7 +273,7 @@ export class QuizService {
 
   /**
    * Get quiz questions for active attempt (requires auth)
-   * GET /api/v1/user-quizzes/:quizId/questions
+   * GET /api/v1/quizzes/:quizId/questions
    */
   static async getQuizQuestions(quizId: string): Promise<
     ApiResponse<{
@@ -284,7 +283,7 @@ export class QuizService {
     }>
   > {
     try {
-      return await apiClient.get(`/user-quizzes/${quizId}/questions`, {
+      return await apiClient.get(`/quizzes/${quizId}/questions`, {
         auth: true,
       });
     } catch (err) {
@@ -299,7 +298,7 @@ export class QuizService {
 
   /**
    * Submit quiz answers (requires auth)
-   * POST /api/v1/user-quizzes/:quizId/submit
+   * POST /api/v1/quizzes/:quizId/submit
    */
   static async submitQuizAnswers(
     quizId: string,
@@ -311,14 +310,14 @@ export class QuizService {
         score: number;
         correct_answers: number;
         total_questions: number;
-        is_passed: boolean;
+        passed: boolean;
         passing_score: number;
       };
     }>
   > {
     try {
       return await apiClient.post(
-        `/user-quizzes/${quizId}/submit`,
+        `/quizzes/${quizId}/submit`,
         { answers },
         { auth: true }
       );
@@ -334,29 +333,64 @@ export class QuizService {
 
   /**
    * Get quiz results (requires auth)
-   * GET /api/v1/user-quizzes/:quizId/results?includeAnswers=true
+   * GET /api/v1/quizzes/:quizId/results?includeAnswers=true
+   *
+   * Returns null if no results found (404) - this is expected immediately after submission
+   * Throws for other errors
    */
   static async getQuizResults(
     quizId: string,
     includeAnswers: boolean = false
-  ): Promise<
-    ApiResponse<{
-      quiz: Quiz;
-      attempt: QuizAttempt;
-      answer_details?: any[];
-    }>
-  > {
+  ): Promise<{
+    quiz: Quiz;
+    attempt: QuizAttempt;
+    answer_details?: Array<Record<string, unknown>>;
+  } | null> {
     try {
       const queryParams = includeAnswers ? "?includeAnswers=true" : "";
-      return await apiClient.get(
-        `/user-quizzes/${quizId}/results${queryParams}`,
-        { auth: true }
-      );
+      const response = await apiClient.get<{
+        quiz: Quiz;
+        attempt: QuizAttempt;
+        answer_details?: Array<Record<string, unknown>>;
+      }>(`/quizzes/${quizId}/results${queryParams}`, {
+        auth: true,
+      });
+
+      console.log("[QUIZ_SERVICE] ✅ Quiz results fetched successfully:", {
+        quizId,
+        hasAnswerDetails:
+          !!response.data &&
+          "answer_details" in response.data &&
+          Array.isArray(
+            (response.data as { answer_details?: unknown }).answer_details
+          ),
+      });
+
+      return response.data || null;
     } catch (err) {
       const error = err as ApiError;
-      console.error("[QUIZ_SERVICE] Error fetching quiz results:", {
+
+      // 404 is expected if no results available yet (edge case, usually immediate after submit)
+      // This is normal - just return null and let caller use POST response data
+      if (error.status === 404 || error.code === "NO_RESULTS_FOUND") {
+        console.warn(
+          "[QUIZ_SERVICE] ⚠️ No results found (404) - results endpoint may not be ready yet",
+          {
+            quizId,
+            code: error.code,
+            message: error.message,
+          }
+        );
+        // Return null gracefully instead of throwing
+        return null;
+      }
+
+      // Other errors should be re-thrown as critical
+      console.error("[QUIZ_SERVICE] ❌ Critical error fetching quiz results:", {
         quizId,
-        error: error?.message || "Unknown error",
+        status: error.status,
+        code: error.code,
+        message: error?.message || "Unknown error",
       });
       throw err;
     }
@@ -364,7 +398,7 @@ export class QuizService {
 
   /**
    * Get all user's quiz attempts history (requires auth)
-   * GET /api/v1/user-quizzes/my-attempts?status=completed&page=1&limit=10
+   * GET /api/v1/quizzes/attempts/my?status=completed&page=1&limit=10
    */
   static async getMyQuizAttempts(params?: {
     status?: "completed" | "ongoing";
@@ -388,9 +422,7 @@ export class QuizService {
       if (params?.limit) queryParams.append("limit", params.limit.toString());
 
       const queryString = queryParams.toString();
-      const url = `/user-quizzes/my-attempts${
-        queryString ? `?${queryString}` : ""
-      }`;
+      const url = `/quizzes/attempts/my${queryString ? `?${queryString}` : ""}`;
 
       return await apiClient.get(url, { auth: true });
     } catch (err) {
@@ -403,68 +435,337 @@ export class QuizService {
   }
 
   // ============================================================================
-  // SIMPLE QUIZ SYSTEM (Compatible with Frontend Static Data)
+  // QUIZ HISTORY & MODULE INTEGRATION
   // ============================================================================
 
   /**
-   * Submit quiz using simple system (no backend quizId required)
-   * POST /api/v1/simple-quizzes/submit
+   * Get quiz history for a specific module
+   * Uses the main quiz system: GET /api/v1/quizzes/attempts/my?module_id=UUID
    */
-  static async submitSimpleQuiz(submission: {
-    module_id: number;
-    sub_materi_id: string;
-    quiz_data: any;
-    answers: Array<{
-      question_id: string;
-      selected_option_index: number;
-      is_correct: boolean;
-    }>;
-    time_taken_seconds?: number;
-  }): Promise<ApiResponse<any>> {
+  static async getQuizHistoryByModule(
+    moduleId: number | string
+  ): Promise<
+    ApiResponse<{ attempts: Array<Record<string, unknown>>; total: number }>
+  > {
     try {
-      console.log("[QUIZ_SERVICE] 📤 Submitting simple quiz:", {
-        module_id: submission.module_id,
-        sub_materi_id: submission.sub_materi_id,
-        answersCount: submission.answers.length,
-      });
+      console.log(
+        "[QUIZ_SERVICE] 🔍 Getting quiz history for module:",
+        moduleId
+      );
 
-      return await apiClient.post(`/simple-quizzes/submit`, submission, {
-        auth: true,
-      });
+      // Request fresh data (avoid stale cached 304 responses)
+      const response = await apiClient.get(
+        `/quizzes/attempts/my?module_id=${moduleId}`,
+        { auth: true, cache: "no-store" }
+      );
+
+      if (response.error) {
+        return {
+          error: false,
+          code: "NO_HISTORY",
+          message: "No quiz history found",
+          data: { attempts: [], total: 0 },
+        };
+      }
+
+      const raw = response.data as unknown;
+      const rawObj =
+        typeof raw === "object" && raw !== null
+          ? (raw as Record<string, unknown>)
+          : ({} as Record<string, unknown>);
+
+      const attemptsArray = Array.isArray(rawObj["attempts"])
+        ? (rawObj["attempts"] as unknown[])
+        : [];
+
+      const attempts = attemptsArray.filter(
+        (a) => typeof a === "object"
+      ) as Array<Record<string, unknown>>;
+
+      const total =
+        rawObj["pagination"] &&
+        typeof (rawObj["pagination"] as Record<string, unknown>)["total"] !==
+          "undefined"
+          ? Number((rawObj["pagination"] as Record<string, unknown>)["total"])
+          : 0;
+
+      return {
+        error: false,
+        code: "HISTORY_FETCH_SUCCESS",
+        message: "Quiz history fetched successfully",
+        data: { attempts, total },
+      };
     } catch (err) {
       const error = err as ApiError;
-      console.error("[QUIZ_SERVICE] ❌ Error submitting simple quiz:", {
+
+      // ✅ 404 is normal if user hasn't taken any quizzes in this module
+      if (error?.status === 404) {
+        console.log("[QUIZ_SERVICE] ℹ️ No quiz history found for module");
+        return {
+          error: false,
+          code: "NO_HISTORY",
+          message: "No quiz history found",
+          data: { attempts: [], total: 0 },
+        };
+      }
+
+      console.error("[QUIZ_SERVICE] ❌ Error getting quiz history:", {
+        moduleId,
         error: error?.message || "Unknown error",
-        status: error?.status,
       });
-      throw err;
+
+      return {
+        error: true,
+        code: error?.code || "HISTORY_FETCH_ERROR",
+        message: error?.message || "Failed to fetch quiz history",
+        data: { attempts: [], total: 0 },
+      };
     }
   }
 
   /**
-   * Get quiz results using simple system
-   * GET /api/v1/simple-quizzes/results?module_id=1&sub_materi_id=sub1
+   * Get quiz for a specific sub-materi
+   * Uses the endpoint: GET /api/v1/materials/:subMateriId/quiz
    */
-  static async getSimpleQuizResults(
-    moduleId: number,
+  static async getQuizBySubMateri(
     subMateriId: string
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<{ quiz: Quiz | null }>> {
     try {
-      console.log("[QUIZ_SERVICE] 🔍 Getting simple quiz results:", {
-        moduleId,
-        subMateriId,
-      });
-
-      return await apiClient.get(
-        `/simple-quizzes/results?module_id=${moduleId}&sub_materi_id=${subMateriId}`,
-        { auth: true }
+      return await apiClient.get<{ quiz: Quiz | null }>(
+        `/materials/${subMateriId}/quiz`,
+        { auth: false } // Public endpoint
       );
     } catch (err) {
       const error = err as ApiError;
-      console.error("[QUIZ_SERVICE] ❌ Error getting simple quiz results:", {
+      console.log(`[QUIZ_SERVICE] No quiz found for sub-materi ${subMateriId}`);
+      return {
+        error: true,
+        code: error?.code || "QUIZ_NOT_FOUND",
+        message: error?.message || "No quiz found for this sub-materi",
+        data: { quiz: null },
+      };
+    }
+  }
+
+  /**
+   * Get quiz questions for a specific sub-materi
+   * Uses the endpoint: GET /api/v1/materials/:subMateriId/quiz
+   * Returns structured questions data compatible with QuizPlayer
+   */
+  static async getQuestionsForSubMateri(subMateriId: string): Promise<
+    ApiResponse<{
+      questions: Array<{
+        id: string;
+        question_text: string;
+        options: Array<{ text: string; index?: number }>;
+        correct_answer_index: number;
+        explanation: string;
+        order_index?: number;
+      }>;
+      quiz_id?: string;
+      quiz_title?: string;
+    }>
+  > {
+    try {
+      console.log(
+        "[QUIZ_SERVICE] 📋 Fetching quiz questions for sub-materi:",
+        subMateriId
+      );
+
+      const response = await apiClient.get<unknown>(
+        `/materials/${subMateriId}/quiz`,
+        { auth: false, cache: "no-store" } // Public endpoint, fresh data
+      );
+
+      console.log(
+        "[QUIZ_SERVICE] 📥 Raw response for questions:",
+        response.data
+      );
+
+      if (response.error || !response.data) {
+        return {
+          error: true,
+          code: "QUESTIONS_FETCH_FAILED",
+          message: "Failed to fetch questions for this sub-materi",
+          data: { questions: [] },
+        };
+      }
+
+      // Parse response safely
+      const raw = response.data as unknown;
+      const rawObj =
+        typeof raw === "object" && raw !== null
+          ? (raw as Record<string, unknown>)
+          : {};
+
+      // Handle different response formats
+      let questionsArray: unknown[] = [];
+
+      // Format 1: { questions: [...] } - Direct questions array
+      if (Array.isArray(rawObj["questions"])) {
+        questionsArray = rawObj["questions"] as unknown[];
+      }
+      // Format 2: { quiz: { questions: [...] } } - Backend returns quiz object with questions nested
+      else if (
+        rawObj["quiz"] &&
+        typeof rawObj["quiz"] === "object" &&
+        Array.isArray((rawObj["quiz"] as Record<string, unknown>)["questions"])
+      ) {
+        questionsArray = (rawObj["quiz"] as Record<string, unknown>)[
+          "questions"
+        ] as unknown[];
+      }
+      // Format 3: Direct array of questions
+      else if (Array.isArray(raw)) {
+        questionsArray = raw as unknown[];
+      }
+      // Format 4: { data: { questions: [...] } }
+      else if (
+        rawObj["data"] &&
+        typeof rawObj["data"] === "object" &&
+        Array.isArray((rawObj["data"] as Record<string, unknown>)["questions"])
+      ) {
+        questionsArray = (rawObj["data"] as Record<string, unknown>)[
+          "questions"
+        ] as unknown[];
+      }
+      // Format 5: { data: { quiz: { questions: [...] } } }
+      else if (
+        rawObj["data"] &&
+        typeof rawObj["data"] === "object" &&
+        (rawObj["data"] as Record<string, unknown>)["quiz"] &&
+        typeof (rawObj["data"] as Record<string, unknown>)["quiz"] ===
+          "object" &&
+        Array.isArray(
+          (
+            (rawObj["data"] as Record<string, unknown>)["quiz"] as Record<
+              string,
+              unknown
+            >
+          )["questions"]
+        )
+      ) {
+        questionsArray = (
+          (rawObj["data"] as Record<string, unknown>)["quiz"] as Record<
+            string,
+            unknown
+          >
+        )["questions"] as unknown[];
+      }
+
+      console.log(
+        "[QUIZ_SERVICE] 📋 Extracted questions array length:",
+        questionsArray.length
+      );
+
+      // Parse questions safely with type checks
+      const questions = questionsArray
+        .filter((q) => typeof q === "object" && q !== null)
+        .map((q) => {
+          const qObj = q as Record<string, unknown>;
+
+          // Extract fields with defaults
+          const id = qObj["id"] ? String(qObj["id"]) : "";
+          const question_text = qObj["question_text"]
+            ? String(qObj["question_text"])
+            : "";
+
+          // Handle options array
+          let optionsArray: Array<{ text: string; index?: number }> = [];
+          const optionsRaw = qObj["options"];
+          if (Array.isArray(optionsRaw)) {
+            optionsArray = optionsRaw
+              .map((opt) => {
+                if (typeof opt === "string") {
+                  return { text: opt };
+                } else if (
+                  typeof opt === "object" &&
+                  opt !== null &&
+                  "text" in opt
+                ) {
+                  return opt as { text: string; index?: number };
+                }
+                return null;
+              })
+              .filter((opt) => opt !== null) as Array<{
+              text: string;
+              index?: number;
+            }>;
+          }
+
+          // Extract correct answer index
+          const correct_answer_index =
+            typeof qObj["correct_answer_index"] === "number"
+              ? (qObj["correct_answer_index"] as number)
+              : Number(qObj["correct_answer_index"] || 0);
+
+          // Extract explanation
+          const explanation = qObj["explanation"]
+            ? String(qObj["explanation"])
+            : "";
+
+          // Extract order index
+          const order_index =
+            typeof qObj["order_index"] === "number"
+              ? (qObj["order_index"] as number)
+              : undefined;
+
+          return {
+            id,
+            question_text,
+            options: optionsArray,
+            correct_answer_index,
+            explanation,
+            order_index,
+          };
+        });
+
+      // ✅ Extract quiz_id and quiz_title from the quiz object or top level
+      let quiz_id: string | undefined;
+      let quiz_title: string | undefined;
+
+      // Try to get from top level first
+      if (rawObj["quiz_id"]) {
+        quiz_id = String(rawObj["quiz_id"]);
+      } else if (rawObj["quiz"] && typeof rawObj["quiz"] === "object") {
+        // Try to get from quiz object
+        const quizObj = rawObj["quiz"] as Record<string, unknown>;
+        if (quizObj["id"]) {
+          quiz_id = String(quizObj["id"]);
+        }
+        if (quizObj["title"]) {
+          quiz_title = String(quizObj["title"]);
+        }
+      }
+
+      // Fallback to top level quiz_title
+      if (!quiz_title && rawObj["quiz_title"]) {
+        quiz_title = String(rawObj["quiz_title"]);
+      }
+
+      console.log(
+        `[QUIZ_SERVICE] ✅ Successfully parsed ${questions.length} questions`,
+        { quiz_id, quiz_title }
+      );
+
+      return {
+        error: false,
+        code: "QUESTIONS_FETCH_SUCCESS",
+        message: `Successfully fetched ${questions.length} questions`,
+        data: { questions, quiz_id, quiz_title },
+      };
+    } catch (err) {
+      const error = err as ApiError;
+      console.error("[QUIZ_SERVICE] ❌ Error fetching questions:", {
+        subMateriId,
         error: error?.message || "Unknown error",
       });
-      throw err;
+      return {
+        error: true,
+        code: error?.code || "QUESTIONS_FETCH_ERROR",
+        message: error?.message || "Failed to fetch questions",
+        data: { questions: [] },
+      };
     }
   }
 }

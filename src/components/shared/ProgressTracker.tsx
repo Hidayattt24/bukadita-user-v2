@@ -2,11 +2,11 @@
 
 import { useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { ProgressService } from "@/services/progressService";
+import { ProgressService, SubMateriProgressBackend } from "@/services/progressService";
 
 interface ProgressTrackerProps {
   subMateriId: string;
-  onProgressUpdate?: (progress: any) => void;
+  onProgressUpdate?: (progress: SubMateriProgressBackend) => void;
 }
 
 /**

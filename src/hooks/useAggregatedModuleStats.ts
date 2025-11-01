@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { useBackendModuleProgress } from "./useBackendModuleProgress";
-import { modulPosyanduData } from "@/data/modulData";
+import { useModulesWithProgress } from "./useModulesWithProgress";
 import { useAuth } from "@/context/AuthContext";
 
 interface AggregatedStats {
@@ -16,6 +15,8 @@ interface AggregatedStats {
  */
 export function useAggregatedModuleStats(): AggregatedStats {
   const { user } = useAuth();
+  const { modules, isLoading: modulesLoading, error } = useModulesWithProgress();
+  
   const [stats, setStats] = useState<AggregatedStats>({
     completedModuls: 0,
     totalHours: 0,
@@ -24,8 +25,17 @@ export function useAggregatedModuleStats(): AggregatedStats {
   });
 
   useEffect(() => {
-    if (!user) {
-      // For non-logged in users, set default stats
+    if (!user || modulesLoading) {
+      setStats({
+        completedModuls: 0,
+        totalHours: 0,
+        overallProgress: 0,
+        isLoading: modulesLoading,
+      });
+      return;
+    }
+
+    if (error) {
       setStats({
         completedModuls: 0,
         totalHours: 0,
@@ -35,39 +45,43 @@ export function useAggregatedModuleStats(): AggregatedStats {
       return;
     }
 
-    // We'll collect all module progress data
-    const fetchAllModuleProgress = async () => {
-      try {
-        // Calculate total hours from static data
-        const totalHours = modulPosyanduData.reduce((acc, m) => {
-          const hourMatch = m.duration.match(/(\d+)\s*jam/);
-          const minuteMatch = m.duration.match(/(\d+)\s*menit/);
-          const hours = hourMatch ? parseInt(hourMatch[1]) : 0;
-          const minutes = minuteMatch ? parseInt(minuteMatch[1]) : 0;
-          return acc + hours + minutes / 60;
-        }, 0);
+    try {
+      // Calculate total hours from database data
+      const totalHours = modules.reduce((acc, m) => {
+        // Parse duration from database (e.g., "2 jam 30 menit")
+        const hourMatch = m.duration_label?.match(/(\d+)\s*jam/) || [];
+        const minuteMatch = m.duration_label?.match(/(\d+)\s*menit/) || [];
+        
+        const hours = hourMatch[1] ? parseInt(hourMatch[1]) : 0;
+        const minutes = minuteMatch[1] ? parseInt(minuteMatch[1]) : 0;
+        
+        return acc + hours + (minutes / 60);
+      }, 0);
 
-        // This will be populated by child components that fetch individual progress
-        // For now, we'll use a placeholder until all modules have loaded
-        setStats({
-          completedModuls: 0,
-          totalHours: Math.round(totalHours),
-          overallProgress: 0,
-          isLoading: false,
-        });
-      } catch (error) {
-        console.error("[useAggregatedModuleStats] Error:", error);
-        setStats({
-          completedModuls: 0,
-          totalHours: 0,
-          overallProgress: 0,
-          isLoading: false,
-        });
-      }
-    };
+      // Calculate completed modules and overall progress from database data
+      const completedModuls = modules.filter(m => m.progress?.status === "completed").length;
+      const totalProgress = modules.reduce((acc, m) => {
+        const progress = typeof m.progress === 'number' ? m.progress : m.progress?.progress_percent || 0;
+        return acc + progress;
+      }, 0);
+      const overallProgress = modules.length > 0 ? totalProgress / modules.length : 0;
 
-    fetchAllModuleProgress();
-  }, [user]);
+      setStats({
+        completedModuls,
+        totalHours: Math.round(totalHours * 10) / 10,
+        overallProgress: Math.round(overallProgress * 10) / 10,
+        isLoading: false,
+      });
+    } catch (error) {
+      console.error("Error calculating aggregated stats:", error);
+      setStats({
+        completedModuls: 0,
+        totalHours: 0,
+        overallProgress: 0,
+        isLoading: false,
+      });
+    }
+  }, [user, modules, modulesLoading, error]);
 
   return stats;
 }

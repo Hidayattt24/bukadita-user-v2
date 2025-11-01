@@ -10,7 +10,7 @@ import {
   Trophy,
   Target,
 } from "lucide-react";
-import { type SubMateri, type QuizResult } from "@/data/modules";
+import { type SubMateri, type QuizResult } from "@/types/modul";
 
 interface QuizInstructionProps {
   subMateri: SubMateri;

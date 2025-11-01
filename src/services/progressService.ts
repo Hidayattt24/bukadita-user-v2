@@ -155,20 +155,30 @@ export class ProgressService {
     moduleId: string
   ): Promise<ApiResponse<ModuleProgress>> {
     try {
+      // Backend progress modules endpoint expects a numeric module id.
+      // If moduleId looks like a UUID (contains hyphens), skip calling the numeric endpoint
+      if (typeof moduleId === "string" && moduleId.includes("-")) {
+        console.warn(
+          "[PROGRESS_SERVICE] Skipping numeric progress fetch because moduleId appears to be a UUID:",
+          moduleId
+        );
+        return {
+          error: false,
+          code: "PROGRESS_NOT_FOUND",
+          message:
+            "Progress not requested for UUID moduleId on numeric endpoint",
+          data: undefined,
+        };
+      }
+
       return await apiClient.get<ModuleProgress>(
         `/progress/modules/${moduleId}`,
-        { auth: true }
+        { auth: true, cache: "no-store" }
       );
     } catch (err) {
       const error = err as ApiError;
-      console.error("[PROGRESS_SERVICE] Error fetching module progress:", {
-        moduleId,
-        error: error?.message || "Unknown error",
-        status: error?.status,
-        code: error?.code,
-      });
 
-      // If user is not authenticated or progress doesn't exist, return empty progress
+      // If user is not authenticated or progress doesn't exist, return empty progress (DON'T log as error - it's normal)
       if (error?.status === 401 || error?.status === 404) {
         return {
           error: false,
@@ -177,6 +187,14 @@ export class ProgressService {
           data: undefined,
         };
       }
+
+      // Only log actual errors (not 404)
+      console.error("[PROGRESS_SERVICE] Error fetching module progress:", {
+        moduleId,
+        error: error?.message || "Unknown error",
+        status: error?.status,
+        code: error?.code,
+      });
 
       // Return error response instead of throwing
       return {
@@ -228,42 +246,7 @@ export class ProgressService {
     }
   }
 
-  /**
-   * Complete a poin (requires auth)
-   * POST /api/v1/progress/materials/:materi_id/poins/:poin_id/complete
-   * Body: { module_id: number }
-   */
-  static async completePoin(
-    materiId: string,
-    poinId: string,
-    moduleId: number
-  ): Promise<ApiResponse<PointProgress>> {
-    try {
-      return await apiClient.post<PointProgress>(
-        `/progress/materials/${materiId}/poins/${poinId}/complete`,
-        { module_id: moduleId }, // Send module_id in request body
-        { auth: true }
-      );
-    } catch (err) {
-      const error = err as ApiError;
-      console.error("[PROGRESS_SERVICE] Error completing poin:", {
-        moduleId,
-        materiId,
-        poinId,
-        error: error?.message || "Unknown error",
-        status: error?.status,
-        code: error?.code,
-      });
-
-      // Return error response instead of throwing
-      return {
-        error: true,
-        code: error?.code || "POIN_COMPLETE_ERROR",
-        message: error?.message || "Failed to complete poin",
-        data: undefined as any,
-      };
-    }
-  }
+  // Poin completion removed - progress only updates after quiz completion
 
   /**
    * Complete a sub-materi (requires auth)
@@ -294,7 +277,7 @@ export class ProgressService {
         error: true,
         code: error?.code || "SUB_MATERI_COMPLETE_ERROR",
         message: error?.message || "Failed to complete sub-materi",
-        data: undefined as any,
+        data: undefined,
       };
     }
   }
@@ -326,7 +309,7 @@ export class ProgressService {
         error: true,
         code: error?.code || "ACCESS_CHECK_ERROR",
         message: error?.message || "Failed to check sub-materi access",
-        data: undefined as any,
+        data: undefined,
       };
     }
   }
@@ -365,7 +348,7 @@ export class ProgressService {
         error: true,
         code: error?.code || "MATERIAL_PROGRESS_ERROR",
         message: error?.message || "Failed to fetch material progress",
-        data: undefined as any,
+        data: undefined,
       };
     }
   }
@@ -391,7 +374,7 @@ export class ProgressService {
         error: true,
         code: error?.code || "OVERALL_PROGRESS_ERROR",
         message: error?.message || "Failed to fetch overall progress",
-        data: undefined as any,
+        data: undefined,
       };
     }
   }
@@ -427,7 +410,7 @@ export class ProgressService {
         error: true,
         code: error?.code || "MARK_MATERIAL_COMPLETE_ERROR",
         message: error?.message || "Failed to mark material complete",
-        data: undefined as any,
+        data: undefined,
       };
     }
   }
@@ -470,7 +453,7 @@ export class ProgressService {
         error: true,
         code: error?.code || "MARK_QUIZ_COMPLETE_ERROR",
         message: error?.message || "Failed to mark quiz complete",
-        data: undefined as any,
+        data: undefined,
       };
     }
   }
@@ -506,7 +489,7 @@ export class ProgressService {
         error: true,
         code: error?.code || "MARK_POINT_COMPLETE_ERROR",
         message: error?.message || "Failed to mark point complete",
-        data: undefined as any,
+        data: undefined,
       };
     }
   }
@@ -536,7 +519,7 @@ export class ProgressService {
         error: true,
         code: error?.code || "RESET_MODULE_PROGRESS_ERROR",
         message: error?.message || "Failed to reset module progress",
-        data: undefined as any,
+        data: undefined,
       };
     }
   }
@@ -574,7 +557,7 @@ export class ProgressService {
         error: true,
         code: error?.code || "QUIZ_PROGRESS_ERROR",
         message: error?.message || "Failed to fetch quiz progress",
-        data: undefined as any,
+        data: undefined,
       };
     }
   }
@@ -611,25 +594,22 @@ export class ProgressService {
 
   /**
    * Get quiz history for a specific module (requires auth)
-   * GET /api/v1/simple-quizzes/history?module_id=:module_id
+   * Uses main quiz system: GET /api/v1/quizzes/attempts/my?module_id=:module_id
+   * @param moduleId - Module ID (can be integer or UUID string)
    */
   static async getSimpleQuizHistory(
-    moduleId: number
-  ): Promise<ApiResponse<{ attempts: any[]; total: number }>> {
+    moduleId: number | string
+  ): Promise<
+    ApiResponse<{ attempts: Array<Record<string, unknown>>; total: number }>
+  > {
     try {
-      return await apiClient.get<{ attempts: any[]; total: number }>(
-        `/simple-quizzes/history?module_id=${moduleId}`,
-        { auth: true }
-      );
+      // Import QuizService dynamically to avoid circular dependency
+      const { QuizService } = await import("./quizService");
+      return await QuizService.getQuizHistoryByModule(moduleId);
     } catch (err) {
       const error = err as ApiError;
-      console.error("[PROGRESS_SERVICE] Error fetching quiz history:", {
-        moduleId,
-        error: error?.message || "Unknown error",
-        status: error?.status,
-        code: error?.code,
-      });
 
+      // ✅ 404 is normal for modules without quiz attempts yet
       if (error?.status === 401 || error?.status === 404) {
         return {
           error: false,
@@ -638,6 +618,14 @@ export class ProgressService {
           data: { attempts: [], total: 0 },
         };
       }
+
+      // Only log real errors (not 401/404)
+      console.error("[PROGRESS_SERVICE] Error fetching quiz history:", {
+        moduleId,
+        error: error?.message || "Unknown error",
+        status: error?.status,
+        code: error?.code,
+      });
 
       // Return error response instead of throwing
       return {

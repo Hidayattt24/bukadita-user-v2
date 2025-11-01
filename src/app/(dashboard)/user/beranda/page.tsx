@@ -11,12 +11,22 @@ import {
 } from "@/components/User/Beranda";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
+import { useModulesWithProgress } from "@/hooks/useModulesWithProgress";
 
 /**
- * Beranda User - Clean UI with Modul Keseluruhan
+ * Beranda User - Dashboard dengan data modul dari database
+ * 
+ * Features:
+ * - Progress tracking otomatis berdasarkan quiz completion
+ * - Real-time statistics dari database
+ * - Auto-update ketika quiz selesai
  */
 export default function BerandaUser() {
   const { user } = useAuth();
+  
+  // 🔥 Get real statistics from database
+  const { getStatistics } = useModulesWithProgress();
+  const stats = getStatistics();
 
   return (
     <ProtectedRoute>
@@ -31,9 +41,9 @@ export default function BerandaUser() {
 
           {/* Modul Keseluruhan - Grid semua modul dengan backend progress */}
           <StatisticsSection
-            completedModuls={0}
-            totalHours={0}
-            overallProgress={0}
+            completedModuls={stats.completed}
+            totalHours={0} // TODO: Calculate from duration_minutes
+            overallProgress={stats.overallProgress}
           />
 
           {/* Featured Modules - Modul Unggulan */}

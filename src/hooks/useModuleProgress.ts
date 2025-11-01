@@ -237,115 +237,7 @@ export const useModuleProgress = () => {
     });
   };
 
-  // Mark poin as completed
-  const markPoinCompleted = async (
-    moduleId: number,
-    subMateriId: string,
-    poinId: string
-  ) => {
-    console.log("📝 markPoinCompleted called:", {
-      moduleId,
-      subMateriId,
-      poinId,
-      isAuthenticated: !!user,
-    });
-
-    // If user authenticated, only use backend (no localStorage)
-    if (user) {
-      try {
-        await ProgressService.completePoin(subMateriId, poinId, moduleId);
-        console.log("✅ Poin progress synced with backend");
-        return;
-      } catch (error) {
-        console.error("❌ Failed to sync poin with backend:", error);
-        return;
-      }
-    }
-
-    // Guest users: Update localStorage only
-    setUserProgress((prev) => {
-      console.log(
-        "📦 markPoinCompleted (guest) - prev state:",
-        JSON.stringify(prev, null, 2)
-      );
-
-      const moduleProgress = prev.modules.find((m) => m.moduleId === moduleId);
-      if (!moduleProgress) {
-        console.error(
-          "❌ Module not found! Available modules:",
-          prev.modules.map((m) => ({ id: m.moduleId, slug: m.moduleSlug }))
-        );
-        return prev;
-      }
-
-      const subMateriProgress = moduleProgress.subMateris.find(
-        (s) => s.subMateriId === subMateriId
-      );
-      if (!subMateriProgress) {
-        console.error(
-          "❌ SubMateri progress not found! Available subMateris:",
-          moduleProgress.subMateris.map((s) => s.subMateriId)
-        );
-        return prev;
-      }
-
-      const completedPoins = [...subMateriProgress.completedPoins];
-      if (!completedPoins.includes(poinId)) {
-        completedPoins.push(poinId);
-        console.log("✅ Poin marked as completed:", poinId);
-      } else {
-        console.log("⚠️ Poin already completed:", poinId);
-        return prev; // No change needed
-      }
-
-      // Update the sub-materi with new completed poins
-      const updatedModules = prev.modules.map((module) => {
-        if (module.moduleId !== moduleId) return module;
-
-        const updatedSubMateris = module.subMateris.map((sub) => {
-          if (sub.subMateriId !== subMateriId) return sub;
-          return {
-            ...sub,
-            completedPoins,
-            lastAccessed: new Date().toISOString(),
-          };
-        });
-
-        // Calculate overall progress
-        const totalSubMateris = updatedSubMateris.length;
-        const completedSubMateris = updatedSubMateris.filter(
-          (s) => s.isCompleted
-        ).length;
-        const overallProgress = Math.round(
-          (completedSubMateris / totalSubMateris) * 100
-        );
-
-        // Update status
-        let status: "not-started" | "in-progress" | "completed" = "not-started";
-        if (overallProgress === 100) {
-          status = "completed";
-        } else if (overallProgress > 0) {
-          status = "in-progress";
-        }
-
-        return {
-          ...module,
-          subMateris: updatedSubMateris,
-          overallProgress,
-          status,
-          completedAt:
-            status === "completed" ? new Date().toISOString() : undefined,
-          lastAccessed: new Date().toISOString(),
-        };
-      });
-
-      return {
-        ...prev,
-        modules: updatedModules,
-        updatedAt: new Date().toISOString(),
-      };
-    });
-  };
+  // Poin completion removed - progress only updates after quiz completion
 
   // Update current poin index
   const updateCurrentPoin = (
@@ -491,7 +383,6 @@ export const useModuleProgress = () => {
     getSubMateriProgress,
     initializeModuleProgress,
     updateSubMateriProgress,
-    markPoinCompleted,
     updateCurrentPoin,
     markSubMateriCompleted,
     saveQuizResult,

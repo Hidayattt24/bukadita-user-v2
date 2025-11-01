@@ -6,6 +6,7 @@ import { useBackendModuleProgress } from "@/hooks/useBackendModuleProgress";
 
 interface ProgressModuleCardProps {
   id: number;
+  moduleId?: string; // UUID string for API calls
   slug: string;
   title: string;
   description: string;
@@ -19,6 +20,7 @@ interface ProgressModuleCardProps {
  */
 export default function ProgressModuleCard({
   id,
+  moduleId,
   slug,
   title,
   description,
@@ -26,7 +28,7 @@ export default function ProgressModuleCard({
   lessons,
 }: ProgressModuleCardProps) {
   // 🔥 Fetch progress directly from backend (same as ModulSidebar)
-  const { moduleProgress, isLoading } = useBackendModuleProgress(id);
+  const { moduleProgress, isLoading } = useBackendModuleProgress(moduleId || id);
 
   // Get actual progress from backend
   const actualProgress = moduleProgress?.progress_percentage || 0;

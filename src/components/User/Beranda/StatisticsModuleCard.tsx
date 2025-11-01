@@ -2,35 +2,27 @@
 
 import { BookOpen, Clock, Award } from "lucide-react";
 import Link from "next/link";
-import { useBackendModuleProgress } from "@/hooks/useBackendModuleProgress";
-import { ModulData } from "@/data/modulData";
+import { ModuleWithProgress } from "@/hooks/useModulesWithProgress";
 
 interface StatisticsModuleCardProps {
-  modul: ModulData;
+  modul: ModuleWithProgress;
   IconComponent: React.ComponentType<{ className?: string }>;
 }
 
 /**
- * Module card for Statistics Section that uses backend progress
- * Same approach as ProgressModuleCard - fetches individual module progress
+ * Module card for Statistics Section with database integration
+ * Now uses ModuleWithProgress from useModulesWithProgress hook
  */
 export default function StatisticsModuleCard({
   modul,
   IconComponent,
 }: StatisticsModuleCardProps) {
-  // 🔥 Fetch progress from backend (same as ProgressModuleCard)
-  const { moduleProgress, isLoading } = useBackendModuleProgress(modul.id);
-
-  // Get actual progress from backend
-  const actualProgress = moduleProgress?.progress_percentage || 0;
-  const isCompleted = moduleProgress?.is_completed || false;
+  // 🔥 Progress now comes directly from the modul object (already fetched by hook)
+  const actualProgress = modul.progress?.progress_percent || 0;
+  const isCompleted = modul.progress?.status === "completed";
 
   // Determine real status based on progress
-  const realStatus = isCompleted
-    ? "completed"
-    : actualProgress > 0
-    ? "in-progress"
-    : "not-started";
+  const realStatus = modul.progress?.status || "not-started";
 
   // Status color configuration
   const statusConfig = {
@@ -55,13 +47,6 @@ export default function StatisticsModuleCard({
   };
 
   const currentStatus = statusConfig[realStatus];
-
-  console.log(`[StatisticsModuleCard] Module ${modul.id} (${modul.title}):`, {
-    actualProgress,
-    isCompleted,
-    realStatus,
-    isLoading,
-  });
 
   return (
     <Link href={`/user/modul/${modul.slug}`} className="block group">
@@ -95,7 +80,7 @@ export default function StatisticsModuleCard({
           <div className="flex justify-between items-center mb-1.5">
             <span className="text-xs text-gray-600 font-medium">Progress</span>
             <span className="text-xs font-bold text-[#27548A]">
-              {isLoading ? "..." : `${Math.round(actualProgress)}%`}
+              {Math.round(actualProgress)}%
             </span>
           </div>
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -110,11 +95,11 @@ export default function StatisticsModuleCard({
         <div className="flex items-center gap-3 text-xs text-gray-600">
           <div className="flex items-center gap-1">
             <BookOpen className="w-3.5 h-3.5" />
-            <span>{modul.lessons} Materi</span>
+            <span>{modul.lessons || 0} Materi</span>
           </div>
           <div className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" />
-            <span>{modul.duration}</span>
+            <span>{modul.duration_label || "Belum ditentukan"}</span>
           </div>
         </div>
 

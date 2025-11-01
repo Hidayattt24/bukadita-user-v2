@@ -17,13 +17,13 @@ import {
   Settings,
   GraduationCap,
   UserCheck,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
-import { modulPosyanduData } from "@/data/modulData";
 import { useState, useMemo, useEffect } from "react";
-import { useProgress } from "@/context/ProgressContext";
 import { useAuth } from "@/context/AuthContext";
 import StatisticsModuleCard from "./StatisticsModuleCard";
+import { useModulesWithProgress } from "@/hooks/useModulesWithProgress";
 
 interface StatisticsProps {
   completedModuls: number;
@@ -31,26 +31,27 @@ interface StatisticsProps {
   overallProgress: number;
 }
 
+/**
+ * StatisticsSection - Menampilkan semua modul dari database
+ * dengan progress tracking otomatis dari quiz completion
+ */
 export default function StatisticsSection({
   completedModuls,
   totalHours,
   overallProgress,
 }: StatisticsProps) {
-  // Calculate total modules
-  const totalModuls = modulPosyanduData.length;
+  // 🔥 Fetch modules dari database dengan progress
+  const { modules, isLoading, getStatistics } = useModulesWithProgress();
+  const stats = getStatistics();
+
   const [searchQuery, setSearchQuery] = useState("");
-
   const [isSearching, setIsSearching] = useState(false);
-
-  // 🔥 Get progress from backend using individual module progress (same as ProgressModuleCard)
-  const { getModuleProgress } = useProgress();
   const { user } = useAuth();
 
-  // Get unique categories
-  const categories = [
-    "all",
-    ...new Set(modulPosyanduData.map((modul) => modul.category)),
-  ];
+  // Get unique categories from modules
+  const categories = useMemo(() => {
+    return ["all", ...new Set(modules.map((modul) => modul.category))];
+  }, [modules]);
 
   // Simulate search delay for better UX
   useEffect(() => {
@@ -67,7 +68,7 @@ export default function StatisticsSection({
 
   // Filter modules based on search query only
   const filteredModuls = useMemo(() => {
-    let filtered = modulPosyanduData;
+    let filtered = modules;
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -75,13 +76,12 @@ export default function StatisticsSection({
         (modul) =>
           modul.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           modul.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          modul.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          modul.instructor.toLowerCase().includes(searchQuery.toLowerCase())
+          modul.description.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     return searchQuery.trim() ? filtered.slice(0, 12) : filtered.slice(0, 12);
-  }, [searchQuery]);
+  }, [searchQuery, modules]);
 
   // Clear search
   const clearSearch = () => {
@@ -178,7 +178,7 @@ export default function StatisticsSection({
         </div>
 
         {/* Modules Grid, Loading State, or Empty State */}
-        {isSearching ? (
+        {isLoading || isSearching ? (
           /* Loading Skeleton */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-4 mb-6">
             {[...Array(12)].map((_, index) => (
@@ -274,7 +274,7 @@ export default function StatisticsSection({
               className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white font-semibold rounded-2xl hover:from-[#27548A] hover:to-[#578FCA] transition-all duration-300 hover:scale-105 shadow-lg text-base"
             >
               <BookOpen className="w-5 h-5" />
-              Lihat Semua Modul ({totalModuls})
+              Lihat Semua Modul ({stats.total})
               <ArrowRight className="w-5 h-5" />
             </Link>
           </div>

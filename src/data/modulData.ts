@@ -1,5 +1,6 @@
 export interface ModulData {
   id: number;
+  moduleId?: string; // UUID string for API calls
   slug: string;
   title: string;
   description: string;

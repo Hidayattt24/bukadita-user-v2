@@ -7,7 +7,6 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { googleAuthService } from "@/lib/supabase";
 import { authService } from "@/services/authService";
 import { ProfileService } from "@/services/userProfileService";
 import { tokenStore, isProfilePending, mapAuthError } from "@/lib/apiClient";
@@ -41,7 +40,7 @@ export interface AuthState {
 
 export interface AuthContextType extends AuthState {
   login: (
-    email: string,
+    identifier: string, // Email or phone number
     password: string
   ) => Promise<{ success: boolean; pendingProfile?: boolean; error?: string }>;
   setUser: (
@@ -51,8 +50,6 @@ export interface AuthContextType extends AuthState {
   register: (
     data: RegisterData
   ) => Promise<{ success: boolean; pendingProfile?: boolean; error?: string }>;
-  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
-  signUpWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   refreshAccessToken: () => Promise<boolean>;
   upsertProfile: (data: {
@@ -132,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Login function
   const login = async (
-    email: string,
+    identifier: string, // Email or phone number
     password: string
   ): Promise<{
     success: boolean;
@@ -140,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error?: string;
   }> => {
     try {
-      const res = await authService.login({ email, password });
+      const res = await authService.login({ identifier, password });
       const pending = isProfilePending(res.code) || !res.data?.user.profile;
       if (res.data) {
         const backendProfile = res.data!.user.profile as
@@ -263,27 +260,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: true,
       isLoading: false,
     }));
-  };
-
-  // Google OAuth login
-  const loginWithGoogle = async (): Promise<{
-    success: boolean;
-    error?: string;
-  }> => {
-    try {
-      const result = await googleAuthService.signInWithGoogle();
-
-      if (result.success) {
-        // After successful Google OAuth, the user should be redirected to callback
-        // and the session will be handled there
-        return { success: true };
-      } else {
-        return { success: false, error: result.error || "Google OAuth failed" };
-      }
-    } catch (error) {
-      console.error("Google login error:", error);
-      return { success: false, error: "Google login failed" };
-    }
   };
 
   // Refresh access token
@@ -520,8 +496,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     setUser,
     register,
-    loginWithGoogle,
-    signUpWithGoogle: loginWithGoogle, // Alias for semantic clarity
     logout,
     refreshAccessToken,
     upsertProfile,

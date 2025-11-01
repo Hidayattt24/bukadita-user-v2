@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import {
   ProgressService,
   ModulesProgressResponse,
+  SubMateriProgressBackend,
 } from "@/services/progressService";
 
 /**
@@ -55,15 +56,17 @@ export const useBackendProgress = () => {
         "[useBackendProgress] Successfully fetched modules progress:",
         response.data
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Check if it's a 401 error
-      if (err?.status === 401 || err?.code === "UNAUTHORIZED") {
+      const error = err as { status?: number; code?: string; message?: string };
+      if (error?.status === 401 || error?.code === "UNAUTHORIZED") {
         console.log("[useBackendProgress] 401 error, stopping fetch");
         setError("Authentication expired");
         return;
       }
 
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       setError(errorMessage);
       console.error("[useBackendProgress] Error fetching progress:", err);
     } finally {
@@ -111,7 +114,9 @@ export const useBackendProgress = () => {
  */
 export const useSubMateriProgress = (subMateriId: string | null) => {
   const { user } = useAuth();
-  const [progress, setProgress] = useState<any>(null);
+  const [progress, setProgress] = useState<SubMateriProgressBackend | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -141,20 +146,22 @@ export const useSubMateriProgress = (subMateriId: string | null) => {
         return;
       }
 
-      setProgress(response.data);
+      setProgress(response.data || null);
       console.log(
         "[useSubMateriProgress] Successfully fetched sub-materi progress:",
         response.data
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Check if it's a 401 error
-      if (err?.status === 401 || err?.code === "UNAUTHORIZED") {
+      const error = err as { status?: number; code?: string; message?: string };
+      if (error?.status === 401 || error?.code === "UNAUTHORIZED") {
         console.log("[useSubMateriProgress] 401 error, stopping fetch");
         setError("Authentication expired");
         return;
       }
 
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       setError(errorMessage);
       console.error("[useSubMateriProgress] Error fetching progress:", err);
     } finally {

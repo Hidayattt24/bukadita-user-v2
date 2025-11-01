@@ -1,0 +1,426 @@
+/* HTML Content Styling - Matches Backoffice Preview */
+
+.html-content {
+  /* Base typography */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  line-height: 1.75;
+  color: #374151;
+}
+
+/* Headings */
+.html-content h1,
+.html-content h2,
+.html-content h3,
+.html-content h4,
+.html-content h5,
+.html-content h6 {
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 1.5em;
+  margin-bottom: 0.75em;
+  color: #1f2937;
+}
+
+.html-content h1 {
+  font-size: 2.25rem;
+  border-bottom: 3px solid #578FCA;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.html-content h2 {
+  font-size: 1.875rem;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+.html-content h3 {
+  font-size: 1.5rem;
+  color: #27548A;
+}
+
+.html-content h4 {
+  font-size: 1.25rem;
+}
+
+.html-content h5 {
+  font-size: 1.125rem;
+}
+
+.html-content h6 {
+  font-size: 1rem;
+  color: #4b5563;
+}
+
+/* Remove top margin for first heading */
+.html-content > h1:first-child,
+.html-content > h2:first-child,
+.html-content > h3:first-child,
+.html-content > h4:first-child,
+.html-content > h5:first-child,
+.html-content > h6:first-child {
+  margin-top: 0;
+}
+
+/* Paragraphs */
+.html-content p {
+  margin-bottom: 1.25em;
+  line-height: 1.75;
+}
+
+.html-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* Links */
+.html-content a {
+  color: #578FCA;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.html-content a:hover {
+  color: #27548A;
+  text-decoration: none;
+}
+
+/* Lists */
+.html-content ul,
+.html-content ol {
+  margin-bottom: 1.5em;
+  padding-left: 2em;
+}
+
+.html-content ul {
+  list-style-type: disc;
+}
+
+.html-content ol {
+  list-style-type: decimal;
+}
+
+.html-content li {
+  margin-bottom: 0.5em;
+  line-height: 1.75;
+}
+
+.html-content li::marker {
+  color: #578FCA;
+  font-weight: 600;
+}
+
+.html-content ul ul,
+.html-content ol ul {
+  list-style-type: circle;
+  margin-top: 0.5em;
+}
+
+.html-content ul ol,
+.html-content ol ol {
+  list-style-type: lower-alpha;
+  margin-top: 0.5em;
+}
+
+/* Blockquotes */
+.html-content blockquote {
+  border-left: 4px solid #578FCA;
+  padding-left: 1.5rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  color: #4b5563;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  padding: 1rem 1.5rem;
+  border-radius: 0.5rem;
+}
+
+.html-content blockquote p {
+  margin-bottom: 0.75em;
+}
+
+.html-content blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Images */
+.html-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  margin: 1.5rem 0;
+}
+
+/* Videos */
+.html-content video {
+  max-width: 100%;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin: 1.5rem 0;
+}
+
+/* Tables */
+.html-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.html-content thead {
+  background: linear-gradient(135deg, #578FCA 0%, #27548A 100%);
+  color: white;
+}
+
+.html-content th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.html-content td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.html-content tbody tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+.html-content tbody tr:hover {
+  background-color: #f1f5f9;
+  transition: background-color 0.2s ease;
+}
+
+/* Code */
+.html-content code {
+  background-color: #f1f5f9;
+  color: #27548A;
+  padding: 0.2em 0.4em;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-weight: 500;
+  border: 1px solid #e2e8f0;
+}
+
+.html-content pre {
+  background: #0d1117;
+  color: #f0f6fc;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  line-height: 1.6;
+}
+
+.html-content pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-size: 0.875rem;
+}
+
+/* Horizontal Rules */
+.html-content hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #d1d5db, transparent);
+  margin: 2rem 0;
+}
+
+/* Strong & Em */
+.html-content strong,
+.html-content b {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.html-content em,
+.html-content i {
+  font-style: italic;
+}
+
+/* Mark/Highlight */
+.html-content mark {
+  background-color: #fef3c7;
+  padding: 0.1em 0.2em;
+  border-radius: 0.25rem;
+  color: #92400e;
+}
+
+/* Div blocks with data-block-type (from editor) */
+.html-content div[data-block-type] {
+  margin-bottom: 1rem;
+}
+
+.html-content div[data-block-type="text"] {
+  /* Normal text blocks */
+}
+
+.html-content div[data-block-type="media"] {
+  margin: 1.5rem 0;
+}
+
+/* Text alignment */
+.html-content .text-left {
+  text-align: left;
+}
+
+.html-content .text-center {
+  text-align: center;
+}
+
+.html-content .text-right {
+  text-align: right;
+}
+
+/* Utility classes */
+.html-content .mt-4 {
+  margin-top: 1rem;
+}
+
+.html-content .mb-3 {
+  margin-bottom: 0.75rem;
+}
+
+.html-content .mb-4 {
+  margin-bottom: 1rem;
+}
+
+/* Figure captions */
+.html-content figcaption {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+/* Details/Summary */
+.html-content details {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.html-content summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #578FCA;
+  user-select: none;
+}
+
+.html-content details[open] summary {
+  margin-bottom: 0.75rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .html-content {
+    font-size: 0.875rem;
+  }
+
+  .html-content h1 {
+    font-size: 1.75rem;
+  }
+
+  .html-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .html-content h3 {
+    font-size: 1.25rem;
+  }
+
+  .html-content h4 {
+    font-size: 1.125rem;
+  }
+
+  .html-content h5,
+  .html-content h6 {
+    font-size: 1rem;
+  }
+
+  .html-content table {
+    font-size: 0.75rem;
+  }
+
+  .html-content pre {
+    padding: 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .html-content blockquote {
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .html-content {
+    color: black;
+  }
+
+  .html-content a {
+    color: black;
+    text-decoration: underline;
+  }
+
+  .html-content pre {
+    border: 1px solid #ccc;
+  }
+}
+
+/* Selection highlighting */
+.html-content ::selection {
+  background-color: #578FCA;
+  color: white;
+}
+
+.html-content ::-moz-selection {
+  background-color: #578FCA;
+  color: white;
+}
+
+/* Focus styles for accessibility */
+.html-content a:focus,
+.html-content summary:focus {
+  outline: 2px solid #578FCA;
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* Smooth transitions */
+.html-content * {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Custom scrollbar for code blocks */
+.html-content pre::-webkit-scrollbar {
+  height: 8px;
+}
+
+.html-content pre::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.html-content pre::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.html-content pre::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+

@@ -102,6 +102,7 @@ interface RequestOptions {
   auth?: boolean; // add Authorization automatically
   headers?: Record<string, string>;
   retryOn401?: boolean; // internal usage
+  cache?: RequestCache; // optional per-request cache control
 }
 
 export async function rawFetch<T = unknown>(
@@ -112,6 +113,7 @@ export async function rawFetch<T = unknown>(
     auth = false,
     headers = {},
     retryOn401 = true,
+    cache,
   }: RequestOptions = {}
 ): Promise<ApiResponse<T>> {
   const url = `${BASE_URL}${path.startsWith("/api/") ? "" : API_PREFIX}${path}`;
@@ -138,11 +140,18 @@ export async function rawFetch<T = unknown>(
     requestHeaders["Content-Type"] = "application/json";
   }
 
-  const res = await fetch(url, {
+  const fetchOptions: RequestInit = {
     method,
     headers: requestHeaders,
     body: isFormData ? body : body ? JSON.stringify(body) : undefined,
-  });
+  };
+
+  if (cache) {
+    // Some TS configs may not include RequestInit.cache in lib defs — set via intersection type
+    (fetchOptions as RequestInit & { cache?: RequestCache }).cache = cache;
+  }
+
+  const res = await fetch(url, fetchOptions);
 
   let json: unknown = null;
   try {

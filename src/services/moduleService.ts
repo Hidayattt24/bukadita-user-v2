@@ -1,12 +1,18 @@
 import { apiClient, ApiResponse } from "@/lib/apiClient";
 
-// Types untuk Module
+// Types untuk Module (matches backend response)
 export interface Module {
   id: string;
   title: string;
+  slug: string; // ✅ Added
   description: string;
+  category?: string; // ✅ Added
   published: boolean;
   created_at: string;
+  updated_at: string; // ✅ Added
+  duration_label?: string; // ✅ Added
+  duration_minutes?: number; // ✅ Added
+  lessons?: number; // ✅ Added
   sub_materis?: SubMaterial[];
 }
 

@@ -38,7 +38,17 @@ export interface QuizResult {
   score: number;
   totalQuestions: number;
   correctAnswers: number;
-  answers: { questionId: string; selectedAnswer: number; isCorrect: boolean }[];
+  // ✅ Extended answer format to support both basic and enriched data
+  answers: Array<{
+    questionId: string;
+    selectedAnswer: number;
+    isCorrect: boolean;
+    // ✅ Optional enriched fields from backend
+    correctAnswer?: number;
+    question?: string;
+    options?: string[];
+    explanation?: string;
+  }>;
   passed: boolean;
 }
 
@@ -64,6 +74,7 @@ export interface SubMateri {
 
 export interface DetailModul {
   id: number;
+  moduleId?: string; // UUID string for API calls
   slug: string;
   title: string;
   description: string;

@@ -9,7 +9,6 @@ import {
   BookOpen,
 } from "lucide-react";
 import { PoinDetail, SubMateri } from "@/types/modul";
-import MarkdownRenderer from "@/components/shared/MarkdownRenderer";
 
 interface ModulContentProps {
   currentPoin: PoinDetail | null;
@@ -21,7 +20,6 @@ interface ModulContentProps {
   handleNextPoin: () => void;
   sidebarOpen: boolean;
   onStartQuiz?: () => void;
-  onPoinCompleted?: (poinId: string) => void;
 }
 
 export default function ModulContent({
@@ -34,7 +32,6 @@ export default function ModulContent({
   handleNextPoin,
   sidebarOpen,
   onStartQuiz,
-  onPoinCompleted,
 }: ModulContentProps) {
   const getContentTypeIcon = (type: string) => {
     switch (type) {
@@ -154,9 +151,10 @@ export default function ModulContent({
 
           <div className="space-y-4 sm:space-y-6">
             <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-gray-200">
-              <MarkdownRenderer
-                content={currentPoin.content}
-                className="markdown-content"
+              {/* ✅ Render HTML content from database using dangerouslySetInnerHTML (same as backoffice) */}
+              <div 
+                className="html-content prose prose-sm sm:prose-base max-w-none"
+                dangerouslySetInnerHTML={{ __html: currentPoin.content || '<p class="text-gray-500 italic text-center py-8">Konten kosong</p>' }}
               />
             </div>
 
@@ -229,13 +227,7 @@ export default function ModulContent({
                 Sebelumnya
               </button>
               <button
-                onClick={() => {
-                  // Mark current poin as completed before navigating
-                  if (currentPoin && onPoinCompleted) {
-                    onPoinCompleted(currentPoin.id);
-                  }
-                  handleNextPoin();
-                }}
+                onClick={handleNextPoin}
                 disabled={!canNavigateNext()}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center ${
                   canNavigateNext()
@@ -278,13 +270,7 @@ export default function ModulContent({
             </div>
 
             <button
-              onClick={() => {
-                // Mark current poin as completed before navigating
-                if (currentPoin && onPoinCompleted) {
-                  onPoinCompleted(currentPoin.id);
-                }
-                handleNextPoin();
-              }}
+              onClick={handleNextPoin}
               disabled={!canNavigateNext()}
               className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors text-base ${
                 canNavigateNext()
