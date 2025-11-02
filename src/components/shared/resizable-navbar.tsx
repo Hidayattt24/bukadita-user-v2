@@ -57,20 +57,6 @@ function AuthButtons({
         href="/login"
         className={`${
           isMobile
-            ? "w-full text-center px-4 py-3 rounded-md text-sm font-medium text-white border border-white/20 hover:bg-white/10 transition-all"
-            : `px-4 py-2 text-sm font-medium transition-colors ${
-                isScrolled
-                  ? "text-white/80 hover:text-white"
-                  : "text-[#578FCA]/80 hover:text-[#578FCA]"
-              }`
-        }`}
-      >
-        Masuk
-      </Link>
-      <Link
-        href="/register"
-        className={`${
-          isMobile
             ? "w-full text-center px-4 py-3 rounded-md text-sm font-medium text-[#27548A] bg-white hover:bg-white/90 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
             : `px-4 py-2 rounded-full text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                 isScrolled
@@ -79,7 +65,7 @@ function AuthButtons({
               }`
         }`}
       >
-        Daftar
+        Masuk
       </Link>
     </>
   );
