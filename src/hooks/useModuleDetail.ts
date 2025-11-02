@@ -32,13 +32,19 @@ export const useModuleDetailFromDB = (slug: string | null) => {
     setError(null);
 
     try {
-      console.log(`[useModuleDetail] Fetching module with slug: ${slug}`);
+      console.log(`[useModuleDetail] 🔍 Fetching module with slug: "${slug}"`);
 
       // Step 1: Fetch modules list and find by slug
       const modulesResponse = await ModuleService.getAllModules();
 
+      console.log(`[useModuleDetail] Modules response:`, {
+        error: modulesResponse.error,
+        hasData: !!modulesResponse.data,
+        itemsCount: modulesResponse.data?.items?.length || 0,
+      });
+
       if (modulesResponse.error || !modulesResponse.data) {
-        throw new Error("Failed to fetch modules");
+        throw new Error(modulesResponse.message || "Failed to fetch modules");
       }
 
       const moduleData = modulesResponse.data.items.find(
@@ -46,13 +52,15 @@ export const useModuleDetailFromDB = (slug: string | null) => {
       );
 
       if (!moduleData) {
-        setError("Module not found");
+        console.error(`[useModuleDetail] ❌ Module not found with slug: "${slug}"`);
+        console.log(`[useModuleDetail] Available slugs:`, modulesResponse.data.items.map(m => m.slug));
+        setError(`Module "${slug}" not found`);
         setModul(null);
         setIsLoading(false);
         return;
       }
 
-      console.log(`[useModuleDetail] Found module:`, {
+      console.log(`[useModuleDetail] ✅ Found module:`, {
         id: moduleData.id,
         slug: moduleData.slug,
         title: moduleData.title,
@@ -60,11 +68,12 @@ export const useModuleDetailFromDB = (slug: string | null) => {
       });
 
       // Step 2: Fetch sub-materials using existing service
+      // ✅ Use UUID (moduleData.id) for API call, not numeric ID
       console.log(
-        `[useModuleDetail] Fetching sub-materials for module ID: ${moduleData.id}`
+        `[useModuleDetail] Fetching sub-materials for module UUID: ${moduleData.id}`
       );
       const materialsResponse = await SubMateriService.getByModuleId(
-        moduleData.id,
+        moduleData.id, // ✅ This is UUID from database
         1,
         100 // Get all sub-materials
       );
@@ -73,17 +82,17 @@ export const useModuleDetailFromDB = (slug: string | null) => {
         error: materialsResponse.error,
         dataLength: materialsResponse.data?.length || 0,
         code: materialsResponse.code,
+        message: materialsResponse.message,
       });
 
-      if (materialsResponse.error || !materialsResponse.data) {
-        console.warn("Failed to fetch materials:", materialsResponse.message);
-        // Don't throw error, just continue with empty sub-materials
+      if (materialsResponse.error) {
+        console.warn(`[useModuleDetail] Failed to fetch materials:`, materialsResponse.message);
       }
 
       const subMaterialsList = materialsResponse.data || [];
 
       console.log(
-        `[useModuleDetail] Fetched ${subMaterialsList.length} sub-materials`
+        `[useModuleDetail] Fetched ${subMaterialsList.length} sub-materials for module ${moduleData.title}`
       );
 
       // Step 3: Fetch poins for each sub-material and convert format
@@ -140,12 +149,20 @@ export const useModuleDetailFromDB = (slug: string | null) => {
         subMateris: await Promise.all(
           subMaterialsList.map(async (subMat, index) => {
             // Fetch poins for this sub-materi
-            const poinsResponse = await SubMateriService.getPoinDetails(
-              subMat.id
-            );
-            const poinsList = poinsResponse.error
-              ? []
-              : poinsResponse.data || [];
+            // Use material detail endpoint which includes poin_details
+            let poinsList: any[] = [];
+            
+            console.log(`[useModuleDetail] Fetching poin details for sub-materi: ${subMat.id} (${subMat.title})`);
+            
+            const materialDetailResponse = await SubMateriService.getSubMateriDetail(subMat.id);
+            
+            if (!materialDetailResponse.error && materialDetailResponse.data) {
+              // Extract poin_details from material detail response
+              poinsList = (materialDetailResponse.data as any).poin_details || [];
+              console.log(`[useModuleDetail] ✅ Got ${poinsList.length} poins for "${subMat.title}"`);
+            } else {
+              console.warn(`[useModuleDetail] ⚠️ No poin details found for "${subMat.title}":`, materialDetailResponse.message);
+            }
 
             // Fetch quiz for this sub-materi
             let quizData: Quiz[] = [];
@@ -248,13 +265,29 @@ export const useModuleDetailFromDB = (slug: string | null) => {
       };
 
       setModul(convertedModule);
-      console.log(`[useModuleDetail] Module loaded successfully:`, {
+      
+      // Summary logging
+      const totalPoins = convertedModule.subMateris.reduce(
+        (sum, sub) => sum + sub.poinDetails.length,
+        0
+      );
+      const totalQuizzes = convertedModule.subMateris.reduce(
+        (sum, sub) => sum + sub.quiz.length,
+        0
+      );
+      
+      console.log(`[useModuleDetail] ✅ Module loaded successfully:`, {
         title: convertedModule.title,
+        moduleId: convertedModule.moduleId,
+        numericId: convertedModule.id,
         subMateris: convertedModule.subMateris.length,
-        totalPoins: convertedModule.subMateris.reduce(
-          (sum, sub) => sum + sub.poinDetails.length,
-          0
-        ),
+        totalPoins,
+        totalQuizzes,
+        subMateriDetails: convertedModule.subMateris.map(sub => ({
+          title: sub.title,
+          poins: sub.poinDetails.length,
+          hasQuiz: sub.quiz.length > 0,
+        })),
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";

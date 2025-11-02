@@ -11,21 +11,25 @@ import {
   Check,
   Search,
   FileText,
+  Pin,
 } from "lucide-react";
 import jsPDF from "jspdf";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { NoteService, UserNote } from "@/services/noteService";
+import { useAuth } from "@/context/AuthContext";
 
 interface Note {
   id: string;
   title: string;
   content: string;
-  material: string;
+  material: string; // This will map to category in backend
   createdAt: Date;
   updatedAt: Date;
+  is_pinned?: boolean;
 }
 
 const FloatingNotes: React.FC = () => {
-  const [notes, setNotes] = useLocalStorage<Note[]>("bukadita-notes", []);
+  const { user } = useAuth();
+  const [notes, setNotes] = useState<Note[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
@@ -37,21 +41,59 @@ const FloatingNotes: React.FC = () => {
   });
   const [showGreeting, setShowGreeting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{
     show: boolean;
     noteId: string;
     noteTitle: string;
   }>({ show: false, noteId: "", noteTitle: "" });
-  const [hasSeenWelcome, setHasSeenWelcome] = useLocalStorage<boolean>(
-    "bukadita-notes-welcome",
-    false
-  );
+  const [hasSeenWelcome, setHasSeenWelcome] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("bukadita-notes-welcome") === "true";
+    }
+    return false;
+  });
   const [isMounted, setIsMounted] = useState(false);
 
   // Prevent hydration mismatch by only rendering after mount
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Fetch notes from backend when user is logged in
+  useEffect(() => {
+    if (user && isMounted) {
+      fetchNotes();
+    }
+  }, [user, isMounted]);
+
+  // Fetch notes from backend
+  const fetchNotes = async () => {
+    if (!user) return;
+
+    setIsFetching(true);
+    try {
+      const response = await NoteService.getUserNotes(1, 100, undefined, searchTerm);
+
+      if (!response.error && response.data) {
+        // Convert backend format to component format
+        const convertedNotes: Note[] = response.data.items.map((note: UserNote) => ({
+          id: note.id,
+          title: note.title,
+          content: note.content,
+          material: note.category,
+          createdAt: new Date(note.created_at),
+          updatedAt: new Date(note.updated_at),
+          is_pinned: note.is_pinned,
+        }));
+        setNotes(convertedNotes);
+      }
+    } catch (error) {
+      console.error("Error fetching notes:", error);
+    } finally {
+      setIsFetching(false);
+    }
+  };
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -95,10 +137,13 @@ const FloatingNotes: React.FC = () => {
 
   // Auto-show greeting for first-time visitors
   useEffect(() => {
-    if (!hasSeenWelcome) {
+    if (!hasSeenWelcome && user) {
       // Show greeting after a delay
       const timer = setTimeout(() => {
         setShowGreeting(true);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("bukadita-notes-welcome", "true");
+        }
         setHasSeenWelcome(true);
 
         // Auto-hide after 5 seconds
@@ -109,12 +154,7 @@ const FloatingNotes: React.FC = () => {
 
       return () => clearTimeout(timer);
     }
-  }, [hasSeenWelcome, setHasSeenWelcome]);
-
-  // Save notes function (now simplified with custom hook)
-  const saveNotes = (updatedNotes: Note[]) => {
-    setNotes(updatedNotes);
-  };
+  }, [hasSeenWelcome, user]);
 
   // Handle manual close of greeting
   const handleCloseGreeting = () => {
@@ -267,6 +307,12 @@ const FloatingNotes: React.FC = () => {
 
   // Create or update note
   const handleSaveNote = async () => {
+    // Check if user is logged in
+    if (!user) {
+      showToast("Anda harus login terlebih dahulu!", "error");
+      return;
+    }
+
     // Validation
     if (!formData.title.trim()) {
       showToast("Judul catatan tidak boleh kosong!", "error");
@@ -284,38 +330,42 @@ const FloatingNotes: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const now = new Date();
-
       if (editingNote) {
-        // Update existing note
-        const updatedNotes = notes.map((note) =>
-          note.id === editingNote.id
-            ? { ...note, ...formData, updatedAt: now }
-            : note
-        );
-        saveNotes(updatedNotes);
+        // Update existing note via API
+        const response = await NoteService.updateNote(editingNote.id, {
+          title: formData.title,
+          content: formData.content,
+          category: formData.material,
+        });
+
+        if (!response.error) {
+          showToast("Catatan berhasil diupdate");
+          await fetchNotes(); // Refresh notes list
+        } else {
+          throw new Error(response.message);
+        }
       } else {
-        // Create new note
-        const newNote: Note = {
-          id: `note_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          ...formData,
-          createdAt: now,
-          updatedAt: now,
-        };
-        saveNotes([...notes, newNote]);
+        // Create new note via API
+        const response = await NoteService.createNote({
+          title: formData.title,
+          content: formData.content,
+          category: formData.material,
+        });
+
+        if (!response.error) {
+          showToast("Catatan berhasil disimpan");
+          await fetchNotes(); // Refresh notes list
+        } else {
+          throw new Error(response.message);
+        }
       }
 
       // Reset form
       setFormData({ title: "", content: "", material: "" });
       setEditingNote(null);
       setIsDialogOpen(false);
-
-      // Show success message
-      showToast(
-        editingNote ? "Catatan berhasil diupdate" : "Catatan berhasil disimpan"
-      );
-    } catch (error) {
-      showToast("Terjadi kesalahan saat menyimpan catatan!", "error");
+    } catch (error: any) {
+      showToast(error.message || "Terjadi kesalahan saat menyimpan catatan!", "error");
       console.error("Error saving note:", error);
     } finally {
       setIsLoading(false);
@@ -328,13 +378,27 @@ const FloatingNotes: React.FC = () => {
   };
 
   // Confirm delete note
-  const confirmDeleteNote = () => {
-    const updatedNotes = notes.filter(
-      (note) => note.id !== deleteConfirm.noteId
-    );
-    saveNotes(updatedNotes);
-    setDeleteConfirm({ show: false, noteId: "", noteTitle: "" });
-    showToast("Catatan berhasil dihapus");
+  const confirmDeleteNote = async () => {
+    if (!user) {
+      showToast("Anda harus login terlebih dahulu!", "error");
+      return;
+    }
+
+    try {
+      const response = await NoteService.deleteNote(deleteConfirm.noteId);
+
+      if (!response.error) {
+        showToast("Catatan berhasil dihapus");
+        await fetchNotes(); // Refresh notes list
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error: any) {
+      showToast(error.message || "Gagal menghapus catatan!", "error");
+      console.error("Error deleting note:", error);
+    } finally {
+      setDeleteConfirm({ show: false, noteId: "", noteTitle: "" });
+    }
   };
 
   // Cancel delete note
@@ -351,6 +415,28 @@ const FloatingNotes: React.FC = () => {
       material: note.material,
     });
     setIsDialogOpen(true);
+  };
+
+  // Toggle pin note
+  const handleTogglePin = async (noteId: string) => {
+    if (!user) {
+      showToast("Anda harus login terlebih dahulu!", "error");
+      return;
+    }
+
+    try {
+      const response = await NoteService.togglePinNote(noteId);
+
+      if (!response.error) {
+        showToast(response.data?.is_pinned ? "Catatan dipasang" : "Catatan dilepas");
+        await fetchNotes(); // Refresh notes list
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error: any) {
+      showToast(error.message || "Gagal mengubah status pin!", "error");
+      console.error("Error toggling pin:", error);
+    }
   };
 
   // Filter notes
@@ -482,15 +568,22 @@ const FloatingNotes: React.FC = () => {
 
               {/* Notes List */}
               <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 notes-scrollbar">
-                {filteredNotes.length === 0 ? (
+                {isFetching ? (
+                  <div className="text-center text-gray-500 py-8 sm:py-12">
+                    <div className="w-12 h-12 border-4 border-[#578FCA] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-sm sm:text-base">Memuat catatan...</p>
+                  </div>
+                ) : filteredNotes.length === 0 ? (
                   <div className="text-center text-gray-500 py-8 sm:py-12">
                     <BookOpen
                       size={48}
                       className="mx-auto mb-4 text-gray-300"
                     />
-                    <p className="text-sm sm:text-base">Belum ada catatan</p>
+                    <p className="text-sm sm:text-base">
+                      {searchTerm ? "Tidak ada catatan ditemukan" : "Belum ada catatan"}
+                    </p>
                     <p className="text-xs sm:text-sm mt-1">
-                      Mulai buat catatan pertama Anda!
+                      {searchTerm ? "Coba kata kunci lain" : "Mulai buat catatan pertama Anda!"}
                     </p>
                   </div>
                 ) : (
@@ -504,10 +597,30 @@ const FloatingNotes: React.FC = () => {
                       className="bg-white border border-gray-200 rounded-lg p-3 sm:p-3 hover:shadow-md transition-all duration-200 cursor-pointer active:scale-[0.98]"
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-medium text-gray-900 text-sm sm:text-sm flex-1 pr-2">
-                          {note.title}
-                        </h3>
+                        <div className="flex items-center gap-2 flex-1 pr-2">
+                          {note.is_pinned && (
+                            <Pin size={14} className="text-[#578FCA] fill-[#578FCA]" />
+                          )}
+                          <h3 className="font-medium text-gray-900 text-sm sm:text-sm">
+                            {note.title}
+                          </h3>
+                        </div>
                         <div className="flex gap-1.5 sm:gap-1 flex-shrink-0">
+                          <button
+                            onClick={() => handleTogglePin(note.id)}
+                            className={`p-2 sm:p-1 rounded transition-colors ${note.is_pinned
+                                ? "text-[#578FCA] bg-blue-50"
+                                : "text-gray-400 hover:bg-gray-50"
+                              }`}
+                            aria-label={note.is_pinned ? "Lepas Pin" : "Pin Catatan"}
+                            title={note.is_pinned ? "Lepas Pin" : "Pin Catatan"}
+                          >
+                            <Pin
+                              size={16}
+                              className={`sm:w-[14px] sm:h-[14px] ${note.is_pinned ? "fill-[#578FCA]" : ""
+                                }`}
+                            />
+                          </button>
                           <button
                             onClick={() => handleEditNote(note)}
                             className="p-2 sm:p-1 text-[#578FCA] hover:bg-blue-50 active:bg-blue-100 rounded transition-colors"

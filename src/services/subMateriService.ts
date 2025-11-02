@@ -103,13 +103,16 @@ export type SubMateriResponse =
 export class SubMateriService {
   /**
    * Get sub-materis (materials) by module ID using correct API endpoint
+   * Backend: GET /api/v1/materials/public?module_id=UUID&page=1&limit=100
    */
   static async getByModuleId(
     moduleId: string,
     page: number = 1,
-    limit: number = 10
+    limit: number = 100
   ): Promise<ApiResponse<SubMateriSummary[]>> {
     try {
+      console.log(`[SubMateriService] Fetching materials for module: ${moduleId}`);
+      
       // Build URL with query parameters
       const queryParams = new URLSearchParams({
         module_id: moduleId,
@@ -123,9 +126,17 @@ export class SubMateriService {
         { auth: false }
       );
 
+      console.log(`[SubMateriService] Materials response:`, {
+        error: response.error,
+        hasData: !!response.data,
+        dataType: typeof response.data,
+        isArray: Array.isArray(response.data),
+      });
+
       if (response.data) {
         // Handle different response structures
         if (Array.isArray(response.data)) {
+          console.log(`[SubMateriService] Got ${response.data.length} materials (array format)`);
           return {
             ...response,
             data: response.data,
@@ -134,6 +145,7 @@ export class SubMateriService {
 
         const paginatedResponse = response.data as PaginatedSubMateris;
         if (paginatedResponse && "items" in paginatedResponse) {
+          console.log(`[SubMateriService] Got ${paginatedResponse.items.length} materials (paginated format)`);
           return {
             ...response,
             data: paginatedResponse.items,
@@ -146,6 +158,7 @@ export class SubMateriService {
           "data" in envelopeResponse &&
           Array.isArray(envelopeResponse.data)
         ) {
+          console.log(`[SubMateriService] Got ${envelopeResponse.data.length} materials (envelope format)`);
           return {
             ...response,
             data: envelopeResponse.data,
@@ -153,69 +166,78 @@ export class SubMateriService {
         }
       }
 
+      console.warn(`[SubMateriService] No materials found in response, returning empty array`);
       // Fallback to empty array
       return {
         ...response,
         data: [],
       };
     } catch (err) {
-      // Fallback: try to get module detail with nested materials
-      try {
-        const moduleResponse = await apiClient.get<ModuleDetailWithSubMateris>(
-          `/modules/${moduleId}`,
-          { auth: false }
-        );
+      const error = err as ApiError;
+      console.error(`[SubMateriService] Error fetching materials:`, {
+        moduleId,
+        error: error.message,
+        status: error.status,
+        code: error.code,
+      });
 
-        if (moduleResponse.data) {
-          // Check for different possible field names using type-safe approach
-          const moduleData = moduleResponse.data;
-          const materials =
-            moduleData.sub_materis ||
-            moduleData.materials ||
-            moduleData.sub_materials ||
-            [];
-
-          return {
-            ...moduleResponse,
-            data: materials,
-          };
-        }
-
-        // Return empty array if no materials field
-        return {
-          ...moduleResponse,
-          data: [],
-        };
-      } catch {
-        throw err; // Throw original error
-      }
+      // Return empty array instead of throwing
+      return {
+        error: true,
+        code: error.code || "MATERIALS_FETCH_FAILED",
+        message: error.message || "Failed to fetch materials",
+        data: [],
+      };
     }
   }
 
   /**
-   * Get specific sub-materi detail with poins and quizzes (updated endpoint)
+   * Get specific sub-materi detail with poins and quizzes (public endpoint)
+   * Backend: GET /api/v1/materials/:id/public
+   * Returns: Material with nested poin_details and quizzes
    */
   static async getSubMateriDetail(
     materialId: string
-  ): Promise<ApiResponse<SubMateriWithProgress>> {
-    return await apiClient.get<SubMateriWithProgress>(
-      `/materials/${materialId}/public`,
-      { auth: false }
-    );
+  ): Promise<ApiResponse<any>> {
+    try {
+      const response = await apiClient.get<any>(
+        `/materials/${materialId}/public`,
+        { auth: false }
+      );
+
+      console.log(`[SubMateriService] Material detail response for ${materialId}:`, {
+        hasData: !!response.data,
+        hasPoinDetails: !!(response.data as any)?.poin_details,
+        poinCount: ((response.data as any)?.poin_details || []).length,
+      });
+
+      return response;
+    } catch (err) {
+      const error = err as ApiError;
+      console.error(`[SubMateriService] Error fetching material detail:`, error);
+      
+      return {
+        error: true,
+        code: error.code || "MATERIAL_DETAIL_FETCH_FAILED",
+        message: error.message || "Failed to fetch material detail",
+        data: undefined,
+      };
+    }
   }
 
   /**
    * Get poin details for a material (updated endpoint)
-   * Backend: GET /api/v1/materials/:id/points ✨ NEW (requires auth according to backend requirements)
+   * Backend: GET /api/v1/materials/:id/points (requires auth)
+   * Fallback: GET /api/v1/materials/:id/public (public endpoint with nested poins)
    */
   static async getPoinDetails(
     materialId: string
   ): Promise<ApiResponse<PoinDetail[]>> {
     try {
-      // Use updated backend endpoint: /materials/:id/points (requires auth)
+      // Try authenticated endpoint first (if user is logged in)
       const response = await apiClient.get<PoinDetail[]>(
         `/materials/${materialId}/points`,
-        { auth: true } // Changed to true according to backend API requirements
+        { auth: true }
       );
 
       // Handle envelope response format: { success: true, data: PoinDetail[] }
@@ -230,7 +252,37 @@ export class SubMateriService {
     } catch (err) {
       const error = err as ApiError;
 
-      // Graceful error handling - return empty array
+      // If 401 (not authenticated), try public endpoint as fallback
+      if (error.status === 401) {
+        try {
+          console.log(`[SubMateriService] Auth failed, trying public endpoint for material ${materialId}`);
+          const publicResponse = await apiClient.get<SubMateriWithProgress>(
+            `/materials/${materialId}/public`,
+            { auth: false }
+          );
+
+          // Extract poin_details from public response
+          const points = publicResponse.data?.poin_details || [];
+
+          return {
+            error: false,
+            code: "POIN_FETCH_SUCCESS",
+            message: `Successfully fetched ${points.length} poin details from public endpoint`,
+            data: points,
+          };
+        } catch (publicErr) {
+          console.error(`[SubMateriService] Public endpoint also failed:`, publicErr);
+          // Return empty array if both fail
+          return {
+            error: true,
+            code: "POIN_FETCH_FAILED",
+            message: "Failed to fetch poin details from both endpoints",
+            data: [],
+          };
+        }
+      }
+
+      // For other errors, return empty array
       return {
         error: true,
         code: error.code || "POIN_FETCH_FAILED",
