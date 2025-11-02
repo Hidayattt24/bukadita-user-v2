@@ -3,6 +3,7 @@
 ## ✅ Prerequisites Checklist
 
 Sebelum deploy, pastikan:
+
 - [x] Build lokal berhasil (`npm run build` ✅)
 - [x] Project sudah di push ke GitHub/GitLab/Bitbucket
 - [x] Punya akun Vercel (gratis) di [vercel.com](https://vercel.com)
@@ -65,6 +66,7 @@ git push origin main
 Setelah import, Anda akan masuk ke halaman konfigurasi:
 
 #### **A. Project Settings**
+
 ```
 Project Name: bukadita-user-v2
 Framework Preset: Next.js
@@ -72,7 +74,9 @@ Root Directory: ./  (biarkan default)
 ```
 
 #### **B. Build and Output Settings**
+
 Vercel akan auto-detect. Pastikan settings ini:
+
 ```
 Build Command: npm run build
 Output Directory: .next
@@ -86,15 +90,16 @@ Development Command: npm run dev
 
 Klik **"Environment Variables"** dan tambahkan satu per satu:
 
-| Key | Value | Environment |
-|-----|-------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | `https://fjbacahbbicjggdzmern.supabase.co` | Production, Preview, Development |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` | Production, Preview, Development |
-| `NEXT_PUBLIC_BACKEND_URL` | `https://api-bukadita.vercel.app` | Production, Preview, Development |
-| `NEXT_PUBLIC_SITE_URL` | `https://bukadita-user-v2.vercel.app` | Production |
-| `NODE_ENV` | `production` | Production |
+| Key                             | Value                                      | Environment                      |
+| ------------------------------- | ------------------------------------------ | -------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | `https://fjbacahbbicjggdzmern.supabase.co` | Production, Preview, Development |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`  | Production, Preview, Development |
+| `NEXT_PUBLIC_BACKEND_URL`       | `https://api-bukadita.vercel.app`          | Production, Preview, Development |
+| `NEXT_PUBLIC_SITE_URL`          | `https://bukadita-user-v2.vercel.app`      | Production                       |
+| `NODE_ENV`                      | `production`                               | Production                       |
 
 **Cara menambahkan:**
+
 1. Ketik nama variable di kolom "Key" (contoh: `NEXT_PUBLIC_SUPABASE_URL`)
 2. Paste value dari file `.env` lokal Anda ke kolom "Value"
 3. Pilih environment: **Production**, **Preview**, dan **Development** (centang semua)
@@ -122,11 +127,13 @@ Klik **"Environment Variables"** dan tambahkan satu per satu:
 Setelah deployment selesai:
 
 1. **Cek Build Logs**:
+
    - Pastikan tidak ada error merah
    - Lihat pesan "Build Completed" hijau
    - Check output: "✓ Compiled successfully"
 
 2. **Open Production URL**:
+
    - Klik **"Visit"** atau copy URL production
    - Format URL: `https://bukadita-user-v2.vercel.app`
    - Atau custom domain jika sudah diatur
@@ -223,43 +230,57 @@ Jika perlu redeploy tanpa push baru:
 ## 🐛 Troubleshooting Common Issues
 
 ### **1. Build Error: Module Not Found**
+
 ```
 Error: Module not found: Can't resolve '@/lib/xxx'
 ```
+
 **Solution**:
+
 - Pastikan file yang di-import benar-benar ada
 - Check case-sensitivity (Linux server case-sensitive)
 - Rebuild lokal dulu: `npm run build`
 
 ### **2. Environment Variable Tidak Terbaca**
+
 ```
 Error: NEXT_PUBLIC_XXX is undefined
 ```
+
 **Solution**:
+
 - Pastikan variable dimulai dengan `NEXT_PUBLIC_` (untuk client-side)
 - Redeploy setelah menambah env variable baru
 - Check di Settings → Environment Variables
 
 ### **3. API Calls Failed (CORS Error)**
+
 ```
 CORS policy: No 'Access-Control-Allow-Origin' header
 ```
+
 **Solution**:
+
 - Pastikan backend API (`api-bukadita.vercel.app`) sudah di-deploy
 - Check CORS config di backend memperbolehkan origin production
 - Update `NEXT_PUBLIC_BACKEND_URL` ke URL yang benar
 
 ### **4. Google OAuth Callback Error**
+
 ```
 redirect_uri_mismatch
 ```
+
 **Solution**:
+
 - Update Google OAuth redirect URIs (lihat Step C di atas)
 - Update Supabase redirect URLs (lihat Step D di atas)
 - Pastikan URL match persis (dengan/tanpa trailing slash)
 
 ### **5. Build Success tapi Halaman Blank**
+
 **Solution**:
+
 - Check browser console untuk error JavaScript
 - Pastikan semua environment variables sudah diset
 - Check Network tab untuk failed API requests
@@ -270,12 +291,14 @@ redirect_uri_mismatch
 ## 📊 Monitoring & Analytics
 
 ### **View Build Logs**:
+
 1. Vercel Dashboard → Deployments
 2. Klik deployment yang ingin dilihat
 3. Tab **"Build Logs"** → lihat detail proses build
 4. Tab **"Runtime Logs"** → lihat error saat aplikasi berjalan
 
 ### **Check Performance**:
+
 1. Vercel Dashboard → **Analytics** (tab atas)
 2. Lihat metrics:
    - Page views
@@ -284,6 +307,7 @@ redirect_uri_mismatch
    - Response time
 
 ### **Serverless Function Logs** (jika ada API routes):
+
 1. Vercel Dashboard → **Functions** tab
 2. Pilih function
 3. Lihat invocations dan errors
@@ -294,11 +318,11 @@ redirect_uri_mismatch
 
 Setelah deploy, Anda akan punya beberapa URL:
 
-| Environment | URL Pattern | Purpose |
-|------------|-------------|---------|
-| **Production** | `https://bukadita-user-v2.vercel.app` | Public users |
-| **Preview (PR)** | `https://bukadita-user-v2-git-feature-xxx.vercel.app` | Testing branches |
-| **Development** | `http://localhost:3001` | Local development |
+| Environment      | URL Pattern                                           | Purpose           |
+| ---------------- | ----------------------------------------------------- | ----------------- |
+| **Production**   | `https://bukadita-user-v2.vercel.app`                 | Public users      |
+| **Preview (PR)** | `https://bukadita-user-v2-git-feature-xxx.vercel.app` | Testing branches  |
+| **Development**  | `http://localhost:3001`                               | Local development |
 
 ---
 
