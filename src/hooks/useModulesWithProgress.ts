@@ -66,40 +66,43 @@ export const useModulesWithProgress = () => {
       );
 
       // Step 2: Fetch progress if user is logged in
-      let progressData: ModulesProgressResponse | null = null;
+      let progressMap: Map<string, any> = new Map();
       if (user) {
         console.log(
-          "[useModulesWithProgress] User logged in, fetching progress..."
+          "[useModulesWithProgress] User logged in, fetching progress from backend..."
         );
-        const progressResponse = await ProgressService.getUserModulesProgress();
-
-        if (!progressResponse.error && progressResponse.data) {
-          progressData = progressResponse.data;
-          console.log(
-            "[useModulesWithProgress] Progress data fetched:",
-            progressData
-          );
-        } else {
-          console.log("[useModulesWithProgress] No progress data available");
+        
+        // Fetch progress for each module from backend
+        for (const module of modulesData) {
+          try {
+            const progressResponse = await ProgressService.getModuleProgress(module.id);
+            
+            if (!progressResponse.error && progressResponse.data) {
+              const data = progressResponse.data as any;
+              progressMap.set(module.id, {
+                status: data.progress?.status || "not-started",
+                progress_percent: data.progress?.progress_percent || 0,
+                last_accessed_at: data.progress?.last_accessed_at,
+              });
+              
+              console.log(`[useModulesWithProgress] Progress for ${module.title}:`, {
+                status: data.progress?.status,
+                progress: data.progress?.progress_percent,
+              });
+            }
+          } catch (err) {
+            console.warn(`[useModulesWithProgress] Failed to fetch progress for module ${module.id}:`, err);
+            // Continue with other modules
+          }
         }
+        
+        console.log(`[useModulesWithProgress] Fetched progress for ${progressMap.size} modules`);
       }
 
       // Step 3: Combine modules with progress
       const modulesWithProgress: ModuleWithProgress[] = modulesData.map(
         (module: Module) => {
-          // Find progress for this module
-          interface ModuleProgressItem {
-            module_id: number;
-            progress_percentage: number;
-            completed: boolean;
-            last_accessed_at?: string;
-          }
-
-          const moduleProgress = progressData?.modules?.find(
-            (p: ModuleProgressItem) =>
-              p.module_id ===
-              (typeof module.id === "string" ? parseInt(module.id) : module.id)
-          );
+          const moduleProgress = progressMap.get(module.id);
 
           return {
             id: module.id,
@@ -113,19 +116,11 @@ export const useModulesWithProgress = () => {
             lessons: module.lessons || 0,
             created_at: module.created_at,
             updated_at: module.updated_at,
-            // Add progress data
-            progress: moduleProgress
-              ? {
-                  status: moduleProgress.completed
-                    ? "completed"
-                    : "in-progress",
-                  progress_percent: moduleProgress.progress_percentage || 0,
-                  last_accessed_at: moduleProgress.last_accessed_at,
-                }
-              : {
-                  status: "not-started",
-                  progress_percent: 0,
-                },
+            // Add progress data from backend
+            progress: moduleProgress || {
+              status: "not-started",
+              progress_percent: 0,
+            },
           };
         }
       );

@@ -88,70 +88,134 @@ export const useBackendModuleProgress = (moduleId: number | string | null) => {
         return;
       }
 
+      // 🔥 FIX: Backend response structure
       const backendData = progressResponse.data as {
-        module?: { progress?: { progress_percent?: number } };
-        sub_materis_progress?: Array<{ is_completed: boolean }>;
-        module_progress?: { completed_at?: string; updated_at?: string };
+        module?: {
+          id: string;
+          title: string;
+          slug: string;
+          description?: string;
+        };
+        progress?: {
+          status: string;
+          progress_percent: number;
+          last_accessed_at?: string;
+          completed_at?: string;
+        };
+        sub_materis?: Array<{
+          id: string;
+          title: string;
+          order_index: number;
+          is_unlocked: boolean;
+          is_completed: boolean;
+          progress_percent: number;
+          total_poins: number;
+          current_poin_index: number;
+        }>;
       };
 
       console.log(`[useBackendModuleProgress] Backend data loaded:`, {
         moduleId,
         module: backendData.module,
-        subMaterisProgress: backendData.sub_materis_progress?.length || 0,
+        progress: backendData.progress,
+        subMaterisCount: backendData.sub_materis?.length || 0,
       });
 
-      // Fetch quiz attempts
-      try {
-        const quizResponse = await ProgressService.getSimpleQuizHistory(
-          moduleId
-        );
-        if (!quizResponse.error && quizResponse.data) {
-          // Quiz attempts fetched but not used in current logic
-          // kept for potential future enhancements
-          console.log(
-            `[useBackendModuleProgress] Quiz attempts fetched for module ${moduleId}`
-          );
-        }
-      } catch (error) {
-        console.warn(
-          "[useBackendModuleProgress] Failed to fetch quiz attempts:",
-          error
-        );
-      }
+      // Fetch quiz attempts and completed poins for each sub-materi
+      const subMaterisWithDetails = await Promise.all(
+        (backendData.sub_materis || []).map(async (sm) => {
+          // Fetch detailed sub-materi progress
+          const subMateriProgressResponse =
+            await ProgressService.getSubMateriProgress(sm.id);
 
-      // 🔥 USE backend progress data directly - no static data dependency
-      interface SubMateriProgressItem {
-        is_completed: boolean;
-      }
+          let completedPoins: string[] = [];
+          let quizScore: number | undefined;
+          let quizAttempts: number | undefined;
 
-      const subMaterisProgress: SubMateriProgressItem[] =
-        backendData.sub_materis_progress || [];
+          if (
+            !subMateriProgressResponse.error &&
+            subMateriProgressResponse.data
+          ) {
+            const subMateriData = subMateriProgressResponse.data as {
+              poin_details?: Array<{
+                id: string;
+                is_completed: boolean;
+              }>;
+            };
+            
+            // Extract completed poin IDs from poin_details
+            completedPoins = (subMateriData.poin_details || [])
+              .filter((p) => p.is_completed)
+              .map((p) => p.id);
+          }
+
+          // Fetch quiz score from quiz attempts (if quiz exists for this sub-materi)
+          try {
+            const quizResponse = await ProgressService.getSimpleQuizHistory(
+              moduleId
+            );
+            if (!quizResponse.error && quizResponse.data) {
+              // Filter attempts for this specific sub-materi
+              const attempts = quizResponse.data.attempts as Array<{
+                quiz_id?: string;
+                score?: number;
+                passed?: boolean;
+              }>;
+              
+              if (attempts && attempts.length > 0) {
+                // Get the best score
+                const bestAttempt = attempts.reduce((best, current) => {
+                  const currentScore = Number(current.score) || 0;
+                  const bestScore = Number(best.score) || 0;
+                  return currentScore > bestScore ? current : best;
+                }, attempts[0]);
+                
+                quizScore = Number(bestAttempt.score) || undefined;
+                quizAttempts = attempts.length;
+              }
+            }
+          } catch (error) {
+            console.warn(
+              `[useBackendModuleProgress] Failed to fetch quiz attempts for sub-materi ${sm.id}:`,
+              error
+            );
+          }
+
+          return {
+            sub_materi_id: sm.id,
+            is_completed: sm.is_completed,
+            progress_percentage: sm.progress_percent,
+            completed_at: undefined,
+            updated_at: new Date().toISOString(),
+            completed_poins: completedPoins,
+            quiz_score: quizScore,
+            quiz_attempts: quizAttempts,
+          };
+        })
+      );
 
       // Calculate module progress from backend data
-      const moduleProgressPercentage =
-        backendData.module?.progress?.progress_percent || 0;
-      const allSubMaterisCompleted = subMaterisProgress.every(
-        (s: SubMateriProgressItem) => s.is_completed
+      const moduleProgressPercentage = backendData.progress?.progress_percent || 0;
+      const allSubMaterisCompleted = (backendData.sub_materis || []).every(
+        (s) => s.is_completed
       );
 
       console.log(`[useBackendModuleProgress] Module ${moduleId} progress:`, {
-        totalSubMateris: subMaterisProgress.length,
-        completedSubMateris: subMaterisProgress.filter(
-          (s: SubMateriProgressItem) => s.is_completed
-        ).length,
+        totalSubMateris: backendData.sub_materis?.length || 0,
+        completedSubMateris:
+          backendData.sub_materis?.filter((s) => s.is_completed).length || 0,
         moduleProgressPercentage: moduleProgressPercentage,
         allCompleted: allSubMaterisCompleted,
       });
 
-      // Build module progress
+      // Build module progress with full sub-materi data
       const progress: BackendModuleProgress = {
         module_id: moduleId, // Keep as string (UUID)
         progress_percentage: Math.round(moduleProgressPercentage * 100) / 100,
         is_completed: allSubMaterisCompleted,
-        completed_at: backendData.module_progress?.completed_at,
-        updated_at:
-          backendData.module_progress?.updated_at || new Date().toISOString(),
-        sub_materis: [], // Return empty array since we don't have full typed data
+        completed_at: backendData.progress?.completed_at,
+        updated_at: new Date().toISOString(),
+        sub_materis: subMaterisWithDetails,
       };
 
       console.log("[useBackendModuleProgress] ✅ Progress fetched:", progress);

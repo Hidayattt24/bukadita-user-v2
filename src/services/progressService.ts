@@ -155,22 +155,7 @@ export class ProgressService {
     moduleId: string
   ): Promise<ApiResponse<ModuleProgress>> {
     try {
-      // Backend progress modules endpoint expects a numeric module id.
-      // If moduleId looks like a UUID (contains hyphens), skip calling the numeric endpoint
-      if (typeof moduleId === "string" && moduleId.includes("-")) {
-        console.warn(
-          "[PROGRESS_SERVICE] Skipping numeric progress fetch because moduleId appears to be a UUID:",
-          moduleId
-        );
-        return {
-          error: false,
-          code: "PROGRESS_NOT_FOUND",
-          message:
-            "Progress not requested for UUID moduleId on numeric endpoint",
-          data: undefined,
-        };
-      }
-
+      // 🔥 FIX: Always call backend, let backend handle UUID
       return await apiClient.get<ModuleProgress>(
         `/progress/modules/${moduleId}`,
         { auth: true, cache: "no-store" }

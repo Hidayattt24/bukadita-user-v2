@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { type SubMateri, type QuizResult } from "@/types/modul";
 import QuizInstruction from "./QuizInstruction";
 import QuizPlayer from "./QuizPlayer";
@@ -84,32 +84,23 @@ export default function QuizManager({
     fetchQuizQuestions();
   }, [subMateri.id, subMateri.quiz]);
 
-  // Fetch quiz history from backend when component mounts (SIMPLE SYSTEM)
-  useEffect(() => {
-    const fetchQuizHistory = async () => {
-      console.log("[QuizManager] useEffect triggered:", {
-        hasUser: !!user,
-        moduleId,
-        subMateriId: subMateri.id,
-      });
+  // 🔥 NEW: Separate function to fetch quiz history (can be called multiple times)
+  const fetchQuizHistory = useCallback(async () => {
+    console.log("[QuizManager] 🔄 Fetching quiz history:", {
+      hasUser: !!user,
+      moduleId,
+      subMateriId: subMateri.id,
+    });
 
-      if (!user) {
-        console.log(
-          "[QuizManager] ❌ No user logged in, skipping history fetch"
-        );
-        return;
-      }
+    if (!user) {
+      console.log("[QuizManager] ❌ No user logged in, skipping history fetch");
+      return;
+    }
 
-      setIsLoadingHistory(true);
-      try {
-        console.log("[QuizManager] 🔄 Fetching quiz history (simple system):", {
-          moduleId,
-          subMateriId: subMateri.id,
-        });
-
-        const response = await QuizService.getQuizHistoryByModule(moduleId);
-
-        console.log("[QuizManager] 📦 Backend response:", response);
+    setIsLoadingHistory(true);
+    try {
+      const response = await QuizService.getQuizHistoryByModule(moduleId);
+      console.log("[QuizManager] 📦 Backend response:", response);
 
         if (response.data?.attempts && response.data.attempts.length > 0) {
           // Find the most recent attempt for this sub-materi
@@ -117,50 +108,62 @@ export default function QuizManager({
 
           const subMateriAttempts = attemptsRaw.filter((attempt) => {
             if (typeof attempt !== "object" || attempt === null) return false;
-            const materis_quizzes = attempt["materis_quizzes"] as Record<string, unknown> | undefined;
-            if (!materis_quizzes) return false;
-            const sub_materis = materis_quizzes["sub_materis"] as Record<string, unknown> | undefined;
-            if (!sub_materis) return false;
-            return String(sub_materis["id"]) === subMateri.id;
+            
+            // Check quiz object for sub_materi_id
+            const quiz = attempt["quiz"] as Record<string, unknown> | undefined;
+            if (!quiz) return false;
+            
+            const quizSubMateriId = quiz["sub_materi_id"];
+            return String(quizSubMateriId) === subMateri.id;
           });
 
           if (subMateriAttempts.length > 0) {
-            const latestAttempt = subMateriAttempts[0]; // Most recent attempt
+            console.log(`[QuizManager] ✅ Found ${subMateriAttempts.length} attempts for this sub-materi`);
 
-            const attemptRecord = latestAttempt as Record<string, unknown>;
-            const attemptId = attemptRecord["id"];
-            const attemptScore = typeof attemptRecord["score"] === "number" ? (attemptRecord["score"] as number) : Number(attemptRecord["score"] || 0);
-            const attemptPassed = Boolean(attemptRecord["passed"]);
+            // Convert all attempts to QuizResult format
+            const allResults: QuizResult[] = subMateriAttempts.map((attempt) => {
+              const attemptRecord = attempt as Record<string, unknown>;
+              const attemptScore = typeof attemptRecord["score"] === "number" 
+                ? (attemptRecord["score"] as number) 
+                : Number(attemptRecord["score"] || 0);
+              const attemptPassed = Boolean(attemptRecord["passed"]);
+              const totalQuestions = Number(attemptRecord["total_questions"] || 0);
+              const correctAnswers = Number(attemptRecord["correct_answers"] || 0);
 
-            console.log("[QuizManager] ✅ Attempt found:", {
-              id: attemptId,
-              score: attemptScore,
-              passed: attemptPassed,
+              return {
+                score: Math.round(attemptScore),
+                totalQuestions,
+                correctAnswers,
+                answers: [], // Not needed for history display
+                passed: attemptPassed,
+                completedAt: attemptRecord["completed_at"] 
+                  ? String(attemptRecord["completed_at"]) 
+                  : undefined,
+              };
             });
 
-            // Convert backend attempt to QuizResult format
-            const result: QuizResult = {
-              score: attemptScore,
-              totalQuestions: 0, // Will be updated when we have the actual quiz
-              correctAnswers: 0, // Will be calculated from score
-              answers: [], // Not available in this response
-              passed: attemptPassed,
-            };
+            // ✅ FIX: Use BEST attempt (highest score), not latest
+            // Sort by score descending to get best attempt first
+            const sortedByScore = [...allResults].sort((a, b) => b.score - a.score);
+            const bestAttempt = sortedByScore[0];
+            
+            // Latest attempt is the first one (already sorted by backend by completed_at DESC)
+            const latestAttempt = allResults[0];
 
-            console.log(
-              "[QuizManager] 🎯 Quiz history loaded successfully:",
-              result
-            );
-            setLatestResult(result);
-            setQuizHistory([result]);
+            console.log("[QuizManager] 🎯 Quiz history loaded:", {
+              totalAttempts: allResults.length,
+              bestScore: bestAttempt.score,
+              bestPassed: bestAttempt.passed,
+              latestScore: latestAttempt.score,
+              latestPassed: latestAttempt.passed,
+            });
 
-            // If quiz was already completed, show result directly
-            if (latestAttempt.completed_at) {
-              console.log(
-                "[QuizManager] 🎬 Quiz already completed, showing result"
-              );
-              setCurrentState("result");
-            }
+            // ✅ Use BEST attempt for determining if user can proceed
+            setLatestResult(bestAttempt);
+            setQuizHistory(allResults);
+
+            // 🔥 FIX: Don't auto-show result, let user decide
+            // User can see history and choose to retake or review
           } else {
             console.log("[QuizManager] ℹ️ No quiz history found for this sub-materi");
           }
@@ -175,14 +178,15 @@ export default function QuizManager({
           status: errRec["status"],
           code: errRec["code"],
         });
-        // Silently fail - user can still take quiz
       } finally {
         setIsLoadingHistory(false);
       }
-    };
+    }, [user, moduleId, subMateri.id]);
 
+  // Fetch quiz history on mount
+  useEffect(() => {
     fetchQuizHistory();
-  }, [user, moduleId, subMateri.id]);
+  }, [fetchQuizHistory]);
 
   const handleStartQuiz = () => {
     setCurrentState("playing");
@@ -283,6 +287,10 @@ export default function QuizManager({
     } catch (error) {
       console.error("[QuizManager] ❌ Failed to sync progress:", error);
     }
+
+    // 🔥 NEW: Refresh quiz history from backend
+    console.log("[QuizManager] 🔄 Refreshing quiz history from backend...");
+    await fetchQuizHistory();
   };
 
   const handleContinue = () => {
@@ -353,9 +361,14 @@ export default function QuizManager({
 
   return (
     <QuizInstruction
-      subMateri={{ ...subMateri, quiz: quizQuestions }}
+      subMateri={{ 
+        ...subMateri, 
+        quiz: quizQuestions,
+        quizResult: latestResult || subMateri.quizResult // ✅ Use latestResult from history
+      }}
       onStartQuiz={handleStartQuiz}
       onRetakeQuiz={handleRetakeQuiz}
+      onBackToContent={onContinueToNext}
       quizHistory={quizHistory}
     />
   );

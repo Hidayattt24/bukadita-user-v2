@@ -209,13 +209,6 @@ export default function PengaturanPage() {
       console.log("🔗 Photo URL from backend:", response.data?.photo_url);
 
       if (response.data && !response.error) {
-        // Update user profile URL in context
-        if (authCtx.updateProfileWithNew) {
-          await authCtx.updateProfileWithNew({
-            profil_url: response.data.photo_url,
-          });
-        }
-
         toast.success("✅ Foto profil berhasil diupload!");
         setSelectedFile(null);
         setSelectedImage(null);

@@ -18,6 +18,13 @@ export interface PoinDetail {
   duration: string; // Mapped from duration_label
   isCompleted: boolean; // Derived from progress
   type: "text" | "video" | "image"; // Default to text
+  // Media items for this poin
+  media?: Array<{
+    id: string;
+    media_url: string;
+    mime_type: string;
+    original_filename?: string;
+  }>;
   // API fields for reference
   sub_materi_id?: string;
   content_html?: string;
@@ -32,6 +39,10 @@ export interface Quiz {
   options: string[];
   correctAnswer: number;
   explanation: string;
+  // Metadata from backend
+  time_limit_seconds?: number;
+  passing_score?: number;
+  title?: string;
 }
 
 export interface QuizResult {
@@ -50,6 +61,8 @@ export interface QuizResult {
     explanation?: string;
   }>;
   passed: boolean;
+  // ✅ Optional timestamp for history
+  completedAt?: string;
 }
 
 export interface SubMateri {

@@ -41,6 +41,11 @@ export const useModuleDetailFromDB = (slug: string | null) => {
         error: modulesResponse.error,
         hasData: !!modulesResponse.data,
         itemsCount: modulesResponse.data?.items?.length || 0,
+        items: modulesResponse.data?.items?.map(m => ({
+          slug: m.slug,
+          title: m.title,
+          published: m.published,
+        })) || [],
       });
 
       if (modulesResponse.error || !modulesResponse.data) {
@@ -83,6 +88,11 @@ export const useModuleDetailFromDB = (slug: string | null) => {
         dataLength: materialsResponse.data?.length || 0,
         code: materialsResponse.code,
         message: materialsResponse.message,
+        materials: materialsResponse.data?.map(m => ({
+          id: m.id,
+          title: m.title,
+          published: m.published,
+        })) || [],
       });
 
       if (materialsResponse.error) {
@@ -156,12 +166,27 @@ export const useModuleDetailFromDB = (slug: string | null) => {
             
             const materialDetailResponse = await SubMateriService.getSubMateriDetail(subMat.id);
             
+            console.log(`[useModuleDetail] Material detail response:`, {
+              error: materialDetailResponse.error,
+              hasData: !!materialDetailResponse.data,
+              dataKeys: materialDetailResponse.data ? Object.keys(materialDetailResponse.data) : [],
+              rawData: materialDetailResponse.data,
+            });
+            
             if (!materialDetailResponse.error && materialDetailResponse.data) {
               // Extract poin_details from material detail response
               poinsList = (materialDetailResponse.data as any).poin_details || [];
               console.log(`[useModuleDetail] ✅ Got ${poinsList.length} poins for "${subMat.title}"`);
+              
+              if (poinsList.length === 0) {
+                console.warn(`[useModuleDetail] ⚠️ No poin_details array found or empty for "${subMat.title}". Check if admin has created poin details for this material.`);
+              }
             } else {
-              console.warn(`[useModuleDetail] ⚠️ No poin details found for "${subMat.title}":`, materialDetailResponse.message);
+              console.warn(`[useModuleDetail] ⚠️ Failed to fetch material detail for "${subMat.title}":`, {
+                error: materialDetailResponse.error,
+                message: materialDetailResponse.message,
+                code: materialDetailResponse.code,
+              });
             }
 
             // Fetch quiz for this sub-materi
@@ -191,10 +216,13 @@ export const useModuleDetailFromDB = (slug: string | null) => {
                 quizData = [
                   {
                     id: quizId,
-                    question: `Kuis tersedia ${quizTimeLimit} menit`,
+                    question: `Kuis tersedia ${Math.round(quizTimeLimit / 60)} menit`,
                     options: ["Mulai kuis untuk melihat pertanyaan"],
                     correctAnswer: 0,
-                    explanation: `Waktu: ${quizTimeLimit} menit | Nilai lulus: ${passingScore}%`,
+                    explanation: `Waktu: ${Math.round(quizTimeLimit / 60)} menit | Nilai lulus: ${passingScore}%`,
+                    time_limit_seconds: quizTimeLimit, // ✅ Store actual time limit
+                    passing_score: passingScore, // ✅ Store passing score
+                    title: quiz.title, // ✅ Store quiz title
                   },
                 ];
 
@@ -224,15 +252,38 @@ export const useModuleDetailFromDB = (slug: string | null) => {
                       durationMinutes % 60
                     } menit`;
 
+              // Extract media items (poin_media from backend)
+              const media = poin.poin_media || [];
+              
+              console.log(`[useModuleDetail] Poin "${poin.title}" media:`, {
+                hasMedia: media.length > 0,
+                mediaCount: media.length,
+                mediaIds: media.map((m: any) => m.id),
+              });
+
               return {
                 id: poin.id, // Use UUID as ID
                 title: poin.title,
                 type,
                 duration,
-                content: poin.content_html || "", // ✅ HTML content from database
+                content: poin.content_html || "<p>Konten belum tersedia. Hubungi admin untuk menambahkan konten.</p>", // ✅ HTML content from database with fallback
+                media: media, // ✅ Include media items
                 isCompleted: false, // Will be updated by progress tracking
               };
             });
+            
+            // Add placeholder poin if no poins exist
+            if (poinDetails.length === 0) {
+              console.warn(`[useModuleDetail] Adding placeholder poin for "${subMat.title}" since no poin_details exist`);
+              poinDetails.push({
+                id: `placeholder-${subMat.id}`,
+                title: "Konten Belum Tersedia",
+                type: "text",
+                duration: "0 menit",
+                content: "<div class='p-4 bg-yellow-50 border border-yellow-200 rounded'><p class='text-yellow-800'>⚠️ Konten untuk sub-materi ini belum ditambahkan oleh admin.</p><p class='text-yellow-700 mt-2'>Silakan hubungi admin untuk menambahkan konten pembelajaran.</p></div>",
+                isCompleted: false,
+              });
+            }
 
             // Calculate total duration for this sub-materi
             const totalDurationMinutes = poinsList.reduce(

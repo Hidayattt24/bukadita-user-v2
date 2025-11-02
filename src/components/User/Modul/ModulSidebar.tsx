@@ -36,14 +36,15 @@ export default function ModulSidebar({
 }: ModulSidebarProps) {
   const { warning } = useToast();
 
-  // 🔥 NEW: Use backend progress directly (no localStorage)
-  const { moduleProgress, getSubMateriProgress, isLoading } =
-    useBackendModuleProgress(modul.moduleId || modul.id);
-
-  // Get progress from backend
-  const actualProgress = moduleProgress?.progress_percentage || 0;
-  const completedSubMaterisCount =
-    moduleProgress?.sub_materis.filter((s) => s.is_completed).length || 0;
+  // 🔥 FIX: Calculate progress from modul.subMateris (already updated by parent)
+  const completedSubMaterisCount = modul.subMateris.filter(
+    (s) => s.isCompleted
+  ).length;
+  const totalSubMateris = modul.subMateris.length;
+  const actualProgress =
+    totalSubMateris > 0
+      ? Math.round((completedSubMaterisCount / totalSubMateris) * 100)
+      : 0;
 
   return (
     <>
@@ -84,21 +85,47 @@ export default function ModulSidebar({
           </div>
 
           <div className="bg-white/10 rounded-xl p-3 sm:p-4">
-            <div className="flex items-center justify-between text-xs sm:text-sm mb-2 sm:mb-3">
-              <span className="font-medium text-white/90">
-                Progress Keseluruhan
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-medium text-white/90 text-sm">
+                Status Pembelajaran
               </span>
-              <span className="font-bold text-white">{actualProgress}%</span>
+              <div className="flex items-center gap-2">
+                {completedSubMaterisCount === modul.subMateris.length ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 text-white" />
+                    <span className="font-bold text-white text-sm">Selesai</span>
+                  </>
+                ) : completedSubMaterisCount > 0 ? (
+                  <>
+                    <div className="w-4 h-4 rounded-full border-2 border-white flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-white"></div>
+                    </div>
+                    <span className="font-bold text-white text-sm">Belajar</span>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-4 h-4 rounded-full border-2 border-white/50"></div>
+                    <span className="font-bold text-white/70 text-sm">Belum</span>
+                  </>
+                )}
+              </div>
             </div>
-            <div className="w-full bg-white/20 rounded-full h-2">
-              <div
-                className="bg-white h-2 rounded-full transition-all duration-500"
-                style={{ width: `${actualProgress}%` }}
-              ></div>
-            </div>
-            <div className="text-xs text-blue-100 mt-2">
-              {completedSubMaterisCount} dari {modul.subMateris.length} materi
-              selesai
+            
+            {/* Progress Detail */}
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-blue-100">
+                <span className="font-semibold text-white">
+                  {completedSubMaterisCount}
+                </span>
+                {" dari "}
+                <span className="font-semibold text-white">
+                  {modul.subMateris.length}
+                </span>
+                {" materi"}
+              </div>
+              <div className="text-xs text-blue-100">
+                {actualProgress}% lengkap
+              </div>
             </div>
           </div>
         </div>
@@ -113,29 +140,13 @@ export default function ModulSidebar({
         >
           <div className="pb-4">
             {modul?.subMateris.map((subMateri, subIndex) => {
-              // 🔥 Get sub-materi progress from backend
-              const subMateriProgress = getSubMateriProgress(subMateri.id);
+              // 🔥 FIX: Use data from modul.subMateris (already updated by parent from backend)
+              const isSubMateriCompleted = subMateri.isCompleted;
 
-              // 🐛 DEBUG: Log progress data
-              console.log(
-                `[ModulSidebar] Sub-Materi ${subMateri.id} (${subMateri.title}):`,
-                {
-                  subMateriProgress,
-                  is_completed: subMateriProgress?.is_completed,
-                  completed_poins: subMateriProgress?.completed_poins,
-                  quiz_score: subMateriProgress?.quiz_score,
-                  quiz_attempts: subMateriProgress?.quiz_attempts,
-                }
-              );
-
-              //  Sub-materi is completed when:
-              // 1. All poins completed AND quiz passed (if quiz exists)
-              // 2. All poins completed (if no quiz)
-              const isSubMateriCompleted =
-                subMateriProgress?.is_completed ?? false;
-
-              const completedPoinsIds =
-                subMateriProgress?.completed_poins ?? [];
+              // 🔥 FIX: Get completed poins from poinDetails (already updated from backend)
+              const completedPoinsIds = subMateri.poinDetails
+                .filter((p) => p.isCompleted)
+                .map((p) => p.id);
 
               // 🔥 Calculate progress percentage
               // Progress = (completed poins / total items) * 100
@@ -146,9 +157,8 @@ export default function ModulSidebar({
 
               // Count completed items
               const completedPoinsCount = completedPoinsIds.length;
-              const quizCompleted = subMateriProgress?.quiz_score
-                ? subMateriProgress.quiz_score >= 70
-                : false;
+              // 🔥 FIX: Quiz is completed if sub-materi is completed and has quiz
+              const quizCompleted = hasQuiz && isSubMateriCompleted;
               const completedItems =
                 completedPoinsCount + (quizCompleted ? 1 : 0);
 
@@ -157,18 +167,6 @@ export default function ModulSidebar({
                 totalItems > 0
                   ? Math.round((completedItems / totalItems) * 100)
                   : 0;
-
-              // 🐛 DEBUG: Log calculated values
-              console.log(`[ModulSidebar] Calculated for ${subMateri.id}:`, {
-                totalPoins,
-                hasQuiz,
-                totalItems,
-                completedPoinsCount,
-                quizCompleted,
-                completedItems,
-                progressPercentage,
-                isSubMateriCompleted,
-              });
 
               return (
                 <div
@@ -239,35 +237,45 @@ export default function ModulSidebar({
                       </button>
                     </div>
 
-                    {/* Progress Bar */}
+                    {/* Status Completion - Replace Progress Bar */}
                     <div className="mb-3">
-                      <div className="w-full bg-gray-200 rounded-full h-1.5">
-                        <div
-                          className={`h-1.5 rounded-full transition-all duration-300 ${
-                            isSubMateriCompleted
-                              ? "bg-emerald-500"
-                              : progressPercentage > 0
-                              ? "bg-[#578FCA]"
-                              : "bg-gray-300"
-                          }`}
-                          style={{
-                            width: `${progressPercentage}%`,
-                          }}
-                        ></div>
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {completedItems} dari {totalItems} selesai
-                        {hasQuiz && totalItems > 1 && (
-                          <span className="ml-1 text-gray-400">
-                            ({completedPoinsCount}/{totalPoins} poin +{" "}
-                            {quizCompleted ? "✓" : "○"} quiz)
-                          </span>
-                        )}
-                        {!hasQuiz && (
-                          <span className="ml-1 text-gray-400">
-                            ({completedPoinsCount}/{totalPoins} poin)
-                          </span>
-                        )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex-items-center gap-2">
+                          {isSubMateriCompleted ? (
+                            <>
+                              <CheckCircle className="w-4 h-4 text-emerald-500" />
+                              <span className="text-xs font-medium text-emerald-600">
+                                ✓ Selesai
+                              </span>
+                            </>
+                          ) : completedPoinsCount > 0 ? (
+                            <>
+                              <div className="w-4 h-4 rounded-full border-2 border-[#578FCA] flex items-center justify-center">
+                                <div className="w-2 h-2 rounded-full bg-[#578FCA]"></div>
+                              </div>
+                              <span className="text-xs font-medium text-[#578FCA]">
+                                Sedang Belajar
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-4 h-4 rounded-full border-2 border-gray-300"></div>
+                              <span className="text-xs font-medium text-gray-500">
+                                Belum Dimulai
+                              </span>
+                            </>
+                          )}
+                        </div>
+                        
+                        {/* Detail count */}
+                        <div className="text-xs text-gray-400">
+                          {completedPoinsCount}/{totalPoins} poin
+                          {hasQuiz && (
+                            <span className="ml-1">
+                              + {quizCompleted ? "✓" : "○"} quiz
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -281,17 +289,35 @@ export default function ModulSidebar({
                       disabled={!subMateri.isUnlocked}
                       className={`w-full py-2.5 px-4 rounded-lg font-medium text-sm transition-all ${
                         selectedSubMateri?.id === subMateri.id
-                          ? "bg-[#578FCA] text-white"
+                          ? "bg-[#578FCA] text-white shadow-lg"
+                          : isSubMateriCompleted
+                          ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
                           : subMateri.isUnlocked
                           ? "bg-gray-100 text-[#27548A] hover:bg-gray-200"
                           : "bg-gray-50 text-gray-400 cursor-not-allowed"
                       }`}
                     >
-                      {selectedSubMateri?.id === subMateri.id
-                        ? "Sedang Dipelajari"
-                        : subMateri.isUnlocked
-                        ? "Mulai Belajar"
-                        : "Locked"}
+                      {selectedSubMateri?.id === subMateri.id ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+                          Sedang Dipelajari
+                        </span>
+                      ) : isSubMateriCompleted ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <CheckCircle className="w-4 h-4" />
+                          Selesai - Review
+                        </span>
+                      ) : subMateri.isUnlocked ? (
+                        completedPoinsCount > 0 ? (
+                          "Lanjutkan Belajar"
+                        ) : (
+                          "Mulai Belajar"
+                        )
+                      ) : (
+                        <span className="flex items-center justify-center gap-2">
+                          🔒 Locked
+                        </span>
+                      )}
                     </button>
 
                     {/* Locked Message */}

@@ -9,6 +9,8 @@ import {
   Calendar,
   Trophy,
   Target,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 import { type SubMateri, type QuizResult } from "@/types/modul";
 
@@ -16,6 +18,7 @@ interface QuizInstructionProps {
   subMateri: SubMateri;
   onStartQuiz: () => void;
   onRetakeQuiz: () => void;
+  onBackToContent?: () => void;
   quizHistory: QuizResult[];
 }
 
@@ -23,11 +26,23 @@ export default function QuizInstruction({
   subMateri,
   onStartQuiz,
   onRetakeQuiz,
+  onBackToContent,
   quizHistory,
 }: QuizInstructionProps) {
-  const latestResult = subMateri.quizResult;
+  // ✅ Use quizResult from subMateri (updated from quiz history in QuizManager)
+  // Fallback to latest from quizHistory if quizResult not set
+  const latestResult = subMateri.quizResult || (quizHistory.length > 0 ? quizHistory[0] : null);
   const hasPassedQuiz = latestResult?.passed || false;
   const canRetake = !hasPassedQuiz || true; // Allow retake even if passed for improvement
+
+  // Debug logging
+  console.log("[QuizInstruction] 🔍 State:", {
+    hasLatestResult: !!latestResult,
+    latestScore: latestResult?.score,
+    hasPassedQuiz,
+    quizHistoryLength: quizHistory.length,
+    subMateriQuizResult: subMateri.quizResult,
+  });
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-emerald-600";
@@ -73,14 +88,14 @@ export default function QuizInstruction({
                 ) : (
                   <AlertCircle className="w-6 h-6 text-red-600" />
                 )}
-                <div>
+                <div className="flex-1">
                   <h3 className="font-bold text-gray-800">
                     {hasPassedQuiz
                       ? "Selamat! Anda telah lulus kuis ini"
-                      : "Belum Lulus"}
+                      : "Belum Lulus - Silakan Ulangi Kuis"}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Skor terakhir:{" "}
+                    Skor terbaik:{" "}
                     <span
                       className={`font-bold ${getScoreColor(
                         latestResult.score
@@ -90,7 +105,17 @@ export default function QuizInstruction({
                     </span>{" "}
                     ({latestResult.correctAnswers}/{latestResult.totalQuestions}{" "}
                     benar)
+                    {!hasPassedQuiz && (
+                      <span className="ml-2">
+                        • Minimum: {subMateri.quiz[0]?.passing_score || 70}%
+                      </span>
+                    )}
                   </p>
+                  {hasPassedQuiz && (
+                    <p className="text-sm text-emerald-600 mt-1">
+                      ✓ Materi berikutnya sudah terbuka
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -126,7 +151,11 @@ export default function QuizInstruction({
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Waktu</p>
-                      <p className="font-bold text-emerald-700">15 Menit</p>
+                      <p className="font-bold text-emerald-700">
+                        {subMateri.quiz[0]?.time_limit_seconds 
+                          ? Math.round(subMateri.quiz[0].time_limit_seconds / 60) 
+                          : 15} Menit
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -142,7 +171,7 @@ export default function QuizInstruction({
                       <p className="text-gray-700">
                         Nilai minimum untuk lulus adalah{" "}
                         <span className="font-semibold text-[#578FCA]">
-                          50%
+                          {subMateri.quiz[0]?.passing_score || 70}%
                         </span>
                       </p>
                     </li>
@@ -161,43 +190,85 @@ export default function QuizInstruction({
                     <li className="flex items-start gap-3">
                       <div className="w-2 h-2 bg-[#578FCA] rounded-full mt-2 flex-shrink-0"></div>
                       <p className="text-gray-700">
-                        Kuis dapat diulang jika belum mencapai nilai minimum
+                        Anda harus mencapai nilai minimum{" "}
+                        <span className="font-semibold text-[#578FCA]">
+                          {subMateri.quiz[0]?.passing_score || 70}%
+                        </span>{" "}
+                        untuk melanjutkan ke materi berikutnya
+                      </p>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-2 h-2 bg-[#578FCA] rounded-full mt-2 flex-shrink-0"></div>
+                      <p className="text-gray-700">
+                        Kuis dapat diulang berkali-kali hingga mencapai nilai minimum
                       </p>
                     </li>
                   </ul>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-4 pt-6">
+                <div className="space-y-3 pt-6">
                   {!latestResult ? (
                     <button
                       onClick={onStartQuiz}
-                      className="flex items-center gap-3 bg-[#578FCA] text-white px-8 py-4 rounded-xl font-semibold hover:bg-[#27548A] transition-colors flex-1 justify-center"
+                      className="w-full flex items-center gap-3 bg-[#578FCA] text-white px-8 py-4 rounded-xl font-semibold hover:bg-[#27548A] transition-colors justify-center"
                     >
                       <Play className="w-5 h-5" />
                       Mulai Kuis
                     </button>
                   ) : (
                     <>
-                      {!hasPassedQuiz && (
+                      {hasPassedQuiz ? (
+                        <>
+                          {onBackToContent && (
+                            <button
+                              onClick={() => {
+                                console.log("[QuizInstruction] 🔘 Lanjut ke Materi clicked");
+                                onBackToContent();
+                              }}
+                              className="w-full flex items-center gap-3 bg-emerald-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-emerald-700 transition-colors justify-center cursor-pointer"
+                            >
+                              <ArrowRight className="w-5 h-5" />
+                              Lanjut ke Materi Berikutnya
+                            </button>
+                          )}
+                          {canRetake && (
+                            <button
+                              onClick={() => {
+                                console.log("[QuizInstruction] 🔘 Tingkatkan Skor clicked");
+                                onRetakeQuiz();
+                              }}
+                              className="w-full flex items-center gap-3 bg-gray-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-700 transition-colors justify-center cursor-pointer"
+                            >
+                              <Trophy className="w-5 h-5" />
+                              Tingkatkan Skor
+                            </button>
+                          )}
+                        </>
+                      ) : (
                         <button
                           onClick={onRetakeQuiz}
-                          className="flex items-center gap-3 bg-[#578FCA] text-white px-8 py-4 rounded-xl font-semibold hover:bg-[#27548A] transition-colors flex-1 justify-center"
+                          className="w-full flex items-center gap-3 bg-[#578FCA] text-white px-8 py-4 rounded-xl font-semibold hover:bg-[#27548A] transition-colors justify-center"
                         >
                           <RotateCcw className="w-5 h-5" />
                           Ulangi Kuis
                         </button>
                       )}
-                      {canRetake && hasPassedQuiz && (
-                        <button
-                          onClick={onRetakeQuiz}
-                          className="flex items-center gap-3 bg-gray-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-gray-700 transition-colors flex-1 justify-center"
-                        >
-                          <Trophy className="w-5 h-5" />
-                          Tingkatkan Skor
-                        </button>
-                      )}
                     </>
+                  )}
+                  
+                  {/* Back to Content Button - Always show */}
+                  {onBackToContent && latestResult && (
+                    <button
+                      onClick={() => {
+                        console.log("[QuizInstruction] 🔘 Kembali ke Materi clicked");
+                        onBackToContent();
+                      }}
+                      className="w-full flex items-center gap-3 bg-white text-[#578FCA] px-8 py-4 rounded-xl font-semibold hover:bg-gray-50 transition-colors justify-center border-2 border-[#578FCA] cursor-pointer"
+                    >
+                      <ArrowLeft className="w-5 h-5" />
+                      Kembali ke Materi
+                    </button>
                   )}
                 </div>
               </div>
@@ -217,6 +288,9 @@ export default function QuizInstruction({
                     <Calendar className="w-8 h-8 text-gray-400" />
                   </div>
                   <p className="text-gray-500">Belum ada riwayat kuis</p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    Mulai kuis untuk melihat riwayat
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -234,9 +308,15 @@ export default function QuizInstruction({
                           Percobaan {quizHistory.length - index}
                         </span>
                         {result.passed ? (
-                          <CheckCircle className="w-4 h-4 text-emerald-600" />
+                          <div className="flex items-center gap-1">
+                            <CheckCircle className="w-4 h-4 text-emerald-600" />
+                            <span className="text-xs text-emerald-600 font-medium">Lulus</span>
+                          </div>
                         ) : (
-                          <AlertCircle className="w-4 h-4 text-red-600" />
+                          <div className="flex items-center gap-1">
+                            <AlertCircle className="w-4 h-4 text-red-600" />
+                            <span className="text-xs text-red-600 font-medium">Belum Lulus</span>
+                          </div>
                         )}
                       </div>
                       <div className="flex items-center justify-between">
@@ -248,7 +328,7 @@ export default function QuizInstruction({
                           {result.score}%
                         </span>
                         <span className="text-sm text-gray-600">
-                          {result.correctAnswers}/{result.totalQuestions}
+                          {result.correctAnswers}/{result.totalQuestions} benar
                         </span>
                       </div>
                     </div>

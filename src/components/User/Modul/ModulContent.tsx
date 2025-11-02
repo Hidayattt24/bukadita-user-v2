@@ -9,6 +9,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { PoinDetail, SubMateri } from "@/types/modul";
+import ContentRenderer from "./ContentRenderer";
 
 interface ModulContentProps {
   currentPoin: PoinDetail | null;
@@ -151,10 +152,10 @@ export default function ModulContent({
 
           <div className="space-y-4 sm:space-y-6">
             <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-gray-200">
-              {/* ✅ Render HTML content from database using dangerouslySetInnerHTML (same as backoffice) */}
-              <div 
-                className="html-content prose prose-sm sm:prose-base max-w-none"
-                dangerouslySetInnerHTML={{ __html: currentPoin.content || '<p class="text-gray-500 italic text-center py-8">Konten kosong</p>' }}
+              {/* ✅ Render HTML content with enhanced styling and media placeholders replaced */}
+              <ContentRenderer
+                htmlContent={currentPoin.content}
+                mediaItems={currentPoin.media || []}
               />
             </div>
 
@@ -181,7 +182,11 @@ export default function ModulContent({
                           📝 {selectedSubMateri.quiz.length} soal
                         </span>
                         <span>•</span>
-                        <span className="font-medium">⏱️ Estimasi 5 menit</span>
+                        <span className="font-medium">
+                          ⏱️ Estimasi {selectedSubMateri.quiz[0]?.time_limit_seconds 
+                            ? Math.round(selectedSubMateri.quiz[0].time_limit_seconds / 60) 
+                            : 15} menit
+                        </span>
                       </div>
                       {onStartQuiz && (
                         <button

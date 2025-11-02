@@ -8,6 +8,7 @@ export { default as ModuleCard, ModuleCardCompact } from "./ModuleCard";
 export { default as ModuleCardWithProgress } from "./ModuleCardWithProgress";
 export { default as ModuleCardWithBackendProgress } from "./ModuleCardWithBackendProgress";
 export { default as ModuleList } from "./ModuleList";
+export { default as ContentRenderer } from "./ContentRenderer";
 
 // Quiz Components
 export { QuizManager, QuizInstruction, QuizPlayer, QuizResult } from "./Quiz";

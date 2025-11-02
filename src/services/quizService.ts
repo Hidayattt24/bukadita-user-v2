@@ -137,21 +137,27 @@ export class QuizService {
 
   /**
    * Get quiz questions by quiz ID
-   * Uses the main quiz system endpoint
+   * Backend endpoint: GET /api/v1/quizzes/:id (includes questions)
    */
   static async getQuestions(
     quizId: string
   ): Promise<ApiResponse<QuizQuestion[]>> {
     try {
       console.log("[QUIZ_SERVICE] 🔍 Getting questions for quizId:", quizId);
-      const response = await apiClient.get<QuizQuestion[]>(
-        `/quizzes/${quizId}/questions`,
+      const response = await apiClient.get<any>(
+        `/quizzes/${quizId}`,
         {
           auth: true, // Requires authentication
         }
       );
-      console.log("[QUIZ_SERVICE] ✅ Questions response:", response);
-      return response;
+      console.log("[QUIZ_SERVICE] ✅ Quiz response:", response);
+      
+      // Extract questions from quiz response
+      const questions = response.data?.questions || [];
+      return {
+        ...response,
+        data: questions,
+      };
     } catch (err) {
       console.error("[QUIZ_SERVICE] ❌ Error getting questions:", err);
       throw err;
@@ -160,13 +166,13 @@ export class QuizService {
 
   /**
    * Start a quiz attempt (requires auth)
-   * Uses the main quiz system endpoint
+   * Backend endpoint: POST /api/v1/quizzes/start with quiz_id in body
    */
   static async startAttempt(quizId: string): Promise<ApiResponse<QuizAttempt>> {
     try {
       return await apiClient.post<QuizAttempt>(
-        `/quizzes/${quizId}/start`,
-        {},
+        `/quizzes/start`,
+        { quiz_id: quizId },
         { auth: true }
       );
     } catch (err) {
@@ -176,7 +182,7 @@ export class QuizService {
 
   /**
    * Submit quiz answers (requires auth)
-   * Uses the main quiz system endpoint
+   * Backend endpoint: POST /api/v1/quizzes/submit
    */
   static async submitAnswers(
     quizId: string,
@@ -190,7 +196,7 @@ export class QuizService {
       };
 
       return await apiClient.post<QuizResult>(
-        `/quizzes/${quizId}/submit`,
+        `/quizzes/submit`,
         submission,
         { auth: true }
       );
@@ -246,7 +252,7 @@ export class QuizService {
 
   /**
    * Start a new quiz attempt (requires auth)
-   * POST /api/v1/quizzes/:quizId/start
+   * Backend endpoint: POST /api/v1/quizzes/start with quiz_id in body
    */
   static async startQuizAttempt(quizId: string): Promise<
     ApiResponse<{
@@ -257,8 +263,8 @@ export class QuizService {
   > {
     try {
       return await apiClient.post(
-        `/quizzes/${quizId}/start`,
-        {},
+        `/quizzes/start`,
+        { quiz_id: quizId },
         { auth: true }
       );
     } catch (err) {
@@ -273,7 +279,7 @@ export class QuizService {
 
   /**
    * Get quiz questions for active attempt (requires auth)
-   * GET /api/v1/quizzes/:quizId/questions
+   * Backend endpoint: GET /api/v1/quizzes/:id (returns quiz with questions included)
    */
   static async getQuizQuestions(quizId: string): Promise<
     ApiResponse<{
@@ -283,9 +289,22 @@ export class QuizService {
     }>
   > {
     try {
-      return await apiClient.get(`/quizzes/${quizId}/questions`, {
+      // Use getQuizById endpoint which includes questions
+      const response = await apiClient.get(`/quizzes/${quizId}`, {
         auth: true,
       });
+      
+      // Backend returns quiz with questions nested
+      // Transform to expected format
+      const quizData = response.data as any;
+      return {
+        ...response,
+        data: {
+          attempt_id: quizData.id || quizId,
+          questions: quizData.questions || [],
+          started_at: new Date().toISOString(),
+        },
+      };
     } catch (err) {
       const error = err as ApiError;
       console.error("[QUIZ_SERVICE] Error fetching quiz questions:", {
@@ -298,7 +317,7 @@ export class QuizService {
 
   /**
    * Submit quiz answers (requires auth)
-   * POST /api/v1/quizzes/:quizId/submit
+   * Backend endpoint: POST /api/v1/quizzes/submit
    */
   static async submitQuizAnswers(
     quizId: string,
@@ -317,8 +336,11 @@ export class QuizService {
   > {
     try {
       return await apiClient.post(
-        `/quizzes/${quizId}/submit`,
-        { answers },
+        `/quizzes/submit`,
+        { 
+          quiz_id: quizId,
+          answers 
+        },
         { auth: true }
       );
     } catch (err) {
@@ -333,8 +355,8 @@ export class QuizService {
 
   /**
    * Get quiz results (requires auth)
-   * GET /api/v1/quizzes/:quizId/results?includeAnswers=true
-   *
+   * Backend endpoint: GET /api/v1/quizzes/attempts/me?quizId=...
+   * 
    * Returns null if no results found (404) - this is expected immediately after submission
    * Throws for other errors
    */
@@ -347,41 +369,56 @@ export class QuizService {
     answer_details?: Array<Record<string, unknown>>;
   } | null> {
     try {
-      const queryParams = includeAnswers ? "?includeAnswers=true" : "";
-      const response = await apiClient.get<{
-        quiz: Quiz;
-        attempt: QuizAttempt;
-        answer_details?: Array<Record<string, unknown>>;
-      }>(`/quizzes/${quizId}/results${queryParams}`, {
-        auth: true,
-      });
+      // Get quiz attempts for this quiz
+      const response = await apiClient.get<QuizAttempt[]>(
+        `/quizzes/attempts/me?quizId=${quizId}`,
+        {
+          auth: true,
+        }
+      );
 
-      console.log("[QUIZ_SERVICE] ✅ Quiz results fetched successfully:", {
+      console.log("[QUIZ_SERVICE] ✅ Quiz attempts fetched:", {
         quizId,
-        hasAnswerDetails:
-          !!response.data &&
-          "answer_details" in response.data &&
-          Array.isArray(
-            (response.data as { answer_details?: unknown }).answer_details
-          ),
+        attemptsCount: Array.isArray(response.data) ? response.data.length : 0,
       });
 
-      return response.data || null;
+      // Get the latest attempt
+      const attempts = Array.isArray(response.data) ? response.data : [];
+      if (attempts.length === 0) {
+        return null;
+      }
+      
+      const latestAttempt = attempts[0]; // Already ordered by created_at desc
+
+      // If includeAnswers, get quiz details with questions
+      let quizDetails: Quiz | null = null;
+      if (includeAnswers) {
+        const quizResponse = await apiClient.get<Quiz>(`/quizzes/${quizId}?includeAnswers=true`, {
+          auth: true,
+        });
+        quizDetails = quizResponse.data || null;
+      }
+
+      return {
+        quiz: quizDetails || ({ id: quizId } as Quiz),
+        attempt: latestAttempt,
+        answer_details: latestAttempt.answers ? 
+          (Array.isArray(latestAttempt.answers) ? latestAttempt.answers : []) : 
+          undefined,
+      };
     } catch (err) {
       const error = err as ApiError;
 
-      // 404 is expected if no results available yet (edge case, usually immediate after submit)
-      // This is normal - just return null and let caller use POST response data
+      // 404 is expected if no results available yet
       if (error.status === 404 || error.code === "NO_RESULTS_FOUND") {
         console.warn(
-          "[QUIZ_SERVICE] ⚠️ No results found (404) - results endpoint may not be ready yet",
+          "[QUIZ_SERVICE] ⚠️ No results found (404) - user hasn't completed this quiz yet",
           {
             quizId,
             code: error.code,
             message: error.message,
           }
         );
-        // Return null gracefully instead of throwing
         return null;
       }
 

@@ -9,26 +9,24 @@ import {
   Heart,
 } from "lucide-react";
 import Link from "next/link";
+import { useModulesWithProgress } from "@/hooks/useModulesWithProgress";
 
 /**
- * Motivational Banner - UI dekoratif tanpa backend
- * Menampilkan motivasi dan quick stats
+ * Motivational Banner - Menampilkan motivasi dan quick stats dari backend
+ * 
+ * Features:
+ * - Data modul dari backend (real-time)
+ * - Statistics otomatis update
  */
 export default function MotivationalBanner() {
-  const motivations = [
-    {
-      title: "Selamat Belajar! 🎯",
-      description:
-        "Tingkatkan pengetahuan Anda tentang kesehatan dan gizi di Posyandu",
-      icon: Sparkles,
-      gradient: "from-purple-500 to-pink-500",
-    },
-  ];
+  // 🔥 Get real statistics from backend
+  const { getStatistics } = useModulesWithProgress();
+  const stats = getStatistics();
 
   const quickStats = [
     {
       icon: BookOpen,
-      value: "5",
+      value: stats.total.toString(),
       label: "Modul Tersedia",
       color: "text-blue-600",
       bg: "bg-blue-100",

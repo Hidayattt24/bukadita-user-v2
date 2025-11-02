@@ -21,6 +21,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useProgress } from "@/context/ProgressContext";
 import { useProgressSync } from "@/hooks/useProgressSync";
 import { useModuleDetailFromDB } from "@/hooks/useModuleDetail"; // 🔥 NEW: Fetch from database
+import { ProgressService } from "@/services/progressService"; // 🔥 NEW: For loading progress from backend
 
 type PageState = "content" | "quiz";
 
@@ -63,66 +64,108 @@ export default function DetailModulPage() {
     loadingFromDB: loadingFromDB
   });
 
-  // 🔥 NEW: Effect untuk update modul state berdasarkan progress dari localStorage/backend
+  // 🔥 NEW: Effect untuk update modul state berdasarkan progress dari backend
   useEffect(() => {
-    if (!modul || !user) return;
+    if (!modul || !user || !modul.moduleId) return;
 
-    console.log(
-      "[Page] 🔄 Checking if modul needs update based on progress..."
-    );
-
-    const moduleProgress = getModuleProgress(modul.id);
-    if (!moduleProgress) return;
-
-    // Update sub-materi state based on progress
-    let hasChanges = false;
-    const updatedSubMateris = modul.subMateris.map((sub, index) => {
-      const subProgress = moduleProgress.subMateris.find(
-        (sp) => sp.subMateriId === sub.id
+    const loadProgressFromBackend = async () => {
+      console.log(
+        "[Page] 🔄 Loading progress from backend for module:",
+        modul.moduleId
       );
 
-      if (!subProgress) return sub;
+      try {
+        // Fetch progress from backend
+        if (!modul.moduleId) {
+          console.log("[Page] No moduleId, skipping progress fetch");
+          return;
+        }
 
-      // Check apakah sub-materi harus completed atau unlocked
-      const shouldBeCompleted = subProgress.isCompleted;
-      const shouldBeUnlocked =
-        index === 0 ||
-        moduleProgress.subMateris.some(
-          (sp, i) => i < index && sp.isCompleted
-        ) ||
-        sub.isUnlocked;
+        const progressResponse = await ProgressService.getModuleProgress(
+          modul.moduleId
+        );
 
-      // Jika ada perubahan, update
-      if (
-        sub.isCompleted !== shouldBeCompleted ||
-        sub.isUnlocked !== shouldBeUnlocked
-      ) {
-        hasChanges = true;
-        console.log(`[Page] 📝 Updating sub-materi ${sub.id}:`, {
-          wasCompleted: sub.isCompleted,
-          nowCompleted: shouldBeCompleted,
-          wasUnlocked: sub.isUnlocked,
-          nowUnlocked: shouldBeUnlocked,
-        });
+        if (progressResponse.error || !progressResponse.data) {
+          console.log("[Page] No progress found in backend, using defaults");
+          return;
+        }
 
-        return {
-          ...sub,
-          isCompleted: shouldBeCompleted,
-          isUnlocked: shouldBeUnlocked,
+        const backendData = progressResponse.data as {
+          sub_materis?: Array<{
+            id: string;
+            is_completed: boolean;
+            is_unlocked: boolean;
+          }>;
         };
+
+        if (!backendData.sub_materis || backendData.sub_materis.length === 0) {
+          console.log("[Page] No sub-materis progress in backend");
+          return;
+        }
+
+        // 🔥 FIX: Fetch detailed progress for each sub-materi (including poin progress)
+        const updatedSubMateris = await Promise.all(
+          modul.subMateris.map(async (sub) => {
+            const backendProgress = backendData.sub_materis?.find(
+              (bp) => bp.id === sub.id
+            );
+
+            if (!backendProgress) return sub;
+
+            // Fetch poin progress for this sub-materi
+            const subMateriProgressResponse =
+              await ProgressService.getSubMateriProgress(sub.id);
+
+            let completedPoinIds: string[] = [];
+            if (
+              !subMateriProgressResponse.error &&
+              subMateriProgressResponse.data
+            ) {
+              const subMateriData = subMateriProgressResponse.data as {
+                poin_details?: Array<{
+                  id: string;
+                  is_completed: boolean;
+                }>;
+              };
+
+              completedPoinIds = (subMateriData.poin_details || [])
+                .filter((p) => p.is_completed)
+                .map((p) => p.id);
+            }
+
+            console.log(`[Page] 📝 Updating sub-materi ${sub.id} from backend:`, {
+              isCompleted: backendProgress.is_completed,
+              isUnlocked: backendProgress.is_unlocked,
+              completedPoins: completedPoinIds.length,
+            });
+
+            // Update poinDetails with completed status
+            const updatedPoinDetails = sub.poinDetails.map((poin) => ({
+              ...poin,
+              isCompleted: completedPoinIds.includes(poin.id),
+            }));
+
+            return {
+              ...sub,
+              isCompleted: backendProgress.is_completed,
+              isUnlocked: backendProgress.is_unlocked,
+              poinDetails: updatedPoinDetails,
+            };
+          })
+        );
+
+        console.log("[Page] ✅ Modul state updated from backend");
+        setModul({
+          ...modul,
+          subMateris: updatedSubMateris,
+        });
+      } catch (error) {
+        console.error("[Page] Error loading progress from backend:", error);
       }
+    };
 
-      return sub;
-    });
-
-    if (hasChanges) {
-      console.log("[Page] ✅ Modul state updated based on progress");
-      setModul({
-        ...modul,
-        subMateris: updatedSubMateris,
-      });
-    }
-  }, [modul, user, getModuleProgress]); // Re-run when modul, user, or getModuleProgress changes
+    loadProgressFromBackend();
+  }, [modul?.moduleId, user]); // Only run when moduleId or user changes
 
   // Detect screen size and adjust sidebar behavior
   useEffect(() => {
@@ -167,19 +210,43 @@ export default function DetailModulPage() {
           await syncModuleProgress();
         }
 
-        // Set default ke sub materi pertama yang unlocked
-        const firstUnlockedSubMateri = modulFromDB.subMateris.find(
-          (sub: SubMateri) => sub.isUnlocked
-        );
-        if (firstUnlockedSubMateri) {
-          setSelectedSubMateri(firstUnlockedSubMateri);
-          setSelectedPoinIndex(0);
+        // 🔥 FIX: Find first incomplete sub-materi (yang belum selesai)
+        let targetSubMateri: SubMateri | null = null;
+        let targetPoinIndex = 0;
+
+        // Find first unlocked but not completed sub-materi
+        targetSubMateri = modulFromDB.subMateris.find(
+          (sub: SubMateri) => sub.isUnlocked && !sub.isCompleted
+        ) || null;
+
+        if (targetSubMateri) {
+          // Find first incomplete poin in this sub-materi
+          const firstIncompletePoinIndex = targetSubMateri.poinDetails.findIndex(
+            (poin) => !poin.isCompleted
+          );
+          targetPoinIndex = firstIncompletePoinIndex >= 0 ? firstIncompletePoinIndex : 0;
+          console.log("[Page] 🎯 Auto-navigate to first incomplete:", {
+            subMateri: targetSubMateri.title,
+            poinIndex: targetPoinIndex,
+          });
+        } else {
+          // All sub-materis completed, go to first one
+          targetSubMateri = modulFromDB.subMateris.find(
+            (sub: SubMateri) => sub.isUnlocked
+          ) || null;
+          targetPoinIndex = 0;
+          console.log("[Page] ✅ All completed, showing first sub-materi");
+        }
+
+        if (targetSubMateri) {
+          setSelectedSubMateri(targetSubMateri);
+          setSelectedPoinIndex(targetPoinIndex);
 
           // Update current position in progress tracking
           updateCurrentPoin(
             modulFromDB.id,
-            firstUnlockedSubMateri.id,
-            0 // poin index, not poin id
+            targetSubMateri.id,
+            targetPoinIndex
           );
         }
 
@@ -191,6 +258,73 @@ export default function DetailModulPage() {
     }
   }, [modulFromDB, user, loadingFromDB, initializeModuleProgress, modulSlug, syncModuleProgress, updateCurrentPoin]); // React to module from DB
 
+  // 🔥 NEW: Listen to progressUpdated event to reload modul state
+  useEffect(() => {
+    const handleProgressUpdated = async () => {
+      console.log("[Page] 🔄 Progress updated event received, reloading modul state...");
+
+      // Use current modul from state
+      setModul((currentModul) => {
+        if (!currentModul || !currentModul.moduleId) {
+          console.log("[Page] ⚠️ No modul to update");
+          return currentModul;
+        }
+
+        // Trigger async reload
+        (async () => {
+          try {
+            const progressResponse = await ProgressService.getModuleProgress(currentModul.moduleId!);
+
+            if (!progressResponse.error && progressResponse.data) {
+              const backendData = progressResponse.data as {
+                sub_materis?: Array<{
+                  id: string;
+                  is_completed: boolean;
+                  is_unlocked: boolean;
+                }>;
+              };
+
+              console.log("[Page] 📥 Backend progress data:", backendData.sub_materis);
+
+              // Update modul state with new unlock status
+              const updatedSubMateris = currentModul.subMateris.map((sub) => {
+                const backendProgress = backendData.sub_materis?.find((bp) => bp.id === sub.id);
+                if (backendProgress) {
+                  console.log(`[Page] 🔓 Updating ${sub.title}: isUnlocked=${backendProgress.is_unlocked}`);
+                  return {
+                    ...sub,
+                    isUnlocked: backendProgress.is_unlocked,
+                    isCompleted: backendProgress.is_completed,
+                  };
+                }
+                return sub;
+              });
+
+              setModul({
+                ...currentModul,
+                subMateris: updatedSubMateris,
+              });
+
+              console.log("[Page] ✅ Modul state updated with new unlock status");
+            }
+          } catch (error) {
+            console.error("[Page] ❌ Error reloading progress:", error);
+          }
+        })();
+
+        return currentModul;
+      });
+    };
+
+    window.addEventListener("progressUpdated", handleProgressUpdated);
+    console.log("[Page] 👂 Listening to progressUpdated event");
+
+    return () => {
+      window.removeEventListener("progressUpdated", handleProgressUpdated);
+      console.log("[Page] 🔇 Stopped listening to progressUpdated event");
+    };
+  }, []); // Empty dependency - only setup once
+
   const handleSubMateriSelect = useCallback(
     (subMateri: SubMateri) => {
       if (subMateri.isUnlocked) {
@@ -198,9 +332,19 @@ export default function DetailModulPage() {
         setSelectedPoinIndex(0);
         setPageState("content");
 
-        // Update progress tracking
+        // Update progress tracking & save position
         if (modul) {
           updateCurrentPoin(modul.id, subMateri.id, 0);
+
+          // 🔥 NEW: Save last position to localStorage
+          localStorage.setItem(
+            `module_progress_${modul.id}`,
+            JSON.stringify({
+              currentSubMateriId: subMateri.id,
+              currentPoinIndex: 0,
+              lastAccessed: new Date().toISOString(),
+            })
+          );
         }
 
         // Auto expand the selected sub-materi
@@ -228,9 +372,19 @@ export default function DetailModulPage() {
         setPageState("content");
       }
 
-      // Update progress tracking (only for regular poins, not quiz)
+      // Update progress tracking & save position (only for regular poins, not quiz)
       if (modul && selectedSubMateri && poinIndex >= 0) {
         updateCurrentPoin(modul.id, selectedSubMateri.id, poinIndex);
+
+        // 🔥 NEW: Save last position to localStorage
+        localStorage.setItem(
+          `module_progress_${modul.id}`,
+          JSON.stringify({
+            currentSubMateriId: selectedSubMateri.id,
+            currentPoinIndex: poinIndex,
+            lastAccessed: new Date().toISOString(),
+          })
+        );
       }
 
       // Close sidebar on mobile after selection
@@ -273,18 +427,59 @@ export default function DetailModulPage() {
   };
 
   const handleContinueToNextSubMateri = () => {
+    console.log("[Page] 🔘 handleContinueToNextSubMateri called");
+
     if (modul && selectedSubMateri) {
       const currentSubMateriIndex = modul.subMateris.findIndex(
         (sub) => sub.id === selectedSubMateri.id
       );
+
+      console.log("[Page] Current sub-materi index:", currentSubMateriIndex);
+
       if (currentSubMateriIndex < modul.subMateris.length - 1) {
         const nextSubMateri = modul.subMateris[currentSubMateriIndex + 1];
+
+        console.log("[Page] Next sub-materi:", {
+          id: nextSubMateri.id,
+          title: nextSubMateri.title,
+          isUnlocked: nextSubMateri.isUnlocked,
+        });
+
         if (nextSubMateri.isUnlocked) {
+          console.log("[Page] ✅ Navigating to next sub-materi");
           setSelectedSubMateri(nextSubMateri);
           setSelectedPoinIndex(0);
           setPageState("content");
+
+          // Auto expand next sub-materi
+          setExpandedSubMateris((prev) =>
+            prev.includes(nextSubMateri.id) ? prev : [...prev, nextSubMateri.id]
+          );
+
+          // Update progress tracking
+          updateCurrentPoin(modul.id, nextSubMateri.id, 0);
+
+          // Save position
+          localStorage.setItem(
+            `module_progress_${modul.id}`,
+            JSON.stringify({
+              currentSubMateriId: nextSubMateri.id,
+              currentPoinIndex: 0,
+              lastAccessed: new Date().toISOString(),
+            })
+          );
+        } else {
+          console.log("[Page] ❌ Next sub-materi is locked!");
+          // Kembali ke content view untuk melihat current sub-materi
+          setPageState("content");
         }
+      } else {
+        console.log("[Page] ℹ️ Already at last sub-materi");
+        // Kembali ke content view
+        setPageState("content");
       }
+    } else {
+      console.log("[Page] ❌ No modul or selectedSubMateri");
     }
   };
 
@@ -345,36 +540,104 @@ export default function DetailModulPage() {
   const handleQuizComplete = async (result: QuizResult) => {
     // Update sub materi dengan hasil kuis
     if (selectedSubMateri && modul) {
-      const updatedSubMateri = {
-        ...selectedSubMateri,
-        quizResult: result,
-        isCompleted: result.passed,
-      };
-
-      setSelectedSubMateri(updatedSubMateri);
-
       // Note: Quiz result and sub-materi progress are automatically saved by backend
       // when QuizPlayer calls QuizService.submitQuizAnswers()
-      // No need to call saveQuizResult or markSubMateriCompleted here
       console.log("✅ Quiz completed locally, backend already saved:", {
         score: result.score,
         passed: result.passed,
       });
 
-      // 🔥 NEW: Trigger progress sync from backend
-      console.log("[Page] 🔄 Triggering progress sync after quiz...");
-      await syncModuleProgress();
+      // 🔥 NEW: Wait a bit for backend to finish processing
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Update modul data (local state only)
-      const updatedModul = {
-        ...modul,
-        subMateris: modul.subMateris.map((sub) =>
-          sub.id === selectedSubMateri.id ? updatedSubMateri : sub
-        ),
-      };
-      setModul(updatedModul);
+      // 🔥 NEW: Reload progress from backend
+      console.log("[Page] 🔄 Reloading progress from backend after quiz...");
 
-      // 🔥 FIX: Jika lulus, unlock sub materi berikutnya DAN auto-navigate
+      if (!modul.moduleId) {
+        console.error("[Page] No moduleId, cannot reload progress");
+        return;
+      }
+
+      try {
+        const progressResponse = await ProgressService.getModuleProgress(
+          modul.moduleId
+        );
+
+        if (!progressResponse.error && progressResponse.data) {
+          const backendData = progressResponse.data as {
+            sub_materis?: Array<{
+              id: string;
+              is_completed: boolean;
+              is_unlocked: boolean;
+            }>;
+          };
+
+          // Fetch detailed progress for each sub-materi
+          const updatedSubMateris = await Promise.all(
+            modul.subMateris.map(async (sub) => {
+              const backendProgress = backendData.sub_materis?.find(
+                (bp) => bp.id === sub.id
+              );
+
+              if (!backendProgress) return sub;
+
+              // Fetch poin progress
+              const subMateriProgressResponse =
+                await ProgressService.getSubMateriProgress(sub.id);
+
+              let completedPoinIds: string[] = [];
+              if (
+                !subMateriProgressResponse.error &&
+                subMateriProgressResponse.data
+              ) {
+                const subMateriData = subMateriProgressResponse.data as {
+                  poin_details?: Array<{
+                    id: string;
+                    is_completed: boolean;
+                  }>;
+                };
+
+                completedPoinIds = (subMateriData.poin_details || [])
+                  .filter((p) => p.is_completed)
+                  .map((p) => p.id);
+              }
+
+              // Update poinDetails with completed status
+              const updatedPoinDetails = sub.poinDetails.map((poin) => ({
+                ...poin,
+                isCompleted: completedPoinIds.includes(poin.id),
+              }));
+
+              return {
+                ...sub,
+                isCompleted: backendProgress.is_completed,
+                isUnlocked: backendProgress.is_unlocked,
+                poinDetails: updatedPoinDetails,
+                quizResult:
+                  sub.id === selectedSubMateri.id ? result : sub.quizResult,
+              };
+            })
+          );
+
+          console.log("[Page] ✅ Progress reloaded from backend");
+          setModul({
+            ...modul,
+            subMateris: updatedSubMateris,
+          });
+
+          // Update selectedSubMateri with new data
+          const updatedSelectedSubMateri = updatedSubMateris.find(
+            (s) => s.id === selectedSubMateri.id
+          );
+          if (updatedSelectedSubMateri) {
+            setSelectedSubMateri(updatedSelectedSubMateri);
+          }
+        }
+      } catch (error) {
+        console.error("[Page] Error reloading progress:", error);
+      }
+
+      // 🔥 FIX: Jika lulus, auto-navigate ke sub-materi berikutnya
       if (result.passed) {
         const currentSubMateriIndex = modul.subMateris.findIndex(
           (sub) => sub.id === selectedSubMateri.id
@@ -382,35 +645,57 @@ export default function DetailModulPage() {
 
         if (currentSubMateriIndex < modul.subMateris.length - 1) {
           const nextSubMateri = modul.subMateris[currentSubMateriIndex + 1];
-          const updatedNextSubMateri = { ...nextSubMateri, isUnlocked: true };
-
-          const finalUpdatedModul = {
-            ...updatedModul,
-            subMateris: updatedModul.subMateris.map((sub, index) =>
-              index === currentSubMateriIndex + 1 ? updatedNextSubMateri : sub
-            ),
-          };
-          setModul(finalUpdatedModul);
 
           // 🔥 FIX: Auto-navigate ke sub-materi berikutnya setelah quiz lulus
           console.log("🔄 Quiz passed! Auto-navigating to next sub-materi:", {
             currentSubMateri: selectedSubMateri.id,
-            nextSubMateri: updatedNextSubMateri.id,
-            nextTitle: updatedNextSubMateri.title,
+            nextSubMateri: nextSubMateri.id,
+            nextTitle: nextSubMateri.title,
           });
+
+          // 🔥 NEW: Save position ke sub-materi berikutnya
+          localStorage.setItem(
+            `module_progress_${modul.id}`,
+            JSON.stringify({
+              currentSubMateriId: nextSubMateri.id,
+              currentPoinIndex: 0,
+              lastAccessed: new Date().toISOString(),
+            })
+          );
 
           // Tunggu sebentar untuk user melihat hasil quiz
           setTimeout(() => {
-            setSelectedSubMateri(updatedNextSubMateri);
+            setSelectedSubMateri(nextSubMateri);
             setSelectedPoinIndex(0);
             setPageState("content");
             console.log("✅ Navigated to next sub-materi");
-          }, 2000); // Delay 2 detik agar user bisa melihat hasil quiz
+
+            // Auto expand sub-materi berikutnya
+            setExpandedSubMateris((prev) =>
+              prev.includes(nextSubMateri.id)
+                ? prev
+                : [...prev, nextSubMateri.id]
+            );
+
+            // Update progress tracking
+            updateCurrentPoin(modul.id, nextSubMateri.id, 0);
+          }, 2500); // Delay 2.5 detik agar user bisa melihat hasil quiz
         } else {
           console.log(
-            "ℹ️ Quiz passed but no next sub-materi (last sub-materi completed)"
+            "ℹ️ Quiz passed - Last sub-materi completed! Module finished! 🎉"
           );
+
+          // 🔥 NEW: Kembali ke content view untuk melihat module complete
+          setTimeout(() => {
+            setPageState("content");
+          }, 3000);
         }
+      } else {
+        // 🔥 NEW: Jika tidak lulus, kembali ke content view untuk retry
+        console.log("❌ Quiz not passed. User can retry from instructions.");
+        setTimeout(() => {
+          setPageState("content");
+        }, 3000); // Delay 3 detik untuk melihat hasil
       }
     }
   };

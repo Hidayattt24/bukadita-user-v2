@@ -25,18 +25,18 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "ykvvjxbyxmyyzeutyxbf.supabase.co",
+        hostname: "fjbacahbbicjggdzmern.supabase.co",
         port: "",
         pathname: "/storage/v1/object/public/**",
       },
       {
         protocol: "https",
-        hostname: "ykvvjxbyxmyyzeutyxbf.supabase.co",
+        hostname: "fjbacahbbicjggdzmern.supabase.co",
         port: "",
         pathname: "/storage/v1/object/sign/**",
       },
     ],
-    domains: ["ykvvjxbyxmyyzeutyxbf.supabase.co"],
+    domains: ["fjbacahbbicjggdzmern.supabase.co"],
   },
   // Security headers for production
   async headers() {
