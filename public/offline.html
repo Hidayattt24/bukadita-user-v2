@@ -25,7 +25,7 @@
       }
 
       .container {
-        max-width: 400px;
+        max-width: 500px;
         width: 100%;
       }
 
@@ -39,6 +39,21 @@
         align-items: center;
         justify-content: center;
         font-size: 60px;
+        animation: pulse 2s ease-in-out infinite;
+        backdrop-filter: blur(10px);
+        border: 3px solid rgba(255, 255, 255, 0.2);
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.05);
+          opacity: 0.8;
+        }
       }
 
       h1 {
@@ -58,36 +73,121 @@
         background: rgba(255, 255, 255, 0.2);
         border: 2px solid rgba(255, 255, 255, 0.3);
         color: white;
-        padding: 12px 30px;
+        padding: 14px 35px;
         border-radius: 25px;
         font-size: 1rem;
         cursor: pointer;
         transition: all 0.3s ease;
         text-decoration: none;
         display: inline-block;
+        font-weight: 600;
+        backdrop-filter: blur(10px);
       }
 
       .retry-btn:hover {
         background: rgba(255, 255, 255, 0.3);
         border-color: rgba(255, 255, 255, 0.5);
         transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
       }
 
       .features {
         margin-top: 40px;
         text-align: left;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 25px;
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .features h3 {
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+        text-align: center;
+        font-weight: 600;
       }
 
       .feature {
-        margin-bottom: 15px;
+        margin-bottom: 12px;
         display: flex;
         align-items: center;
+        font-size: 0.95rem;
       }
 
       .feature::before {
         content: "✓";
-        margin-right: 10px;
+        margin-right: 12px;
         font-weight: bold;
+        color: #4ade80;
+        font-size: 1.2rem;
+      }
+
+      .warning {
+        margin-top: 25px;
+        background: rgba(239, 68, 68, 0.2);
+        padding: 20px;
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .warning h3 {
+        font-size: 1rem;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .warning-icon {
+        font-size: 1.2rem;
+        animation: blink 1.5s ease-in-out infinite;
+      }
+
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .warning p {
+        font-size: 0.9rem;
+        margin: 0;
+        opacity: 1;
+      }
+
+      .status-badge {
+        display: inline-block;
+        background: rgba(239, 68, 68, 0.3);
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-top: 20px;
+        border: 2px solid rgba(239, 68, 68, 0.4);
+      }
+
+      @media (max-width: 600px) {
+        h1 {
+          font-size: 1.5rem;
+        }
+        p {
+          font-size: 1rem;
+        }
+        .icon {
+          width: 100px;
+          height: 100px;
+          font-size: 50px;
+        }
+        .features {
+          padding: 20px;
+        }
       }
     </style>
   </head>
@@ -96,33 +196,55 @@
       <div class="icon">📡</div>
       <h1>Anda Sedang Offline</h1>
       <p>
-        Tidak ada koneksi internet. Beberapa fitur mungkin tidak tersedia, namun
-        Anda masih dapat menggunakan beberapa fitur offline.
+        Tidak ada koneksi internet. Beberapa fitur masih dapat digunakan, namun
+        fitur kuis memerlukan koneksi aktif.
       </p>
 
       <button class="retry-btn" onclick="window.location.reload()">
-        Coba Lagi
+        🔄 Coba Lagi
       </button>
 
+      <div class="status-badge">🔴 Mode Offline Aktif</div>
+
       <div class="features">
+        <h3>✨ Fitur yang Dapat Digunakan</h3>
         <div class="feature">Lihat materi yang sudah diunduh</div>
         <div class="feature">Akses pengaturan profil</div>
-        <div class="feature">Lanjutkan quiz yang sedang berjalan</div>
+        <div class="feature">Buat dan lihat catatan pribadi</div>
+        <div class="feature">Lihat riwayat progress belajar</div>
+      </div>
+
+      <div class="warning">
+        <h3>
+          <span class="warning-icon">⚠️</span>
+          Pembatasan Fitur Kuis
+        </h3>
+        <p>
+          Kuis <strong>tidak dapat diakses</strong> saat offline karena
+          memerlukan koneksi internet untuk menyimpan jawaban dan menghitung
+          hasil dengan akurat. Silakan sambungkan ke internet untuk mengerjakan
+          kuis.
+        </p>
       </div>
     </div>
 
     <script>
       // Auto retry when connection is back
       window.addEventListener("online", function () {
+        console.log("Connection restored, reloading...");
         window.location.reload();
       });
 
-      // Check connection periodically
+      // Check connection periodically (every 5 seconds)
       setInterval(function () {
         if (navigator.onLine) {
+          console.log("Online detected, reloading...");
           window.location.reload();
         }
       }, 5000);
+
+      // Visual feedback for connection check
+      console.log("Offline page loaded. Connection status:", navigator.onLine);
     </script>
   </body>
 </html>

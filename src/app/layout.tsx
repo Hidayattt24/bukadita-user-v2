@@ -8,6 +8,8 @@ import { ProgressProvider } from "@/context/ProgressContext";
 import { ToastProvider } from "@/components/ui";
 import InstallPrompt from "@/components/shared/InstallPrompt";
 import FloatingNotes from "@/components/shared/FloatingNotes";
+import AccessibilityWidget from "@/components/User/Accessibility/AccessibilityWidget";
+import OfflineIndicator from "@/components/shared/OfflineIndicator";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -110,9 +112,11 @@ export default function RootLayout({
         <AuthProvider>
           <ProgressProvider>
             <ToastProvider>
+              <OfflineIndicator />
               <ConditionalLayout>{children}</ConditionalLayout>
               <InstallPrompt />
               <FloatingNotes />
+              <AccessibilityWidget />
             </ToastProvider>
           </ProgressProvider>
         </AuthProvider>
