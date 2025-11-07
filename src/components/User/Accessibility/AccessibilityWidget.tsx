@@ -212,9 +212,9 @@ export default function AccessibilityWidget() {
           />
 
           {/* Widget Panel */}
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-[96vw] max-w-[500px] max-h-[85vh] sm:max-h-[90vh] bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-scale-in">
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-[96vw] max-w-[500px] max-h-[90vh] bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-scale-in flex flex-col">
             {/* Header */}
-            <div className="bg-gradient-to-r from-[#27548A] to-[#1e3d6b] p-4 sm:p-5">
+            <div className="bg-gradient-to-r from-[#27548A] to-[#1e3d6b] p-4 sm:p-5 flex-shrink-0">
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
@@ -273,335 +273,349 @@ export default function AccessibilityWidget() {
               </div>
             </div>
 
-            {/* Content Area - Mobile Optimized */}
-            <div className="p-3 sm:p-5 max-h-[calc(85vh-180px)] sm:max-h-[calc(90vh-180px)] overflow-y-auto custom-scrollbar">
-              {/* Main Tab */}
-              {activeTab === "main" && (
-                <div className="space-y-3 sm:space-y-4">
-                  {/* Text Size - Mobile Optimized */}
-                  <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Type className="w-4 h-4 sm:w-5 sm:h-5 text-[#27548A]" />
-                        <span className="font-bold text-sm sm:text-base text-gray-800">
-                          Ukuran Teks
+            {/* Content Area - Mobile Optimized with Scrollable */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              <div className="p-3 sm:p-5">
+                {/* Main Tab */}
+                {activeTab === "main" && (
+                  <div className="space-y-3 sm:space-y-4">
+                    {/* Text Size - Mobile Optimized */}
+                    <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Type className="w-4 h-4 sm:w-5 sm:h-5 text-[#27548A]" />
+                          <span className="font-bold text-sm sm:text-base text-gray-800">
+                            Ukuran Teks
+                          </span>
+                        </div>
+                        <span className="text-sm sm:text-base font-bold text-[#27548A] bg-white px-2 py-1 rounded">
+                          {settings.textSize}%
                         </span>
                       </div>
-                      <span className="text-sm sm:text-base font-bold text-[#27548A] bg-white px-2 py-1 rounded">
-                        {settings.textSize}%
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <button
-                        onClick={() => adjustValue("textSize", -10, 75, 200)}
-                        className="w-11 h-11 sm:w-10 sm:h-10 bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-[#27548A] active:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"
-                      >
-                        <Minus className="w-5 h-5 sm:w-4 sm:h-4" />
-                      </button>
-                      <input
-                        type="range"
-                        min="75"
-                        max="200"
-                        step="5"
-                        value={settings.textSize}
-                        onChange={(e) =>
-                          updateSetting("textSize", Number(e.target.value))
-                        }
-                        className="flex-1 h-2 sm:h-1.5 accent-[#27548A]"
-                        style={{ touchAction: "none" }}
-                      />
-                      <button
-                        onClick={() => adjustValue("textSize", 10, 75, 200)}
-                        className="w-11 h-11 sm:w-10 sm:h-10 bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-[#27548A] active:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"
-                      >
-                        <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Line Height - Mobile Optimized */}
-                  <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Type className="w-4 h-4 sm:w-5 sm:h-5 text-[#27548A]" />
-                      <span className="font-bold text-sm sm:text-base text-gray-800">
-                        Jarak Baris
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { value: 1.5, label: "Normal" },
-                        { value: 1.8, label: "Nyaman" },
-                        { value: 2.2, label: "Lebar" },
-                      ].map((option) => (
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <button
-                          key={option.value}
-                          onClick={() =>
-                            updateSetting("lineHeight", option.value)
-                          }
-                          className={`py-3 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-bold transition-all touch-manipulation ${
-                            settings.lineHeight === option.value
-                              ? "bg-[#27548A] text-white shadow-lg scale-105"
-                              : "bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-gray-100"
-                          }`}
+                          onClick={() => adjustValue("textSize", -10, 75, 200)}
+                          className="w-11 h-11 sm:w-10 sm:h-10 bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-[#27548A] active:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"
                         >
-                          {option.label}
+                          <Minus className="w-5 h-5 sm:w-4 sm:h-4" />
                         </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Text Spacing - Mobile Optimized */}
-                  <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Type className="w-4 h-4 sm:w-5 sm:h-5 text-[#27548A]" />
-                      <span className="font-bold text-sm sm:text-base text-gray-800">
-                        Jarak Huruf
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { value: 0, label: "Normal" },
-                        { value: 0.05, label: "Sedang" },
-                        { value: 0.1, label: "Lebar" },
-                      ].map((option) => (
+                        <input
+                          type="range"
+                          min="75"
+                          max="200"
+                          step="5"
+                          value={settings.textSize}
+                          onChange={(e) =>
+                            updateSetting("textSize", Number(e.target.value))
+                          }
+                          className="flex-1 h-2 sm:h-1.5 accent-[#27548A]"
+                          style={{ touchAction: "none" }}
+                        />
                         <button
-                          key={option.value}
-                          onClick={() =>
-                            updateSetting("textSpacing", option.value)
-                          }
-                          className={`py-3 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-bold transition-all touch-manipulation ${
-                            settings.textSpacing === option.value
-                              ? "bg-[#27548A] text-white shadow-lg scale-105"
-                              : "bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-gray-100"
-                          }`}
+                          onClick={() => adjustValue("textSize", 10, 75, 200)}
+                          className="w-11 h-11 sm:w-10 sm:h-10 bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-[#27548A] active:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"
                         >
-                          {option.label}
+                          <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
                         </button>
-                      ))}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Font Family - Mobile Optimized */}
-                  <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Type className="w-4 h-4 sm:w-5 sm:h-5 text-[#27548A]" />
-                      <span className="font-bold text-sm sm:text-base text-gray-800">
-                        Jenis Font
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        { value: "default" as const, label: "Default" },
-                        { value: "dyslexia" as const, label: "Dyslexia" },
-                        { value: "serif" as const, label: "Serif" },
-                        { value: "mono" as const, label: "Mono" },
-                      ].map((option) => (
-                        <button
-                          key={option.value}
-                          onClick={() =>
-                            updateSetting("fontFamily", option.value)
-                          }
-                          className={`py-3 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-bold transition-all touch-manipulation ${
-                            settings.fontFamily === option.value
-                              ? "bg-[#27548A] text-white shadow-lg scale-105"
-                              : "bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-gray-100"
-                          }`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Vision Tab - Mobile Optimized */}
-              {activeTab === "vision" && (
-                <div className="space-y-3 sm:space-y-4">
-                  {/* Contrast Modes - Mobile Optimized */}
-                  <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Monitor className="w-4 h-4 sm:w-5 sm:h-5 text-[#27548A]" />
-                      <span className="font-bold text-sm sm:text-base text-gray-800">
-                        Mode Kontras
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        {
-                          value: "normal" as const,
-                          label: "Normal",
-                          icon: Sun,
-                        },
-                        { value: "high" as const, label: "Tinggi", icon: Eye },
-                        { value: "dark" as const, label: "Gelap", icon: Moon },
-                        { value: "light" as const, label: "Terang", icon: Sun },
-                      ].map((option) => {
-                        const Icon = option.icon;
-                        return (
+                    {/* Line Height - Mobile Optimized */}
+                    <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Type className="w-4 h-4 sm:w-5 sm:h-5 text-[#27548A]" />
+                        <span className="font-bold text-sm sm:text-base text-gray-800">
+                          Jarak Baris
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { value: 1.5, label: "Normal" },
+                          { value: 1.8, label: "Nyaman" },
+                          { value: 2.2, label: "Lebar" },
+                        ].map((option) => (
                           <button
                             key={option.value}
                             onClick={() =>
-                              updateSetting("contrast", option.value)
+                              updateSetting("lineHeight", option.value)
                             }
-                            className={`py-3 sm:py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 touch-manipulation ${
-                              settings.contrast === option.value
+                            className={`py-3 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-bold transition-all touch-manipulation ${
+                              settings.lineHeight === option.value
                                 ? "bg-[#27548A] text-white shadow-lg scale-105"
                                 : "bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-gray-100"
                             }`}
                           >
-                            <Icon className="w-4 h-4 sm:w-4 sm:h-4" />
-                            <span className="truncate">{option.label}</span>
+                            {option.label}
                           </button>
-                        );
-                      })}
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Saturation - Mobile Optimized */}
-                  <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-[#27548A]" />
+                    {/* Text Spacing - Mobile Optimized */}
+                    <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Type className="w-4 h-4 sm:w-5 sm:h-5 text-[#27548A]" />
                         <span className="font-bold text-sm sm:text-base text-gray-800">
-                          Saturasi Warna
+                          Jarak Huruf
                         </span>
                       </div>
-                      <span className="text-sm sm:text-base font-bold text-[#27548A] bg-white px-2 py-1 rounded">
-                        {settings.saturation}%
-                      </span>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { value: 0, label: "Normal" },
+                          { value: 0.05, label: "Sedang" },
+                          { value: 0.1, label: "Lebar" },
+                        ].map((option) => (
+                          <button
+                            key={option.value}
+                            onClick={() =>
+                              updateSetting("textSpacing", option.value)
+                            }
+                            className={`py-3 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-bold transition-all touch-manipulation ${
+                              settings.textSpacing === option.value
+                                ? "bg-[#27548A] text-white shadow-lg scale-105"
+                                : "bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-gray-100"
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <button
-                        onClick={() => adjustValue("saturation", -25, 0, 200)}
-                        className="w-11 h-11 sm:w-10 sm:h-10 bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-[#27548A] active:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"
-                      >
-                        <Minus className="w-5 h-5 sm:w-4 sm:h-4" />
-                      </button>
-                      <input
-                        type="range"
-                        min="0"
-                        max="200"
-                        step="25"
-                        value={settings.saturation}
-                        onChange={(e) =>
-                          updateSetting("saturation", Number(e.target.value))
-                        }
-                        className="flex-1 h-2 sm:h-1.5 accent-[#27548A]"
-                        style={{ touchAction: "none" }}
-                      />
-                      <button
-                        onClick={() => adjustValue("saturation", 25, 0, 200)}
-                        className="w-11 h-11 sm:w-10 sm:h-10 bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-[#27548A] active:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"
-                      >
-                        <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
-                      </button>
+
+                    {/* Font Family - Mobile Optimized */}
+                    <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Type className="w-4 h-4 sm:w-5 sm:h-5 text-[#27548A]" />
+                        <span className="font-bold text-sm sm:text-base text-gray-800">
+                          Jenis Font
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { value: "default" as const, label: "Default" },
+                          { value: "dyslexia" as const, label: "Dyslexia" },
+                          { value: "serif" as const, label: "Serif" },
+                          { value: "mono" as const, label: "Mono" },
+                        ].map((option) => (
+                          <button
+                            key={option.value}
+                            onClick={() =>
+                              updateSetting("fontFamily", option.value)
+                            }
+                            className={`py-3 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-bold transition-all touch-manipulation ${
+                              settings.fontFamily === option.value
+                                ? "bg-[#27548A] text-white shadow-lg scale-105"
+                                : "bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-gray-100"
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
+                )}
 
-                  {/* Toggle Options */}
-                  <div className="space-y-2">
-                    <ToggleOption
-                      icon={Image}
-                      label="Sembunyikan Gambar"
-                      description="Tingkatkan kecepatan loading"
-                      checked={settings.hideImages}
-                      onChange={(checked) =>
-                        updateSetting("hideImages", checked)
-                      }
-                    />
-                    <ToggleOption
-                      icon={Pause}
-                      label="Hentikan Animasi"
-                      description="Kurangi gangguan visual"
-                      checked={settings.pauseAnimations}
-                      onChange={(checked) =>
-                        updateSetting("pauseAnimations", checked)
-                      }
-                    />
-                    <ToggleOption
-                      icon={Link}
-                      label="Highlight Link"
-                      description="Tandai semua link dengan jelas"
-                      checked={settings.highlightLinks}
-                      onChange={(checked) =>
-                        updateSetting("highlightLinks", checked)
-                      }
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Orientation Tab - Mobile Optimized */}
-              {activeTab === "orientation" && (
-                <div className="space-y-3 sm:space-y-4">
-                  {/* Cursor Size - Mobile Optimized */}
-                  <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Mouse className="w-4 h-4 sm:w-5 sm:h-5 text-[#27548A]" />
-                      <span className="font-bold text-sm sm:text-base text-gray-800">
-                        Ukuran Kursor
-                      </span>
+                {/* Vision Tab - Mobile Optimized */}
+                {activeTab === "vision" && (
+                  <div className="space-y-3 sm:space-y-4">
+                    {/* Contrast Modes - Mobile Optimized */}
+                    <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Monitor className="w-4 h-4 sm:w-5 sm:h-5 text-[#27548A]" />
+                        <span className="font-bold text-sm sm:text-base text-gray-800">
+                          Mode Kontras
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          {
+                            value: "normal" as const,
+                            label: "Normal",
+                            icon: Sun,
+                          },
+                          {
+                            value: "high" as const,
+                            label: "Tinggi",
+                            icon: Eye,
+                          },
+                          {
+                            value: "dark" as const,
+                            label: "Gelap",
+                            icon: Moon,
+                          },
+                          {
+                            value: "light" as const,
+                            label: "Terang",
+                            icon: Sun,
+                          },
+                        ].map((option) => {
+                          const Icon = option.icon;
+                          return (
+                            <button
+                              key={option.value}
+                              onClick={() =>
+                                updateSetting("contrast", option.value)
+                              }
+                              className={`py-3 sm:py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 touch-manipulation ${
+                                settings.contrast === option.value
+                                  ? "bg-[#27548A] text-white shadow-lg scale-105"
+                                  : "bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-gray-100"
+                              }`}
+                            >
+                              <Icon className="w-4 h-4 sm:w-4 sm:h-4" />
+                              <span className="truncate">{option.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { value: "normal" as const, label: "Normal" },
-                        { value: "large" as const, label: "Besar" },
-                        { value: "xlarge" as const, label: "Sangat Besar" },
-                      ].map((option) => (
+
+                    {/* Saturation - Mobile Optimized */}
+                    <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-[#27548A]" />
+                          <span className="font-bold text-sm sm:text-base text-gray-800">
+                            Saturasi Warna
+                          </span>
+                        </div>
+                        <span className="text-sm sm:text-base font-bold text-[#27548A] bg-white px-2 py-1 rounded">
+                          {settings.saturation}%
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <button
-                          key={option.value}
-                          onClick={() =>
-                            updateSetting("cursorSize", option.value)
-                          }
-                          className={`py-3 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-bold transition-all touch-manipulation ${
-                            settings.cursorSize === option.value
-                              ? "bg-[#27548A] text-white shadow-lg scale-105"
-                              : "bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-gray-100"
-                          }`}
+                          onClick={() => adjustValue("saturation", -25, 0, 200)}
+                          className="w-11 h-11 sm:w-10 sm:h-10 bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-[#27548A] active:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"
                         >
-                          <span className="truncate">{option.label}</span>
+                          <Minus className="w-5 h-5 sm:w-4 sm:h-4" />
                         </button>
-                      ))}
+                        <input
+                          type="range"
+                          min="0"
+                          max="200"
+                          step="25"
+                          value={settings.saturation}
+                          onChange={(e) =>
+                            updateSetting("saturation", Number(e.target.value))
+                          }
+                          className="flex-1 h-2 sm:h-1.5 accent-[#27548A]"
+                          style={{ touchAction: "none" }}
+                        />
+                        <button
+                          onClick={() => adjustValue("saturation", 25, 0, 200)}
+                          className="w-11 h-11 sm:w-10 sm:h-10 bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-[#27548A] active:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"
+                        >
+                          <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Toggle Options */}
+                    <div className="space-y-2">
+                      <ToggleOption
+                        icon={Image}
+                        label="Sembunyikan Gambar"
+                        description="Tingkatkan kecepatan loading"
+                        checked={settings.hideImages}
+                        onChange={(checked) =>
+                          updateSetting("hideImages", checked)
+                        }
+                      />
+                      <ToggleOption
+                        icon={Pause}
+                        label="Hentikan Animasi"
+                        description="Kurangi gangguan visual"
+                        checked={settings.pauseAnimations}
+                        onChange={(checked) =>
+                          updateSetting("pauseAnimations", checked)
+                        }
+                      />
+                      <ToggleOption
+                        icon={Link}
+                        label="Highlight Link"
+                        description="Tandai semua link dengan jelas"
+                        checked={settings.highlightLinks}
+                        onChange={(checked) =>
+                          updateSetting("highlightLinks", checked)
+                        }
+                      />
                     </div>
                   </div>
+                )}
 
-                  {/* Toggle Options */}
-                  <div className="space-y-2">
-                    <ToggleOption
-                      icon={Eye}
-                      label="Reading Guide"
-                      description="Garis panduan horizontal"
-                      checked={settings.readingGuide}
-                      onChange={(checked) =>
-                        updateSetting("readingGuide", checked)
-                      }
-                    />
-                    <ToggleOption
-                      icon={Mouse}
-                      label="Big Cursor"
-                      description="Kursor yang lebih besar"
-                      checked={settings.bigCursor}
-                      onChange={(checked) =>
-                        updateSetting("bigCursor", checked)
-                      }
-                    />
-                    <ToggleOption
-                      icon={Type}
-                      label="Dyslexia Ruler"
-                      description="Penanda baris untuk dyslexia"
-                      checked={settings.dyslexiaRuler}
-                      onChange={(checked) =>
-                        updateSetting("dyslexiaRuler", checked)
-                      }
-                    />
+                {/* Orientation Tab - Mobile Optimized */}
+                {activeTab === "orientation" && (
+                  <div className="space-y-3 sm:space-y-4">
+                    {/* Cursor Size - Mobile Optimized */}
+                    <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Mouse className="w-4 h-4 sm:w-5 sm:h-5 text-[#27548A]" />
+                        <span className="font-bold text-sm sm:text-base text-gray-800">
+                          Ukuran Kursor
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { value: "normal" as const, label: "Normal" },
+                          { value: "large" as const, label: "Besar" },
+                          { value: "xlarge" as const, label: "Sangat Besar" },
+                        ].map((option) => (
+                          <button
+                            key={option.value}
+                            onClick={() =>
+                              updateSetting("cursorSize", option.value)
+                            }
+                            className={`py-3 sm:py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-bold transition-all touch-manipulation ${
+                              settings.cursorSize === option.value
+                                ? "bg-[#27548A] text-white shadow-lg scale-105"
+                                : "bg-white border-2 border-gray-200 hover:border-[#27548A] active:bg-gray-100"
+                            }`}
+                          >
+                            <span className="truncate">{option.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Toggle Options */}
+                    <div className="space-y-2">
+                      <ToggleOption
+                        icon={Eye}
+                        label="Reading Guide"
+                        description="Garis panduan horizontal"
+                        checked={settings.readingGuide}
+                        onChange={(checked) =>
+                          updateSetting("readingGuide", checked)
+                        }
+                      />
+                      <ToggleOption
+                        icon={Mouse}
+                        label="Big Cursor"
+                        description="Kursor yang lebih besar"
+                        checked={settings.bigCursor}
+                        onChange={(checked) =>
+                          updateSetting("bigCursor", checked)
+                        }
+                      />
+                      <ToggleOption
+                        icon={Type}
+                        label="Dyslexia Ruler"
+                        description="Penanda baris untuk dyslexia"
+                        checked={settings.dyslexiaRuler}
+                        onChange={(checked) =>
+                          updateSetting("dyslexiaRuler", checked)
+                        }
+                      />
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Footer - Mobile Optimized */}
-            <div className="border-t-2 border-gray-100 p-3 sm:p-4 bg-gray-50">
+            <div className="border-t-2 border-gray-100 p-3 sm:p-4 bg-gray-50 flex-shrink-0">
               <button
                 onClick={resetSettings}
                 className="w-full flex items-center justify-center gap-2 bg-white hover:bg-red-50 active:bg-red-100 text-red-600 border-2 border-red-200 hover:border-red-300 py-3 sm:py-3 rounded-xl font-bold text-sm sm:text-base transition-all touch-manipulation"
