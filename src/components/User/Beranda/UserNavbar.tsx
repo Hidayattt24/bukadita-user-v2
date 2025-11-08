@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { LogOut } from "lucide-react";
+import { showSuccessToast } from "@/utils/sweetalert";
 
 interface UserNavbarProps {
   activeMenu?: string;
@@ -26,8 +27,17 @@ export default function UserNavbar({
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
 
   const handleLogout = () => {
+    // Close the menu first
+    setShowLogoutMenu(false);
+
+    // Perform logout
     logout();
-    router.push("/");
+
+    // Show simple success notification
+    showSuccessToast('Berhasil logout!');
+
+    // Redirect to home page
+    router.push('/');
   };
 
   // Close menu when clicking outside

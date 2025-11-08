@@ -5,6 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { showSuccessToast } from "@/utils/sweetalert";
 
 // Auth Buttons Component
 function AuthButtons({
@@ -15,6 +17,18 @@ function AuthButtons({
   isScrolled?: boolean;
 }) {
   const { isAuthenticated, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    // Perform logout
+    logout();
+
+    // Show simple success notification
+    showSuccessToast('Berhasil logout!');
+
+    // Redirect to home page
+    router.push('/');
+  };
 
   if (isAuthenticated) {
     return (
@@ -34,7 +48,7 @@ function AuthButtons({
           Dashboard
         </Link>
         <button
-          onClick={logout}
+          onClick={handleLogout}
           className={`${
             isMobile
               ? "w-full text-center px-4 py-3 rounded-md text-sm font-medium text-[#27548A] bg-white hover:bg-white/90 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"

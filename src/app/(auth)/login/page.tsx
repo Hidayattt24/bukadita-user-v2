@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { validators } from "@/services/authService";
+import { showSuccessToast } from "@/utils/sweetalert";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -59,6 +60,10 @@ export default function LoginPage() {
       const result = await login(formData.identifier, formData.password);
 
       if (result.success) {
+        // Show simple success notification
+        showSuccessToast('Berhasil login!');
+
+        // Redirect
         if (result.pendingProfile) {
           router.push("/user/pengaturan?complete=1");
         } else {
@@ -67,7 +72,8 @@ export default function LoginPage() {
       } else {
         setErrors({ general: result.error || "Login gagal" });
       }
-    } catch (error) {setErrors({ general: "Terjadi kesalahan saat login" });
+    } catch (error) {
+      setErrors({ general: "Terjadi kesalahan saat login" });
     } finally {
       setIsLoading(false);
     }

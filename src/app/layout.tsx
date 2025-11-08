@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "@/styles/sweetalert-custom.css"; // ✅ Custom SweetAlert2 theme
+import "sweetalert2/dist/sweetalert2.min.css"; // ✅ SweetAlert2 base styles
 import ConditionalLayout from "@/components/layout/ConditionalLayout";
 import poppins from "@/components/font/poppins";
 import { AuthProvider } from "@/context/AuthContext";

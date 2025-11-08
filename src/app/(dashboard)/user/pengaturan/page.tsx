@@ -13,6 +13,7 @@ import {
 import NotificationSection from "@/components/User/Pengaturan/NotificationSectionNew";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui";
+import { showSuccessToast } from "@/utils/sweetalert";
 
 export default function PengaturanPage() {
   const router = useRouter();
@@ -345,18 +346,18 @@ export default function PengaturanPage() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      // Call logout from AuthContext
-      logout();
-      setShowLogoutModal(false);
+  const handleLogout = () => {
+    // Close the modal first
+    setShowLogoutModal(false);
 
-      // Redirect to landing page
-      router.push("/");
-    } catch (error) {
-      console.error("Error during logout:", error);
-      toast.error("Gagal logout. Silakan coba lagi.");
-    }
+    // Call logout from AuthContext
+    logout();
+
+    // Show simple success notification
+    showSuccessToast('Berhasil logout!');
+
+    // Redirect to landing page
+    router.push("/");
   };
 
   const handleDeleteAccount = () => {

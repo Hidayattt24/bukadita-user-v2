@@ -175,63 +175,24 @@ export default function QuizPlayer({
     [quizzes]
   );
 
-  // Start quiz attempt on mount (create attempt in backend)
+  // ✅ FIX: Load quiz questions on mount WITHOUT creating new attempt
+  // Attempt will be created only when user submits quiz (in handleSubmitQuiz)
   useEffect(() => {
-    const startAttempt = async () => {
-      if (user && quizId) {
-        try {
-          console.log(
-            "[QuizPlayer] 🚀 Starting quiz attempt for quizId:",
-            quizId
-          );
-          const response = await QuizService.startAttempt(quizId);
-
-          if (!response.error && response.data) {
-            const resData = response.data as unknown;
-            if (typeof resData === "object" && resData !== null) {
-              const resObj = resData as Record<string, unknown>;
-              const aid = resObj["attempt_id"]
-                ? String(resObj["attempt_id"])
-                : null;
-              const startedAt = resObj["started_at"]
-                ? String(resObj["started_at"])
-                : undefined;
-              console.log("[QuizPlayer] ✅ Quiz attempt started:", {
-                attemptId: aid,
-                startedAt,
-              });
-            }
-
-            // Now fetch the actual quiz questions
-            await fetchQuizQuestions(quizId);
-          } else {
-            console.error(
-              "[QuizPlayer] ❌ Failed to start attempt:",
-              response.message
-            );
-          }
-        } catch (error: unknown) {
-          console.error("[QuizPlayer] ❌ Error starting attempt:", error);
-          const errRec = error as Record<string, unknown>;
-          console.error("[QuizPlayer] Error details:", {
-            message:
-              typeof errRec["message"] === "string"
-                ? String(errRec["message"])
-                : undefined,
-            status: errRec["status"],
-            code: errRec["code"],
-          });
-        }
+    const loadQuestions = async () => {
+      if (quizId) {
+        console.log(
+          "[QuizPlayer] 📋 Loading quiz questions (without creating attempt)..."
+        );
+        await fetchQuizQuestions(quizId);
       } else {
-        console.log("[QuizPlayer] ⚠️ Cannot start attempt:", {
-          hasUser: !!user,
-          hasQuizId: !!quizId,
-        });
+        console.log("[QuizPlayer] ⚠️ No quizId available, using placeholder questions");
+        setActualQuestions(quizzes);
+        setQuestionsLoaded(true);
       }
     };
 
-    startAttempt();
-  }, [fetchQuizQuestions, user, quizId]);
+    loadQuestions();
+  }, [fetchQuizQuestions, quizId, quizzes]);
 
   // Submit handler (wrapped in useCallback so effects can depend on it)
   const handleSubmitQuiz = useCallback(async () => {

@@ -1,36 +1,57 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useProgress } from "@/context/ProgressContext";
-import { Trash2, Download, Upload, RotateCcw } from "lucide-react";
+import { Trash2, Download, Upload } from "lucide-react";
+import {
+  showDeleteConfirm,
+  showSuccessToast,
+  showErrorToast,
+  showLoading,
+  closeAlert,
+} from "@/utils/sweetalert";
 
 export const ProgressDebugPanel: React.FC = () => {
-  const { userProgress, resetAllProgress, resetModuleProgress } = useProgress();
-  const [showConfirm, setShowConfirm] = useState(false);
+  const { userProgress, resetAllProgress } = useProgress();
 
-  const handleResetAll = () => {
-    if (showConfirm) {
-      resetAllProgress();
-      setShowConfirm(false);
-      alert("✅ Semua progress telah direset!");
-      window.location.reload();
-    } else {
-      setShowConfirm(true);
-      setTimeout(() => setShowConfirm(false), 3000);
+  const handleResetAll = async () => {
+    const result = await showDeleteConfirm('semua progress belajar Anda', {
+      title: 'Reset Semua Progress?',
+      html: 'Semua progress belajar akan dihapus dan tidak dapat dikembalikan. Apakah Anda yakin?',
+      confirmButtonText: 'Ya, Reset Semua',
+    });
+
+    if (result.isConfirmed) {
+      showLoading('Mereset progress...', 'Mohon tunggu sebentar');
+
+      setTimeout(() => {
+        resetAllProgress();
+        closeAlert();
+        showSuccessToast('Semua progress telah direset!');
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }, 1500);
     }
   };
 
   const handleExport = () => {
-    const dataStr = JSON.stringify(userProgress, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `bukadita-progress-${
-      new Date().toISOString().split("T")[0]
-    }.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    try {
+      const dataStr = JSON.stringify(userProgress, null, 2);
+      const dataBlob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `bukadita-progress-${
+        new Date().toISOString().split("T")[0]
+      }.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      showSuccessToast('Progress berhasil diekspor!');
+    } catch (error) {
+      showErrorToast('Gagal mengekspor progress!');
+    }
   };
 
   const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,10 +63,13 @@ export const ProgressDebugPanel: React.FC = () => {
       try {
         const data = JSON.parse(e.target?.result as string);
         localStorage.setItem("bukadita-module-progress", JSON.stringify(data));
-        alert("✅ Progress berhasil diimport!");
-        window.location.reload();
+        showSuccessToast('Progress berhasil diimport!');
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       } catch (error) {
-        alert("❌ File tidak valid!");
+        showErrorToast('File tidak valid! Pastikan format JSON benar.');
       }
     };
     reader.readAsText(file);
