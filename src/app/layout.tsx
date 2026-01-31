@@ -12,6 +12,7 @@ import InstallPrompt from "@/components/shared/InstallPrompt";
 import FloatingNotes from "@/components/shared/FloatingNotes";
 import AccessibilityWidget from "@/components/User/Accessibility/AccessibilityWidget";
 import OfflineIndicator from "@/components/shared/OfflineIndicator";
+import { Agentation } from "agentation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -119,6 +120,7 @@ export default function RootLayout({
               <InstallPrompt />
               <FloatingNotes />
               <AccessibilityWidget />
+              {process.env.NODE_ENV === "development" && <Agentation />}
             </ToastProvider>
           </ProgressProvider>
         </AuthProvider>

@@ -15,7 +15,7 @@ export default function ILPSection() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <section className="py-16 sm:py-20 lg:py-24 bg-white relative overflow-hidden">
+    <section id="ilp" className="py-16 sm:py-20 lg:py-24 bg-white relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute top-20 left-20 w-96 h-96 bg-[#578FCA]/10 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>

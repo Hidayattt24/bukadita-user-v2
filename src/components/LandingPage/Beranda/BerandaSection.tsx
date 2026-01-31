@@ -67,7 +67,7 @@ export default function BerandaSection() {
           Bukadita
           <br className="hidden sm:block" />
           <span className="block text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-normal text-[#27548A] mt-2">
-            Buku Kader Digital
+            Buku Digital Kader
           </span>
         </h1>
 

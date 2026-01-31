@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "../styles/markdown.css";
 @import "../styles/html-content.css";
+@import "leaflet/dist/leaflet.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -548,4 +549,62 @@ body {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Leaflet Map Animations */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+.user-marker div {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Leaflet Popup Styling */
+.leaflet-popup-content-wrapper {
+  border-radius: 16px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  font-family: var(--font-poppins, system-ui) !important;
+}
+
+.leaflet-popup-tip {
+  background: white !important;
+}
+
+.custom-popup .leaflet-popup-close-button {
+  top: 8px !important;
+  right: 8px !important;
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 20px !important;
+  color: #64748b !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px !important;
+  transition: all 0.2s !important;
+}
+
+.custom-popup .leaflet-popup-close-button:hover {
+  background-color: #f1f5f9 !important;
+  color: #27548A !important;
 }
