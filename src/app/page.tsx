@@ -1,5 +1,5 @@
 import BerandaSection from "@/components/LandingPage/Beranda/BerandaSection";
-import StrukturKaderSection from "@/components/LandingPage/Fitur/FiturSection";
+import StrukturKaderSection from "@/components/LandingPage/Struktur/StrukturSection";
 import { ILPSection } from "@/components/LandingPage/ILP";
 import GaleriSection from "@/components/LandingPage/Galeri/GaleriSection";
 import LokasiSection from "@/components/LandingPage/Lokasi/LokasiSection";

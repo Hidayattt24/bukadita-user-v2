@@ -238,7 +238,8 @@ type NavItem = { name: string; href: string };
 
 const MENU: NavItem[] = [
   { name: "Beranda", href: "#beranda" },
-  { name: "Fitur", href: "#fitur" },
+  { name: "Struktur", href: "#struktur" },
+  { name: "ILP", href: "#ilp" },
   { name: "Galeri", href: "#galeri" },
   { name: "Lokasi", href: "#lokasi" },
   { name: "Pertanyaan", href: "#pertanyaan" },
@@ -250,66 +251,67 @@ const handleSmoothScroll = (href: string) => {
   const targetId = href.replace("#", "");
   const element = document.getElementById(targetId);
   if (element) {
-    element.scrollIntoView({
+    const navbarHeight = 100; // Approximate navbar height
+    const elementPosition = element.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + window.pageYOffset - navbarHeight;
+
+    window.scrollTo({
+      top: offsetPosition,
       behavior: "smooth",
-      block: "start",
     });
   }
 };
 
 function useActiveSection() {
-  const [activeSection, setActiveSection] = useState("");
+  const [activeSection, setActiveSection] = useState("beranda");
 
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-
     const handleScroll = () => {
-      // Clear existing timeout
-      clearTimeout(timeoutId);
+      const sections = MENU.map((item) => item.href.replace("#", ""));
+      const scrollPosition = window.scrollY || window.pageYOffset;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
 
-      // Throttle scroll events to improve performance
-      timeoutId = setTimeout(() => {
-        const sections = MENU.map((item) => item.href.replace("#", ""));
-        const scrollPosition = window.scrollY;
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
+      // Check if we're at the bottom of the page (kontak section)
+      if (scrollPosition + windowHeight >= documentHeight - 100) {
+        setActiveSection("kontak");
+        return;
+      }
 
-        // Check if we're at the bottom of the page (kontak section)
-        if (scrollPosition + windowHeight >= documentHeight - 50) {
-          setActiveSection("kontak");
-          return;
-        }
+      let currentSection = "beranda";
+      const offset = 200; // Offset from top of viewport for detection
 
-        let currentSection = "";
+      // Loop through sections to find which one is currently visible
+      for (let i = 0; i < sections.length; i++) {
+        const section = sections[i];
+        const element = document.getElementById(section);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          const sectionTop = rect.top;
+          const sectionBottom = rect.bottom;
 
-        // Loop through sections in reverse order to prioritize later sections
-        for (let i = sections.length - 1; i >= 0; i--) {
-          const section = sections[i];
-          const element = document.getElementById(section);
-          if (element) {
-            const rect = element.getBoundingClientRect();
-            const elementTop = rect.top + scrollPosition;
-
-            // If the section is visible in viewport (with offset)
-            if (scrollPosition + 150 >= elementTop) {
-              currentSection = section;
-              break;
-            }
+          // A section is active if:
+          // - Its top is above or at the offset point
+          // - Its bottom is below the offset point (section is visible)
+          if (sectionTop <= offset && sectionBottom > offset) {
+            currentSection = section;
+            break;
           }
         }
+      }
 
-        if (currentSection) {
-          setActiveSection(currentSection);
-        }
-      }, 16); // ~60fps throttling
+      setActiveSection(currentSection);
     };
 
+    // Add scroll event listener
     window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
+
+    // Initial call with a small delay to ensure DOM is ready
+    const timer = setTimeout(handleScroll, 100);
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      clearTimeout(timeoutId);
+      clearTimeout(timer);
     };
   }, []);
 
