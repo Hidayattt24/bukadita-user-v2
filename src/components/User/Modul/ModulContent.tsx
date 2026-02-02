@@ -76,9 +76,9 @@ export default function ModulContent({
         sidebarOpen ? "md:mr-96" : "mr-0"
       }`}
     >
-      <div className="flex flex-col h-full bg-white rounded-none md:rounded-2xl shadow-none md:shadow-lg m-0 md:m-6 overflow-hidden">
+      <div className="flex flex-col h-full bg-white rounded-none md:rounded-2xl shadow-none md:shadow-lg m-0 md:m-4 overflow-hidden">
         {/* Content Header */}
-        <div className="bg-gradient-to-r from-[#578FCA] to-[#27548A] p-4 sm:p-6 md:p-8">
+        <div className="bg-gradient-to-r from-[#578FCA] to-[#27548A] p-3 sm:p-4 md:p-5">
           <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
             <div className="p-2 sm:p-3 bg-white/20 rounded-lg shrink-0">
               {getContentTypeIcon(currentPoin.type)}
@@ -116,8 +116,8 @@ export default function ModulContent({
           </div>
         </div>
 
-        {/* Content Body */}
-        <div className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto bg-gray-50">
+        {/* Content Body - Compact Spacing */}
+        <div className="flex-1 p-3 sm:p-4 md:p-5 overflow-y-auto bg-gray-50">
           {currentPoin.type === "video" && (
             <div className="aspect-video bg-gradient-to-br from-white to-gray-100 rounded-xl sm:rounded-2xl flex items-center justify-center mb-6 sm:mb-8 border border-gray-200 shadow-sm">
               <div className="text-center p-4 sm:p-8">
@@ -150,8 +150,8 @@ export default function ModulContent({
             </div>
           )}
 
-          <div className="space-y-4 sm:space-y-6">
-            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm border border-gray-200">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 shadow-sm border border-gray-200">
               {/* ✅ Render HTML content with enhanced styling and media placeholders replaced */}
               <ContentRenderer
                 htmlContent={currentPoin.content}
@@ -163,7 +163,7 @@ export default function ModulContent({
             {selectedSubMateri &&
               selectedPoinIndex === selectedSubMateri.poinDetails.length - 1 &&
               selectedSubMateri.quiz.length > 0 && (
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-amber-200 shadow-sm">
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-amber-200 shadow-sm">
                   <div className="flex items-start gap-3 sm:gap-4">
                     <div className="p-2 sm:p-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl">
                       <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />

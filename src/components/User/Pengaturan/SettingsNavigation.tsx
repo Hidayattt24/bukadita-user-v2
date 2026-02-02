@@ -108,22 +108,26 @@ export default function SettingsNavigation({
       </div>
 
       {/* Desktop Navigation - Icon Centered */}
-      <div className="hidden sm:block bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-2 shadow-xl border border-[#578FCA]/20 max-w-4xl mx-auto mb-8 mt-4">
+      <div className="hidden sm:block bg-gradient-to-br from-white to-slate-50/50 rounded-2xl sm:rounded-3xl p-2 border-2 border-white shadow-[3px_3px_0px_rgba(87,143,202,0.15)] max-w-4xl mx-auto mb-6 sm:mb-8">
         <div className="grid grid-cols-3 gap-2">
           {tabs.map((tab) => {
             const IconComponent = tab.icon;
+            const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center justify-center gap-2 px-4 py-4 rounded-2xl font-semibold transition-all duration-300 text-sm ${
-                  activeTab === tab.id
-                    ? "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white shadow-lg"
-                    : "text-[#27548A] hover:bg-[#578FCA]/10"
+                className={`relative flex flex-col items-center justify-center gap-2 px-4 py-4 rounded-xl sm:rounded-2xl font-semibold transition-all duration-300 text-sm ${
+                  isActive
+                    ? "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white shadow-lg scale-105"
+                    : "text-[#27548A] hover:bg-[#578FCA]/10 hover:scale-102"
                 }`}
               >
-                <IconComponent className="w-6 h-6" />
-                <span className="text-center">{tab.label}</span>
+                {isActive && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#578FCA]/20 to-[#27548A]/20 rounded-xl sm:rounded-2xl blur-sm"></div>
+                )}
+                <IconComponent className={`w-6 h-6 relative z-10 ${isActive ? 'animate-pulse' : ''}`} />
+                <span className="text-center relative z-10">{tab.label}</span>
               </button>
             );
           })}

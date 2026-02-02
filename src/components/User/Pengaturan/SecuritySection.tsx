@@ -40,7 +40,7 @@ export default function SecuritySection({
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Change Password Card */}
-      <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl border border-[#578FCA]/20">
+      <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[3px_3px_0px_rgba(87,143,202,0.2)] hover:shadow-[4px_4px_0px_rgba(87,143,202,0.25)] transition-all duration-300">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl sm:text-2xl font-bold text-[#27548A] flex items-center gap-3">
             <Lock className="w-6 h-6 text-[#578FCA]" />

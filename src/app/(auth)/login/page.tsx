@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -139,12 +140,17 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Phone Input */}
         <div className="space-y-2">
-          <label
-            htmlFor="identifier"
-            className="block text-sm font-semibold text-[#27548A] font-poppins"
-          >
-            Nomor Telepon
-          </label>
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="identifier"
+              className="block text-sm font-semibold text-[#27548A] font-poppins"
+            >
+              Nomor Telepon 
+            </label>
+            {/* <span className="text-xs text-slate-500 font-poppins italic">
+              Tanpa 0 di depan
+            </span> */}
+          </div>
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <span className="text-gray-500 font-medium text-sm">+62</span>
@@ -171,9 +177,6 @@ export default function LoginPage() {
               {errors.identifier}
             </p>
           )}
-          <p className="text-xs text-slate-500 font-poppins">
-            Masukkan nomor telepon tanpa 0 di depan (contoh: 812345678)
-          </p>
         </div>
 
         {/* Password Input */}
@@ -223,22 +226,44 @@ export default function LoginPage() {
           )}
         </div>
 
-        {/* Remember Me */}
-        <div className="flex items-center text-sm">
-          <input
-            type="checkbox"
-            id="rememberMe"
-            name="rememberMe"
-            checked={formData.rememberMe}
-            onChange={handleChange}
-            className="h-4 w-4 text-[#578FCA] focus:ring-[#578FCA] border-gray-300 rounded"
-          />
-          <label
-            htmlFor="rememberMe"
-            className="ml-2 text-gray-600 font-medium font-poppins cursor-pointer"
+        {/* Remember Me & Forgot Password */}
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center group cursor-pointer">
+            <div className="relative flex items-center">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                name="rememberMe"
+                checked={formData.rememberMe}
+                onChange={handleChange}
+                className="peer h-4 w-4 cursor-pointer appearance-none rounded border-2 border-gray-300 bg-white transition-all checked:border-[#578FCA] checked:bg-gradient-to-br checked:from-[#578FCA] checked:to-[#27548A] hover:border-[#578FCA]/50 focus:ring-2 focus:ring-[#578FCA]/20 focus:ring-offset-0"
+              />
+              <svg
+                className="pointer-events-none absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <label
+              htmlFor="rememberMe"
+              className="ml-2 text-gray-600 font-medium font-poppins cursor-pointer select-none group-hover:text-[#27548A] transition-colors"
+            >
+              Ingat saya
+            </label>
+          </div>
+          <Link
+            href="/reset-password"
+            className="text-[#578FCA] hover:text-[#27548A] font-semibold font-poppins transition-colors hover:underline"
           >
-            Ingat saya
-          </label>
+            Lupa Password?
+          </Link>
         </div>
 
         {/* Submit Button */}

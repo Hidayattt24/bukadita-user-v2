@@ -4,29 +4,25 @@ import {
   UserNavbar,
   MobileBottomNavbar,
   WelcomeHero,
-  MotivationalBanner,
-  StatisticsSection,
-  TipsInfoSection,
-  FeaturedModulesSection,
+  UserStatistics,
+  InProgressModules,
 } from "@/components/User/Beranda";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
-import { useModulesWithProgress } from "@/hooks/useModulesWithProgress";
+import Link from "next/link";
+import { ArrowRight, BookOpen } from "lucide-react";
 
 /**
- * Beranda User - Dashboard dengan data modul dari database
- * 
+ * Beranda User - Dashboard dengan fokus pada progress dan modul yang sedang dipelajari
+ *
  * Features:
- * - Progress tracking otomatis berdasarkan quiz completion
- * - Real-time statistics dari database
- * - Auto-update ketika quiz selesai
+ * - User statistics dan progress tracking
+ * - Modul yang sedang dipelajari atau rekomendasi
+ * - Quick access ke semua modul
+ * - Footer untuk desktop
  */
 export default function BerandaUser() {
   const { user } = useAuth();
-  
-  // 🔥 Get real statistics from database
-  const { getStatistics } = useModulesWithProgress();
-  const stats = getStatistics();
 
   return (
     <ProtectedRoute>
@@ -36,21 +32,23 @@ export default function BerandaUser() {
           {/* Welcome Section */}
           <WelcomeHero user={user} />
 
-          {/* Motivational Banner with Quick Stats */}
-          <MotivationalBanner />
+          {/* User Statistics */}
+          <UserStatistics />
 
-          {/* Modul Keseluruhan - Grid semua modul dengan backend progress */}
-          <StatisticsSection
-            completedModuls={stats.completed}
-            totalHours={0} // TODO: Calculate from duration_minutes
-            overallProgress={stats.overallProgress}
-          />
+          {/* In Progress or Recommended Modules */}
+          <InProgressModules />
 
-          {/* Featured Modules - Modul Unggulan */}
-          <FeaturedModulesSection />
-
-          {/* Tips & Info */}
-          <TipsInfoSection />
+          {/* View All Modules Button */}
+          <div className="text-center mb-8 sm:mb-12">
+            <Link
+              href="/user/modul"
+              className="inline-flex items-center gap-3 px-8 sm:px-10 py-4 sm:py-5 bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white font-bold text-base sm:text-lg rounded-2xl hover:from-[#27548A] hover:to-[#578FCA] transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-2xl group"
+            >
+              <BookOpen className="w-6 h-6 group-hover:rotate-12 transition-transform duration-300" />
+              <span>Lihat Semua Modul</span>
+              <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" />
+            </Link>
+          </div>
         </main>
         <MobileBottomNavbar activeMenu="beranda" />
       </div>

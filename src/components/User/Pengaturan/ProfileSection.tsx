@@ -116,7 +116,7 @@ export default function ProfileSection({
       )}
 
       {/* Profile Picture Card */}
-      <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl border border-[#578FCA]/20">
+      <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[3px_3px_0px_rgba(87,143,202,0.2)] hover:shadow-[4px_4px_0px_rgba(87,143,202,0.25)] transition-all duration-300">
         <h2 className="text-xl sm:text-2xl font-bold text-[#27548A] mb-6 flex items-center gap-3">
           <Camera className="w-6 h-6 text-[#578FCA]" />
           Foto Profil
@@ -217,7 +217,7 @@ export default function ProfileSection({
 
       {/* Profile Information / Completion Card */}
       {!profilePending && (
-        <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl border border-[#578FCA]/20">
+        <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[3px_3px_0px_rgba(87,143,202,0.2)] hover:shadow-[4px_4px_0px_rgba(87,143,202,0.25)] transition-all duration-300">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-[#27548A] flex items-center gap-3">
               <UserIcon className="w-6 h-6 text-[#578FCA]" />

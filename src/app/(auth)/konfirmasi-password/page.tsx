@@ -2,16 +2,22 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Smartphone, ArrowLeft, Send, CheckCircle } from "lucide-react";
+import { Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from "lucide-react";
 
-export default function ResetPasswordPage() {
+export default function KonfirmasiPasswordPage() {
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
-    phone: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,18 +25,19 @@ export default function ResetPasswordPage() {
     setIsLoading(true);
     setErrors({});
 
-    // Validasi sederhana
+    // Validasi
     const newErrors: Record<string, string> = {};
 
-    if (!formData.phone) {
-      newErrors.phone = "Nomor telepon wajib diisi";
-    } else {
-      // Validasi format nomor telepon
-      const phoneNumber = formData.phone.trim();
-      // Cek apakah dimulai dengan 8 (setelah +62) atau 08
-      if (!/^(8|08)\d{8,11}$/.test(phoneNumber)) {
-        newErrors.phone = "Format nomor telepon tidak valid (contoh: 812345678 atau 0812345678)";
-      }
+    if (!formData.newPassword) {
+      newErrors.newPassword = "Password baru wajib diisi";
+    } else if (formData.newPassword.length < 8) {
+      newErrors.newPassword = "Password minimal 8 karakter";
+    }
+
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Konfirmasi password wajib diisi";
+    } else if (formData.newPassword !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Password tidak cocok";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -44,14 +51,19 @@ export default function ResetPasswordPage() {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Handle reset password logic here
-
+      // API call to update password
 
       // Show success state
       setIsSuccess(true);
+
+      // Redirect to login after 3 seconds
+      setTimeout(() => {
+        router.push("/login");
+      }, 3000);
     } catch (error) {
       console.error("Reset password error:", error);
       setErrors({
-        general: "Terjadi kesalahan saat mengirim kode verifikasi",
+        general: "Terjadi kesalahan saat mereset password",
       });
     } finally {
       setIsLoading(false);
@@ -60,6 +72,7 @@ export default function ResetPasswordPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -72,12 +85,6 @@ export default function ResetPasswordPage() {
         [name]: "",
       }));
     }
-  };
-
-  const handleTryAgain = () => {
-    setIsSuccess(false);
-    setFormData({ phone: "" });
-    setErrors({});
   };
 
   if (isSuccess) {
@@ -93,13 +100,10 @@ export default function ResetPasswordPage() {
 
           <div className="space-y-2">
             <h1 className="text-xl sm:text-2xl font-bold text-emerald-600 font-poppins">
-              Kode Terkirim!
+              Password Berhasil Direset!
             </h1>
             <p className="text-gray-600 text-sm font-medium font-poppins">
-              Kode verifikasi telah dikirim ke nomor{" "}
-              <span className="font-semibold text-[#27548A]">
-                +62{formData.phone}
-              </span>
+              Password Anda telah berhasil diubah
             </p>
           </div>
         </div>
@@ -112,44 +116,24 @@ export default function ResetPasswordPage() {
             </div>
             <div className="space-y-1">
               <p className="text-emerald-800 font-semibold text-sm">
-                Periksa SMS/WhatsApp Anda
+                Silakan Login Kembali
               </p>
               <p className="text-emerald-700 text-xs leading-relaxed">
-                Silakan cek SMS atau WhatsApp Anda untuk mendapatkan kode verifikasi.
-                Kode akan kadaluarsa dalam 5 menit.
+                Anda akan diarahkan ke halaman login dalam beberapa detik...
               </p>
             </div>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="space-y-3">
+        {/* Action Button */}
+        <div className="text-center pt-2">
           <Link
-            href="/konfirmasi-password"
-            className="block w-full py-2.5 px-4 bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white font-semibold rounded-lg hover:from-[#4681c4] hover:to-[#1e3f6f] focus:ring-2 focus:ring-[#578FCA]/30 focus:outline-none transition-all duration-200 font-poppins shadow-md text-sm text-center"
+            href="/login"
+            className="inline-flex items-center space-x-1 text-[#578FCA] hover:text-[#27548A] transition-colors font-semibold font-poppins text-sm hover:underline"
           >
-            Konfirmasi Password Baru
+            <ArrowLeft className="h-4 w-4" />
+            <span>Kembali ke Login</span>
           </Link>
-
-          <button
-            onClick={handleTryAgain}
-            className="w-full py-2.5 px-4 border-2 border-[#578FCA] text-[#578FCA] font-semibold rounded-lg hover:bg-[#578FCA]/5 focus:ring-2 focus:ring-[#578FCA]/30 focus:outline-none transition-all duration-200 font-poppins text-sm"
-          >
-            <div className="flex items-center justify-center space-x-2">
-              <Send className="h-4 w-4" />
-              <span>Kirim Ulang Kode</span>
-            </div>
-          </button>
-
-          <div className="text-center pt-2">
-            <Link
-              href="/login"
-              className="inline-flex items-center space-x-1 text-[#578FCA] hover:text-[#27548A] transition-colors font-medium font-poppins text-sm hover:underline"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Kembali ke Login</span>
-            </Link>
-          </div>
         </div>
       </div>
     );
@@ -173,10 +157,10 @@ export default function ResetPasswordPage() {
 
         <div className="space-y-2">
           <h1 className="text-xl sm:text-2xl font-bold text-[#27548A] font-poppins">
-            Lupa Password
+            Konfirmasi Password
           </h1>
           <p className="text-gray-600 text-sm font-medium font-poppins">
-            Masukkan nomor telepon Anda untuk menerima kode verifikasi
+            Masukkan password baru Anda
           </p>
         </div>
       </div>
@@ -195,43 +179,112 @@ export default function ResetPasswordPage() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Phone Input */}
+        {/* New Password Input */}
         <div className="space-y-2">
           <label
-            htmlFor="phone"
+            htmlFor="newPassword"
             className="block text-sm font-semibold text-[#27548A] font-poppins"
           >
-            Nomor Telepon
+            Password Baru
           </label>
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-gray-500 font-medium text-sm">+62</span>
+              <Lock className="h-4 w-4 text-gray-400 group-focus-within:text-[#578FCA] transition-colors" />
             </div>
             <input
-              type="tel"
-              id="phone"
-              name="phone"
-              value={formData.phone}
+              type={showNewPassword ? "text" : "password"}
+              id="newPassword"
+              name="newPassword"
+              value={formData.newPassword}
               onChange={handleChange}
               required
-              className={`w-full pl-12 pr-3 py-2.5 bg-gray-50 border rounded-lg focus:bg-white focus:ring-2 focus:ring-[#578FCA]/20 focus:border-[#578FCA] outline-none transition-all duration-200 font-poppins placeholder:text-gray-400 text-gray-700 text-sm ${errors.phone
+              className={`w-full pl-10 pr-10 py-2.5 bg-gray-50 border rounded-lg focus:bg-white focus:ring-2 focus:ring-[#578FCA]/20 focus:border-[#578FCA] outline-none transition-all duration-200 font-poppins placeholder:text-gray-400 text-gray-700 text-sm ${
+                errors.newPassword
                   ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-red-100"
                   : "border-gray-200 hover:border-[#578FCA]/50"
-                }`}
-              placeholder="812345678"
+              }`}
+              placeholder="Masukkan password baru"
             />
+            <button
+              type="button"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center hover:bg-gray-50 rounded-r-lg transition-colors"
+            >
+              {showNewPassword ? (
+                <EyeOff className="h-4 w-4 text-gray-400 hover:text-[#578FCA] transition-colors" />
+              ) : (
+                <Eye className="h-4 w-4 text-gray-400 hover:text-[#578FCA] transition-colors" />
+              )}
+            </button>
           </div>
-          {errors.phone && (
+          {errors.newPassword && (
             <p className="text-red-600 text-xs font-medium flex items-center gap-1">
               <span className="w-3 h-3 bg-red-500 rounded-full flex items-center justify-center text-white text-xs">
                 !
               </span>
-              {errors.phone}
+              {errors.newPassword}
             </p>
           )}
-          <p className="text-xs text-slate-500 font-poppins">
-            Masukkan nomor telepon tanpa 0 di depan (contoh: 812345678)
+        </div>
+
+        {/* Confirm Password Input */}
+        <div className="space-y-2">
+          <label
+            htmlFor="confirmPassword"
+            className="block text-sm font-semibold text-[#27548A] font-poppins"
+          >
+            Konfirmasi Password Baru
+          </label>
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Lock className="h-4 w-4 text-gray-400 group-focus-within:text-[#578FCA] transition-colors" />
+            </div>
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              className={`w-full pl-10 pr-10 py-2.5 bg-gray-50 border rounded-lg focus:bg-white focus:ring-2 focus:ring-[#578FCA]/20 focus:border-[#578FCA] outline-none transition-all duration-200 font-poppins placeholder:text-gray-400 text-gray-700 text-sm ${
+                errors.confirmPassword
+                  ? "border-red-400 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                  : "border-gray-200 hover:border-[#578FCA]/50"
+              }`}
+              placeholder="Konfirmasi password baru"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center hover:bg-gray-50 rounded-r-lg transition-colors"
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="h-4 w-4 text-gray-400 hover:text-[#578FCA] transition-colors" />
+              ) : (
+                <Eye className="h-4 w-4 text-gray-400 hover:text-[#578FCA] transition-colors" />
+              )}
+            </button>
+          </div>
+          {errors.confirmPassword && (
+            <p className="text-red-600 text-xs font-medium flex items-center gap-1">
+              <span className="w-3 h-3 bg-red-500 rounded-full flex items-center justify-center text-white text-xs">
+                !
+              </span>
+              {errors.confirmPassword}
+            </p>
+          )}
+        </div>
+
+        {/* Password Requirements */}
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-blue-800 font-semibold text-xs mb-1.5">
+            Persyaratan Password:
           </p>
+          <ul className="text-blue-700 text-xs space-y-1 list-disc list-inside">
+            <li>Minimal 8 karakter</li>
+            <li>Kombinasi huruf dan angka direkomendasikan</li>
+            <li>Password harus sama dengan konfirmasi</li>
+          </ul>
         </div>
 
         {/* Submit Button */}
@@ -244,12 +297,12 @@ export default function ResetPasswordPage() {
             {isLoading ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                <span>Mengirim Kode...</span>
+                <span>Memproses...</span>
               </>
             ) : (
               <>
-                <Send className="h-4 w-4" />
-                <span>Kirim Kode Verifikasi</span>
+                <Lock className="h-4 w-4" />
+                <span>Reset Password</span>
               </>
             )}
           </div>
@@ -269,7 +322,7 @@ export default function ResetPasswordPage() {
       {/* Back to Login */}
       <div className="text-center pt-2">
         <p className="text-gray-600 font-poppins text-sm">
-          Ingat password Anda?{" "}
+          Sudah ingat password?{" "}
           <Link
             href="/login"
             className="font-semibold text-[#578FCA] hover:text-[#27548A] transition-colors hover:underline inline-flex items-center space-x-1"

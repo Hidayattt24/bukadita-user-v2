@@ -21,6 +21,7 @@ interface ModulSidebarProps {
   handleSubMateriSelect: (subMateri: SubMateri) => void;
   handlePoinSelect: (poinIndex: number) => void;
   toggleSubMateriExpanded: (subMateriId: string) => void;
+  isFetchingProgress?: boolean;
 }
 
 export default function ModulSidebar({
@@ -33,6 +34,7 @@ export default function ModulSidebar({
   handleSubMateriSelect,
   handlePoinSelect,
   toggleSubMateriExpanded,
+  isFetchingProgress = false,
 }: ModulSidebarProps) {
   const { warning } = useToast();
 
@@ -61,6 +63,41 @@ export default function ModulSidebar({
           sidebarOpen ? "translate-x-0" : "translate-x-full"
         } md:left-auto md:right-0 md:w-96 md:border-l md:border-gray-200 md:shadow-2xl`}
       >
+        {/* Loading Skeleton - Disable sidebar during progress fetch */}
+        {isFetchingProgress && (
+          <div className="absolute inset-0 bg-white z-50 overflow-hidden">
+            {/* Skeleton Header */}
+            <div className="px-4 py-4 sm:px-6 sm:py-6 bg-gradient-to-br from-[#578FCA]/20 to-[#27548A]/20">
+              <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-200 rounded-xl animate-pulse"></div>
+                <div className="flex-1">
+                  <div className="h-4 bg-gray-200 rounded w-32 mb-2 animate-pulse"></div>
+                  <div className="h-3 bg-gray-200 rounded w-24 animate-pulse"></div>
+                </div>
+              </div>
+              <div className="bg-white/30 rounded-xl p-3 sm:p-4">
+                <div className="h-3 bg-gray-200 rounded w-40 mb-3 animate-pulse"></div>
+                <div className="h-2 bg-gray-200 rounded w-full animate-pulse"></div>
+              </div>
+            </div>
+
+            {/* Skeleton List */}
+            <div className="p-4 space-y-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-gray-50 rounded-lg p-3">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                </div>
+              ))}
+            </div>
+
+            {/* Loading text */}
+            <div className="absolute bottom-4 left-0 right-0 text-center">
+              <p className="text-[#578FCA] text-sm font-medium">Memuat progress...</p>
+            </div>
+          </div>
+        )}
+
         {/* Sidebar Header */}
         <div className="flex-shrink-0 px-4 py-4 sm:px-6 sm:py-6 bg-gradient-to-br from-[#578FCA] to-[#27548A] relative">
           <button

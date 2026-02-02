@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { LogOut } from "lucide-react";
 import { showSuccessToast } from "@/utils/sweetalert";
+import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 
 interface UserNavbarProps {
   activeMenu?: string;
@@ -25,6 +26,21 @@ export default function UserNavbar({
   }>({ greeting: "", date: "" });
 
   const [showLogoutMenu, setShowLogoutMenu] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const { scrollYProgress } = useScroll();
+  const lastUpdateRef = useRef(0);
+
+  useMotionValueEvent(scrollYProgress, "change", (current: number) => {
+    if (typeof current === "number") {
+      const now = Date.now();
+      // Throttle updates to improve performance
+      if (now - lastUpdateRef.current < 16) return; // ~60fps
+      lastUpdateRef.current = now;
+
+      // Set scrolled state
+      setIsScrolled(current > 0.05);
+    }
+  });
 
   const handleLogout = () => {
     // Close the menu first
@@ -118,11 +134,32 @@ export default function UserNavbar({
     return () => clearInterval(interval);
   }, []);
   return (
-    <nav className="bg-gradient-to-r from-[#578FCA] to-[#27548A] shadow-xl px-4 md:px-6 py-4 md:py-5 sticky top-0 z-50">
+    <motion.nav
+      animate={{
+        scale: isScrolled ? 0.95 : 1,
+      }}
+      transition={{
+        duration: 0.3,
+        ease: "easeInOut",
+      }}
+      className={`sticky top-0 z-50 transition-all duration-300 will-change-transform ${
+        isScrolled
+          ? "mt-0 md:mt-10 md:mx-10 md:rounded-full bg-[#27548A]/95 md:backdrop-blur-md shadow-lg md:border md:border-white/10"
+          : "bg-gradient-to-r from-[#578FCA] to-[#27548A] shadow-xl"
+      } px-4 md:px-6 py-4 md:py-5`}
+      style={{
+        backfaceVisibility: "hidden",
+        perspective: 1000,
+      }}
+    >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo and Navigation Menu */}
         <div className="flex items-center space-x-4 md:space-x-8">
-          <div className="relative">
+          <motion.div
+            className="relative"
+            animate={{ scale: isScrolled ? 0.9 : 1 }}
+            transition={{ duration: 0.2 }}
+          >
             <Image
               src="/images/logo-putih.svg"
               alt="Posyandu Logo"
@@ -130,36 +167,72 @@ export default function UserNavbar({
               height={45}
               className="h-9 md:h-10 lg:h-12 w-auto"
             />
-          </div>
+          </motion.div>
 
           {/* Enhanced Navigation Menu - Hidden on mobile */}
-          <div className="hidden md:flex items-center space-x-3">
+          <div className="hidden md:flex items-center space-x-2">
             <Link
               href="/user/beranda"
-              className={`px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${activeMenu === "beranda"
+              className={`relative px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${
+                activeMenu === "beranda"
                   ? "text-[#27548A] bg-white/95 shadow-lg"
-                  : "text-white/90 hover:text-white hover:bg-white/20"
-                }`}
+                  : "text-white/90 hover:text-white hover:bg-white/10"
+              }`}
             >
               Beranda
+              {activeMenu === "beranda" && (
+                <motion.div
+                  layoutId="user-navbar-active"
+                  className="absolute inset-0 rounded-full bg-white/95 shadow-lg -z-10"
+                  transition={{
+                    type: "spring",
+                    bounce: 0.2,
+                    duration: 0.6,
+                  }}
+                />
+              )}
             </Link>
             <Link
               href="/user/modul"
-              className={`px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${activeMenu === "modul"
+              className={`relative px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${
+                activeMenu === "modul"
                   ? "text-[#27548A] bg-white/95 shadow-lg"
-                  : "text-white/90 hover:text-white hover:bg-white/20"
-                }`}
+                  : "text-white/90 hover:text-white hover:bg-white/10"
+              }`}
             >
               Modul
+              {activeMenu === "modul" && (
+                <motion.div
+                  layoutId="user-navbar-active"
+                  className="absolute inset-0 rounded-full bg-white/95 shadow-lg -z-10"
+                  transition={{
+                    type: "spring",
+                    bounce: 0.2,
+                    duration: 0.6,
+                  }}
+                />
+              )}
             </Link>
             <Link
               href="/user/pengaturan"
-              className={`px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${activeMenu === "pengaturan"
+              className={`relative px-6 py-2.5 rounded-full font-semibold text-base transition-all duration-300 ${
+                activeMenu === "pengaturan"
                   ? "text-[#27548A] bg-white/95 shadow-lg"
-                  : "text-white/90 hover:text-white hover:bg-white/20"
-                }`}
+                  : "text-white/90 hover:text-white hover:bg-white/10"
+              }`}
             >
               Pengaturan
+              {activeMenu === "pengaturan" && (
+                <motion.div
+                  layoutId="user-navbar-active"
+                  className="absolute inset-0 rounded-full bg-white/95 shadow-lg -z-10"
+                  transition={{
+                    type: "spring",
+                    bounce: 0.2,
+                    duration: 0.6,
+                  }}
+                />
+              )}
             </Link>
           </div>
         </div>
@@ -282,6 +355,6 @@ export default function UserNavbar({
           </div>
         </div>
       </div>
-    </nav>
+    </motion.nav>
   );
 }
