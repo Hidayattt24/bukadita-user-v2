@@ -1,13 +1,6 @@
+// Active components used in Beranda page
 export { default as UserNavbar } from "./UserNavbar";
-export { default as ModulCard } from "./ModulCard";
-export { default as ProgressModuleCard } from "./ProgressModuleCard";
-export { default as StatisticsModuleCard } from "./StatisticsModuleCard";
 export { default as MobileBottomNavbar } from "./MobileBottomNavbar";
 export { default as WelcomeHero } from "./WelcomeHero";
-export { default as StatisticsSection } from "./StatisticsSection";
-export { default as ContinueLearningSection } from "./ContinueLearningSection";
-export { default as ProgressLearningSection } from "./ProgressLearningSection";
-export { default as MotivationalBanner } from "./MotivationalBanner";
-export { default as QuickAccessSection } from "./QuickAccessSection";
-export { default as TipsInfoSection } from "./TipsInfoSection";
-export { default as FeaturedModulesSection } from "./FeaturedModulesSection";
+export { default as UserStatistics } from "./UserStatistics";
+export { default as InProgressModules } from "./InProgressModules";

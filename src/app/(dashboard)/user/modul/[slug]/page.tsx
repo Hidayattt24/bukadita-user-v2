@@ -33,6 +33,7 @@ export default function DetailModulPage() {
   const { modul: modulFromDB, isLoading: loadingFromDB, error: dbError } = useModuleDetailFromDB(modulSlug);
 
   const [modul, setModul] = useState<DetailModul | null>(null);
+  const [isFetchingProgress, setIsFetchingProgress] = useState(false);
   const [selectedSubMateri, setSelectedSubMateri] = useState<SubMateri | null>(
     null
   );
@@ -74,6 +75,7 @@ export default function DetailModulPage() {
         modul.moduleId
       );
 
+      setIsFetchingProgress(true);
       try {
         // Fetch progress from backend
         if (!modul.moduleId) {
@@ -161,6 +163,8 @@ export default function DetailModulPage() {
         });
       } catch (error) {
         console.error("[Page] Error loading progress from backend:", error);
+      } finally {
+        setIsFetchingProgress(false);
       }
     };
 
@@ -717,7 +721,7 @@ export default function DetailModulPage() {
   const currentPoin = getCurrentPoin();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 relative">
       <ModulHeader
         modul={modul}
         selectedSubMateri={selectedSubMateri}
@@ -759,6 +763,7 @@ export default function DetailModulPage() {
           handleSubMateriSelect={handleSubMateriSelect}
           handlePoinSelect={handlePoinSelect}
           toggleSubMateriExpanded={toggleSubMateriExpanded}
+          isFetchingProgress={isFetchingProgress}
         />
       </main>
 

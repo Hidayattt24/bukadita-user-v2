@@ -23,7 +23,8 @@ export default function ConditionalLayout({
     pathname?.includes("login") ||
     pathname?.includes("register") ||
     pathname?.includes("callback") ||
-    pathname?.includes("reset-password");
+    pathname?.includes("reset-password") ||
+    pathname?.includes("konfirmasi-password");
   const isDashboardPage =
     pathname?.includes("admin") || pathname?.includes("user");
 

@@ -455,18 +455,18 @@ const FloatingNotes: React.FC = () => {
 
   return (
     <>
-      {/* Floating Icon */}
-      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
+      {/* Floating Icon - Positioned on LEFT */}
+      <div className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-50">
         <div className="relative">
           {/* Greeting Message */}
           <AnimatePresence>
             {showGreeting && (
               <motion.div
-                initial={{ opacity: 0, x: 20, scale: 0.8 }}
+                initial={{ opacity: 0, x: -20, scale: 0.8 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={{ opacity: 0, x: 20, scale: 0.8 }}
+                exit={{ opacity: 0, x: -20, scale: 0.8 }}
                 onClick={handleGreetingClick}
-                className="absolute bottom-16 right-0 bg-white shadow-lg rounded-lg p-3 sm:p-4 min-w-[200px] max-w-[260px] sm:min-w-[240px] sm:max-w-[280px] border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors mr-0 sm:mr-0 z-40"
+                className="absolute bottom-16 left-0 bg-white shadow-lg rounded-lg p-3 sm:p-4 min-w-[200px] max-w-[260px] sm:min-w-[240px] sm:max-w-[280px] border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors ml-0 sm:ml-0 z-40"
               >
                 <button
                   onClick={(e) => {
@@ -480,7 +480,7 @@ const FloatingNotes: React.FC = () => {
                 <div className="text-xs sm:text-sm text-gray-700 font-medium pr-7 sm:pr-6">
                   Hai para kader! Kalau butuh catatan klik aku ya
                 </div>
-                <div className="absolute -bottom-2 right-6 sm:right-4 w-0 h-0 border-l-[8px] border-r-[8px] border-t-[8px] border-l-transparent border-r-transparent border-t-white"></div>
+                <div className="absolute -bottom-2 left-6 sm:left-4 w-0 h-0 border-l-[8px] border-r-[8px] border-t-[8px] border-l-transparent border-r-transparent border-t-white"></div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -510,13 +510,13 @@ const FloatingNotes: React.FC = () => {
               className="fixed inset-0 bg-black bg-opacity-30 floating-notes-backdrop z-50"
             />
 
-            {/* Panel */}
+            {/* Panel - Slides from LEFT */}
             <motion.div
-              initial={{ x: "100%" }}
+              initial={{ x: "-100%" }}
               animate={{ x: 0 }}
-              exit={{ x: "100%" }}
+              exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed right-0 top-0 h-full w-full sm:max-w-md bg-white floating-notes-panel z-50 overflow-hidden flex flex-col safe-area-inset"
+              className="fixed left-0 top-0 h-full w-full sm:max-w-md bg-white floating-notes-panel z-50 overflow-hidden flex flex-col safe-area-inset"
             >
               {/* Header */}
               <div className="bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white p-3 sm:p-4 flex items-center justify-between">

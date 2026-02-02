@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import { ZoomIn, X } from 'lucide-react';
 
 interface MediaItem {
   id: string;
@@ -25,88 +26,155 @@ export default function ContentRenderer({
   mediaItems = [],
   className = ''
 }: ContentRendererProps) {
-  
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
   const processedContent = useMemo(() => {
-    if (!htmlContent || mediaItems.length === 0) {
-      return htmlContent;
-    }
+    let processed = htmlContent || '';
 
-    let processed = htmlContent;
+    // 🔥 STEP 1: Replace media placeholders FIRST (before markdown conversion)
+    // This is critical - media placeholders must be replaced before any text processing
+    if (mediaItems && mediaItems.length > 0) {
+      mediaItems.forEach((media) => {
+        // Support multiple placeholder formats from backend
+        // Try each format and replace if found
+        const placeholderFormats = [
+          `[MEDIA_PLACEHOLDER_${media.id}]`,     // [MEDIA_PLACEHOLDER_uuid]
+          `[MEDIA_PLACEHOLDER${media.id}]`,      // [MEDIA_PLACEHOLDERuuid]
+          `[MEDIAPLACEHOLDER_${media.id}]`,      // [MEDIAPLACEHOLDER_uuid]
+          `[MEDIAPLACEHOLDER${media.id}]`,       // [MEDIAPLACEHOLDERuuid]
+        ];
 
-    // Replace each media placeholder with actual media element
-    mediaItems.forEach((media) => {
-      const placeholder = `[MEDIA_PLACEHOLDER_${media.id}]`;
-      
-      // Check if placeholder exists in content
-      if (processed.includes(placeholder)) {
-        let mediaHtml = '';
-
-        // Determine media type
-        if (media.mime_type.startsWith('image/')) {
-          // Image
-          mediaHtml = `
-            <div class="media-item image-wrapper my-6">
-              <img 
-                src="${media.media_url}" 
-                alt="${media.original_filename || 'Media'}"
-                class="w-full h-auto rounded-lg shadow-md border border-gray-200"
-                loading="lazy"
-              />
-            </div>
-          `;
-        } else if (media.mime_type.startsWith('video/')) {
-          // Video
-          mediaHtml = `
-            <div class="media-item video-wrapper my-6">
-              <video 
-                controls
-                class="w-full rounded-lg shadow-md border border-gray-200"
-                preload="metadata"
-              >
-                <source src="${media.media_url}" type="${media.mime_type}" />
-                Browser Anda tidak mendukung video HTML5.
-              </video>
-            </div>
-          `;
-        } else if (media.mime_type.startsWith('audio/')) {
-          // Audio
-          mediaHtml = `
-            <div class="media-item audio-wrapper my-6">
-              <audio 
-                controls
-                class="w-full rounded-lg shadow-sm border border-gray-200"
-                preload="metadata"
-              >
-                <source src="${media.media_url}" type="${media.mime_type}" />
-                Browser Anda tidak mendukung audio HTML5.
-              </audio>
-            </div>
-          `;
-        } else {
-          // Other file types - download link
-          mediaHtml = `
-            <div class="media-item file-wrapper my-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <a 
-                href="${media.media_url}" 
-                target="_blank"
-                rel="noopener noreferrer"
-                class="flex items-center gap-3 text-blue-600 hover:text-blue-700 font-medium"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" x2="12" y1="15" y2="3"></line>
-                </svg>
-                <span>Download: ${media.original_filename || 'File'}</span>
-              </a>
-            </div>
-          `;
+        let placeholderFound = '';
+        for (const format of placeholderFormats) {
+          if (processed.includes(format)) {
+            placeholderFound = format;
+            break;
+          }
         }
 
-        // Replace placeholder with media HTML
-        processed = processed.replace(placeholder, mediaHtml);
-      }
-    });
+        if (placeholderFound) {
+          let mediaHtml = '';
+
+          // Determine media type
+          if (media.mime_type.startsWith('image/')) {
+            // Image with persistent zoom indicator - Compact size
+            mediaHtml = `
+              <div class="media-item image-wrapper my-3" data-media-id="${media.id}">
+                <div class="relative group max-w-xs">
+                  <img
+                    src="${media.media_url}"
+                    alt="Gambar ilustrasi"
+                    class="w-full h-auto rounded-lg shadow-sm border border-gray-200 cursor-pointer transition-all hover:shadow-md"
+                    loading="lazy"
+                    data-zoomable-image="${media.media_url}"
+                  />
+                  <!-- Hover overlay with full "Perbesar" button -->
+                  <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                    <button
+                      class="bg-white/90 hover:bg-white text-gray-800 px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-lg transition-all hover:scale-105"
+                      data-zoom-button="${media.media_url}"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                        <line x1="11" x2="11" y1="8" y2="14"></line>
+                        <line x1="8" x2="14" y1="11" y2="11"></line>
+                      </svg>
+                      Perbesar
+                    </button>
+                  </div>
+                  <!-- Persistent small zoom indicator (always visible) -->
+                  <button
+                    class="absolute bottom-2 right-2 w-8 h-8 bg-white/90 hover:bg-white text-gray-700 rounded-full flex items-center justify-center shadow-md transition-all hover:scale-110 z-10"
+                    data-zoom-button="${media.media_url}"
+                    title="Klik untuk memperbesar gambar"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <path d="m21 21-4.3-4.3"></path>
+                      <line x1="11" x2="11" y1="8" y2="14"></line>
+                      <line x1="8" x2="14" y1="11" y2="11"></line>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            `;
+          } else if (media.mime_type.startsWith('video/')) {
+            // Video
+            mediaHtml = `
+              <div class="media-item video-wrapper my-6">
+                <video
+                  controls
+                  class="w-full rounded-lg shadow-md border border-gray-200"
+                  preload="metadata"
+                >
+                  <source src="${media.media_url}" type="${media.mime_type}" />
+                  Browser Anda tidak mendukung video HTML5.
+                </video>
+              </div>
+            `;
+          } else if (media.mime_type.startsWith('audio/')) {
+            // Audio
+            mediaHtml = `
+              <div class="media-item audio-wrapper my-6">
+                <audio
+                  controls
+                  class="w-full rounded-lg shadow-sm border border-gray-200"
+                  preload="metadata"
+                >
+                  <source src="${media.media_url}" type="${media.mime_type}" />
+                  Browser Anda tidak mendukung audio HTML5.
+                </audio>
+              </div>
+            `;
+          } else {
+            // Other file types - download link
+            mediaHtml = `
+              <div class="media-item file-wrapper my-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <a
+                  href="${media.media_url}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center gap-3 text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" x2="12" y1="15" y2="3"></line>
+                  </svg>
+                  <span>Download: ${media.original_filename || 'File'}</span>
+                </a>
+              </div>
+            `;
+          }
+
+          // Replace placeholder with media HTML
+          processed = processed.replace(placeholderFound, mediaHtml);
+        }
+      });
+    }
+
+    // 🔥 STEP 2: Convert markdown to HTML (after media replacement)
+    // Check if content has markdown patterns like ###, ##, #
+    if (processed.includes('###') || processed.includes('##') || processed.includes('#')) {
+      // Convert markdown headings to HTML
+      // H4: #### Heading
+      processed = processed.replace(/^####\s+(.+)$/gm, '<h4>$1</h4>');
+      // H3: ### Heading
+      processed = processed.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
+      // H2: ## Heading
+      processed = processed.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+      // H1: # Heading
+      processed = processed.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+    }
+
+    // Convert **bold** and __bold__ to <strong>
+    processed = processed.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    processed = processed.replace(/__(.+?)__/g, '<strong>$1</strong>');
+
+    // Convert *italic* and _italic_ to <em>
+    processed = processed.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    processed = processed.replace(/_(.+?)_/g, '<em>$1</em>');
 
     return processed;
   }, [htmlContent, mediaItems]);
@@ -122,9 +190,45 @@ export default function ContentRenderer({
     );
   }
 
+  // Handle zoom button clicks
+  React.useEffect(() => {
+    const handleZoomClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const button = target.closest('[data-zoom-button]') as HTMLElement;
+      if (button) {
+        e.preventDefault();
+        const imageUrl = button.getAttribute('data-zoom-button');
+        if (imageUrl) {
+          setSelectedImage(imageUrl);
+        }
+      }
+    };
+
+    // Also allow clicking on images directly
+    const handleImageClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const img = target.closest('[data-zoomable-image]') as HTMLElement;
+      if (img) {
+        const imageUrl = img.getAttribute('data-zoomable-image');
+        if (imageUrl) {
+          setSelectedImage(imageUrl);
+        }
+      }
+    };
+
+    document.addEventListener('click', handleZoomClick);
+    document.addEventListener('click', handleImageClick);
+
+    return () => {
+      document.removeEventListener('click', handleZoomClick);
+      document.removeEventListener('click', handleImageClick);
+    };
+  }, []);
+
   return (
-    <div className={`learning-content ${className}`}>
-      <style jsx>{`
+    <>
+      <div className={`learning-content ${className}`}>
+        <style jsx>{`
         /* ========================================
            ENHANCED LEARNING CONTENT STYLES
            Membuat konten pembelajaran lebih menarik
@@ -135,18 +239,18 @@ export default function ContentRenderer({
           color: #374151;
         }
 
-        /* ===== HEADINGS - Lebih Prominent ===== */
+        /* ===== HEADINGS - Compact ===== */
         .learning-content :global(h1) {
-          font-size: 2rem;
+          font-size: 1.75rem;
           font-weight: 800;
           color: #27548A;
           background: linear-gradient(135deg, #578FCA 0%, #27548A 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          margin-top: 2.5rem;
-          margin-bottom: 1.5rem;
-          padding-bottom: 0.75rem;
+          margin-top: 1.75rem;
+          margin-bottom: 1rem;
+          padding-bottom: 0.5rem;
           border-bottom: 3px solid #E5F0FF;
           position: relative;
         }
@@ -163,34 +267,34 @@ export default function ContentRenderer({
         }
 
         .learning-content :global(h2) {
-          font-size: 1.75rem;
+          font-size: 1.5rem;
           font-weight: 700;
           color: #27548A;
-          margin-top: 2rem;
-          margin-bottom: 1.25rem;
-          padding-left: 1rem;
+          margin-top: 1.5rem;
+          margin-bottom: 0.875rem;
+          padding-left: 0.875rem;
           border-left: 4px solid #578FCA;
           background: linear-gradient(90deg, rgba(87, 143, 202, 0.08) 0%, transparent 100%);
-          padding: 0.75rem 1rem;
+          padding: 0.5rem 0.875rem;
           border-radius: 0 0.5rem 0.5rem 0;
         }
 
         .learning-content :global(h3) {
-          font-size: 1.5rem;
+          font-size: 1.25rem;
           font-weight: 600;
           color: #578FCA;
-          margin-top: 1.75rem;
-          margin-bottom: 1rem;
-          padding-left: 0.75rem;
+          margin-top: 1.25rem;
+          margin-bottom: 0.75rem;
+          padding-left: 0.625rem;
           border-left: 3px solid #93C5FD;
         }
 
         .learning-content :global(h4) {
-          font-size: 1.25rem;
+          font-size: 1.125rem;
           font-weight: 600;
           color: #60A5FA;
-          margin-top: 1.5rem;
-          margin-bottom: 0.75rem;
+          margin-top: 1rem;
+          margin-bottom: 0.625rem;
         }
 
         /* ===== BOLD - Bigger & Branded Color ===== */
@@ -224,30 +328,30 @@ export default function ContentRenderer({
           padding-bottom: 2px;
         }
 
-        /* ===== PARAGRAPHS - Better Spacing ===== */
+        /* ===== PARAGRAPHS - Compact Spacing ===== */
         .learning-content :global(p) {
-          margin-bottom: 1.25rem;
-          font-size: 1rem;
-          line-height: 1.8;
+          margin-bottom: 0.875rem;
+          font-size: 0.95rem;
+          line-height: 1.7;
         }
 
         .learning-content :global(p:first-child) {
-          font-size: 1.05rem;
+          font-size: 1rem;
         }
 
-        /* ===== LISTS - Enhanced Styling ===== */
+        /* ===== LISTS - Compact Styling ===== */
         .learning-content :global(ul) {
-          margin: 1.5rem 0;
+          margin: 1rem 0;
           padding-left: 0;
           list-style: none;
         }
 
         .learning-content :global(ul li) {
           position: relative;
-          padding-left: 2rem;
-          margin-bottom: 0.875rem;
-          padding-top: 0.375rem;
-          padding-bottom: 0.375rem;
+          padding-left: 1.75rem;
+          margin-bottom: 0.5rem;
+          padding-top: 0.25rem;
+          padding-bottom: 0.25rem;
           transition: all 0.2s ease;
         }
 
@@ -281,9 +385,9 @@ export default function ContentRenderer({
           background: linear-gradient(135deg, #93C5FD, #60A5FA);
         }
 
-        /* ===== ORDERED LISTS - Numbered with Style ===== */
+        /* ===== ORDERED LISTS - Compact Numbered ===== */
         .learning-content :global(ol) {
-          margin: 1.5rem 0;
+          margin: 1rem 0;
           padding-left: 0;
           counter-reset: item;
           list-style: none;
@@ -291,10 +395,10 @@ export default function ContentRenderer({
 
         .learning-content :global(ol li) {
           position: relative;
-          padding-left: 3rem;
-          margin-bottom: 1rem;
-          padding-top: 0.5rem;
-          padding-bottom: 0.5rem;
+          padding-left: 2.5rem;
+          margin-bottom: 0.625rem;
+          padding-top: 0.25rem;
+          padding-bottom: 0.25rem;
           counter-increment: item;
           transition: all 0.2s ease;
         }
@@ -505,10 +609,35 @@ export default function ContentRenderer({
           }
         }
       `}</style>
-      
-      <div 
-        dangerouslySetInnerHTML={{ __html: processedContent }}
-      />
-    </div>
+
+        <div
+          dangerouslySetInnerHTML={{ __html: processedContent }}
+        />
+      </div>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-all hover:scale-110"
+            aria-label="Tutup"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <div className="max-w-5xl max-h-[90vh] w-full">
+            <img
+              src={selectedImage}
+              alt="Gambar Diperbesar"
+              className="w-full h-full object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
+    </>
   );
 }

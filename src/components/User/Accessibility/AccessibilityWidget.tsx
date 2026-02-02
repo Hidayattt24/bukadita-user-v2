@@ -192,10 +192,10 @@ export default function AccessibilityWidget() {
 
   return (
     <>
-      {/* Floating Toggle Button - UserWay Style */}
+      {/* Floating Toggle Button - UserWay Style - Positioned on LEFT */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-24 sm:bottom-28 right-4 sm:right-6 z-[9999] w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#27548A] to-[#1e3d6b] text-white rounded-full shadow-2xl hover:scale-110 transition-all duration-300 flex items-center justify-center group border-4 border-white"
+        className="fixed bottom-24 sm:bottom-28 left-4 sm:left-6 z-[9999] w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#27548A] to-[#1e3d6b] text-white rounded-full shadow-2xl hover:scale-110 transition-all duration-300 flex items-center justify-center group border-4 border-white"
         aria-label="Menu Aksesibilitas"
         title="Buka Menu Aksesibilitas"
       >

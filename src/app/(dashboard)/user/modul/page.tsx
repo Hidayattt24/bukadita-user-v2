@@ -6,7 +6,7 @@ import ModulList from "@/components/User/Modul/ModulList";
 
 /**
  * Modul Page - Menampilkan semua modul dari database
- * 
+ *
  * Features:
  * - Data modul dari API (bukan dummy data)
  * - Progress tracking otomatis berdasarkan quiz completion
