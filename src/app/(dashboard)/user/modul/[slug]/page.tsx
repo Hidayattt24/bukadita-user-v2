@@ -405,6 +405,15 @@ export default function DetailModulPage() {
     setSidebarOpen(!sidebarOpen);
   };
 
+  // Dispatch event to notify widgets about sidebar state (for hiding widgets on mobile)
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("modulSidebarToggled", {
+        detail: { isOpen: sidebarOpen },
+      })
+    );
+  }, [sidebarOpen]);
+
   const toggleSubMateriExpanded = (subMateriId: string) => {
     setExpandedSubMateris((prev) =>
       prev.includes(subMateriId)

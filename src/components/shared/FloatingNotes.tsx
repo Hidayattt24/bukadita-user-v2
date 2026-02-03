@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen,
@@ -28,9 +29,14 @@ interface Note {
 }
 
 const FloatingNotes: React.FC = () => {
+  const pathname = usePathname();
   const { user } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Check if we're on modul detail page (no bottom navbar)
+  const isModulDetailPage = pathname?.includes("/user/modul/") && pathname !== "/user/modul";
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -94,6 +100,20 @@ const FloatingNotes: React.FC = () => {
       setIsFetching(false);
     }
   };
+
+  // Listen to sidebar toggle (for hiding widget on mobile when sidebar is open)
+  useEffect(() => {
+    const handleSidebarToggle = (e: Event) => {
+      const customEvent = e as CustomEvent<{ isOpen: boolean }>;
+      setIsSidebarOpen(customEvent.detail.isOpen);
+    };
+
+    window.addEventListener("modulSidebarToggled", handleSidebarToggle);
+
+    return () => {
+      window.removeEventListener("modulSidebarToggled", handleSidebarToggle);
+    };
+  }, []);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -456,7 +476,11 @@ const FloatingNotes: React.FC = () => {
   return (
     <>
       {/* Floating Icon - Positioned on LEFT */}
-      <div className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-50">
+      <div className={`fixed left-4 z-50 transition-all duration-300 ${
+        isModulDetailPage ? "bottom-6" : "bottom-28"
+      } sm:left-6 sm:bottom-6 ${
+        isSidebarOpen && isModulDetailPage ? "opacity-0 scale-0 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto" : "opacity-100 scale-100"
+      }`}>
         <div className="relative">
           {/* Greeting Message */}
           <AnimatePresence>
