@@ -16,14 +16,11 @@ import {
   ModulLoading,
   ModulNotFound,
 } from "@/components/User/Modul";
-import { QuizManager } from "@/components/User/Modul/Quiz";
 import { useAuth } from "@/context/AuthContext";
 import { useProgress } from "@/context/ProgressContext";
 import { useProgressSync } from "@/hooks/useProgressSync";
 import { useModuleDetailFromDB } from "@/hooks/useModuleDetail"; // 🔥 NEW: Fetch from database
 import { ProgressService } from "@/services/progressService"; // 🔥 NEW: For loading progress from backend
-
-type PageState = "content" | "quiz";
 
 export default function DetailModulPage() {
   const params = useParams();
@@ -40,7 +37,6 @@ export default function DetailModulPage() {
   const [selectedPoinIndex, setSelectedPoinIndex] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Default false untuk mobile-first
   const [expandedSubMateris, setExpandedSubMateris] = useState<string[]>([]);
-  const [pageState, setPageState] = useState<PageState>("content");
   const [isMobile, setIsMobile] = useState(true); // Default true untuk mobile-first
   const { user } = useAuth(); // Get user for auth check
 
@@ -334,7 +330,6 @@ export default function DetailModulPage() {
       if (subMateri.isUnlocked) {
         setSelectedSubMateri(subMateri);
         setSelectedPoinIndex(0);
-        setPageState("content");
 
         // Update progress tracking & save position
         if (modul) {
@@ -369,14 +364,7 @@ export default function DetailModulPage() {
     (poinIndex: number) => {
       setSelectedPoinIndex(poinIndex);
 
-      // If poinIndex is -1, it means user selected quiz
-      if (poinIndex === -1) {
-        setPageState("quiz");
-      } else {
-        setPageState("content");
-      }
-
-      // Update progress tracking & save position (only for regular poins, not quiz)
+      // Update progress tracking & save position
       if (modul && selectedSubMateri && poinIndex >= 0) {
         updateCurrentPoin(modul.id, selectedSubMateri.id, poinIndex);
 
@@ -428,14 +416,6 @@ export default function DetailModulPage() {
       selectedPoinIndex < selectedSubMateri.poinDetails.length - 1
     ) {
       setSelectedPoinIndex(selectedPoinIndex + 1);
-    } else {
-      // Selesai semua poin, ke kuis
-      if (selectedSubMateri && selectedSubMateri.quiz.length > 0) {
-        setPageState("quiz");
-      } else {
-        // Lanjut ke sub materi berikutnya jika tidak ada kuis
-        handleContinueToNextSubMateri();
-      }
     }
   };
 
@@ -462,7 +442,6 @@ export default function DetailModulPage() {
           console.log("[Page] ✅ Navigating to next sub-materi");
           setSelectedSubMateri(nextSubMateri);
           setSelectedPoinIndex(0);
-          setPageState("content");
 
           // Auto expand next sub-materi
           setExpandedSubMateris((prev) =>
@@ -483,13 +462,9 @@ export default function DetailModulPage() {
           );
         } else {
           console.log("[Page] ❌ Next sub-materi is locked!");
-          // Kembali ke content view untuk melihat current sub-materi
-          setPageState("content");
         }
       } else {
         console.log("[Page] ℹ️ Already at last sub-materi");
-        // Kembali ke content view
-        setPageState("content");
       }
     } else {
       console.log("[Page] ❌ No modul or selectedSubMateri");
@@ -509,7 +484,6 @@ export default function DetailModulPage() {
           const previousSubMateri = modul.subMateris[currentSubMateriIndex - 1];
           setSelectedSubMateri(previousSubMateri);
           setSelectedPoinIndex(previousSubMateri.poinDetails.length - 1);
-          setPageState("content");
         }
       }
     }
@@ -659,62 +633,17 @@ export default function DetailModulPage() {
         if (currentSubMateriIndex < modul.subMateris.length - 1) {
           const nextSubMateri = modul.subMateris[currentSubMateriIndex + 1];
 
-          // 🔥 FIX: Auto-navigate ke sub-materi berikutnya setelah quiz lulus
-          console.log("🔄 Quiz passed! Auto-navigating to next sub-materi:", {
-            currentSubMateri: selectedSubMateri.id,
-            nextSubMateri: nextSubMateri.id,
-            nextTitle: nextSubMateri.title,
-          });
-
-          // 🔥 NEW: Save position ke sub-materi berikutnya
-          localStorage.setItem(
-            `module_progress_${modul.id}`,
-            JSON.stringify({
-              currentSubMateriId: nextSubMateri.id,
-              currentPoinIndex: 0,
-              lastAccessed: new Date().toISOString(),
-            })
-          );
-
-          // Tunggu sebentar untuk user melihat hasil quiz
-          setTimeout(() => {
-            setSelectedSubMateri(nextSubMateri);
-            setSelectedPoinIndex(0);
-            setPageState("content");
-            console.log("✅ Navigated to next sub-materi");
-
-            // Auto expand sub-materi berikutnya
-            setExpandedSubMateris((prev) =>
-              prev.includes(nextSubMateri.id)
-                ? prev
-                : [...prev, nextSubMateri.id]
-            );
-
-            // Update progress tracking
-            updateCurrentPoin(modul.id, nextSubMateri.id, 0);
-          }, 2500); // Delay 2.5 detik agar user bisa melihat hasil quiz
+          // Note: Navigation handled by kuis page
+          console.log("✅ Quiz completed successfully, will sync on return");
         } else {
           console.log(
             "ℹ️ Quiz passed - Last sub-materi completed! Module finished! 🎉"
           );
-
-          // 🔥 NEW: Kembali ke content view untuk melihat module complete
-          setTimeout(() => {
-            setPageState("content");
-          }, 3000);
         }
       } else {
-        // 🔥 NEW: Jika tidak lulus, kembali ke content view untuk retry
-        console.log("❌ Quiz not passed. User can retry from instructions.");
-        setTimeout(() => {
-          setPageState("content");
-        }, 3000); // Delay 3 detik untuk melihat hasil
+        console.log("❌ Quiz not passed. User can retry from kuis page.");
       }
     }
-  };
-
-  const handleStartQuiz = () => {
-    setPageState("quiz");
   };
 
   // Show loading while fetching from database
@@ -737,30 +666,21 @@ export default function DetailModulPage() {
         selectedPoinIndex={selectedPoinIndex}
         toggleSidebar={toggleSidebar}
         sidebarOpen={sidebarOpen}
-        pageState={pageState}
       />
 
       <main className="flex flex-1 relative min-h-[calc(100vh-73px)] pb-safe">
-        {pageState === "quiz" && selectedSubMateri && modul ? (
-          <QuizManager
-            subMateri={selectedSubMateri}
-            moduleId={modul.moduleId || modul.id.toString()} // ✅ Pass UUID for API calls
-            onQuizComplete={handleQuizComplete}
-            onContinueToNext={handleContinueToNextSubMateri}
-          />
-        ) : (
-          <ModulContent
-            currentPoin={currentPoin}
-            selectedSubMateri={selectedSubMateri}
-            selectedPoinIndex={selectedPoinIndex}
-            canNavigatePrevious={canNavigatePrevious}
-            canNavigateNext={canNavigateNext}
-            handlePreviousPoin={handlePreviousPoin}
-            handleNextPoin={handleNextPoin}
-            sidebarOpen={sidebarOpen}
-            onStartQuiz={handleStartQuiz}
-          />
-        )}
+        <ModulContent
+          currentPoin={currentPoin}
+          selectedSubMateri={selectedSubMateri}
+          selectedPoinIndex={selectedPoinIndex}
+          canNavigatePrevious={canNavigatePrevious}
+          canNavigateNext={canNavigateNext}
+          handlePreviousPoin={handlePreviousPoin}
+          handleNextPoin={handleNextPoin}
+          sidebarOpen={sidebarOpen}
+          modulSlug={modulSlug}
+          moduleId={modul?.moduleId || modul?.id.toString()}
+        />
 
         <ModulSidebar
           modul={modul}

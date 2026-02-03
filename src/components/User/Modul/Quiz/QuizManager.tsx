@@ -175,15 +175,14 @@ export default function QuizManager({
             };
           });
 
-          // ✅ FIX: Use BEST attempt (highest score), not latest
-          // Sort by score descending to get best attempt first
+          // Latest attempt is the first one (already sorted by backend by completed_at DESC)
+          const latestAttempt = allResults[0];
+
+          // Sort by score descending to get best attempt (for unlock logic)
           const sortedByScore = [...allResults].sort(
             (a, b) => b.score - a.score
           );
           const bestAttempt = sortedByScore[0];
-
-          // Latest attempt is the first one (already sorted by backend by completed_at DESC)
-          const latestAttempt = allResults[0];
 
           console.log("[QuizManager] 🎯 Quiz history loaded:", {
             totalAttempts: allResults.length,
@@ -193,8 +192,9 @@ export default function QuizManager({
             latestPassed: latestAttempt.passed,
           });
 
-          // ✅ Use BEST attempt for determining if user can proceed
-          setLatestResult(bestAttempt);
+          // ✅ FIX: Show LATEST attempt (not best) to avoid confusion
+          // User sees their most recent quiz result, not the best historical result
+          setLatestResult(latestAttempt);
           setQuizHistory(allResults);
 
           // 🔥 FIX: Don't auto-show result, let user decide
@@ -353,9 +353,10 @@ export default function QuizManager({
       console.error("[QuizManager] ❌ Failed to sync progress:", error);
     }
 
-    // 🔥 NEW: Refresh quiz history from backend
-    console.log("[QuizManager] 🔄 Refreshing quiz history from backend...");
-    await fetchQuizHistory();
+    // ✅ FIX: Don't refetch history immediately after submission
+    // We already have the result data and added it to local state above
+    // Refetching causes "Memuat kuis" loading screen to appear and lose review answers
+    console.log("[QuizManager] ✅ Quiz result added to history (no need to refetch)");
   };
 
   const handleContinue = () => {
@@ -366,91 +367,102 @@ export default function QuizManager({
     setCurrentState("instruction");
   };
 
-  // Show loading state while fetching quiz history or questions - Enhanced Modern Design
+  // Show skeleton loading state while fetching quiz history or questions
   if (isLoadingHistory || isLoadingQuestions) {
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center p-4 sm:p-6 z-50">
-        <div className="text-center max-w-md w-full mx-auto">
-          {/* Animated Icon Container */}
-          <div className="relative mb-8 h-32 flex items-center justify-center">
-            {/* Outer Glow Ring */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-[#578FCA]/20 to-[#27548A]/20 animate-ping"></div>
-            </div>
-
-            {/* Middle Ring */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div
-                className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-4 border-[#578FCA]/30 animate-spin"
-                style={{ animationDuration: "3s" }}
-              ></div>
-            </div>
-
-            {/* Inner Spinner */}
-            <div className="relative flex items-center justify-center">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#578FCA] to-[#27548A] flex items-center justify-center shadow-2xl animate-pulse">
-                <svg
-                  className="w-8 h-8 sm:w-10 sm:h-10 text-white animate-spin"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
+      <div className="min-h-[calc(100vh-73px)] bg-gradient-to-br from-[#578FCA]/5 via-[#27548A]/5 to-slate-50/90">
+        <div className="max-w-7xl mx-auto">
+          {/* Hero Skeleton */}
+          <div className="px-4 sm:px-6 py-8 sm:py-12 animate-pulse">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl shadow-[4px_4px_0px_#27548A]"></div>
+              <div className="flex-1">
+                <div className="h-8 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg w-3/4 mb-2"></div>
+                <div className="h-5 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg w-1/2"></div>
               </div>
             </div>
+
+            {/* Stats Skeleton */}
+            <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-6">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border-2 border-white"
+                  style={{ boxShadow: '3px 3px 0px rgba(148, 163, 184, 0.2)' }}
+                >
+                  <div className="h-8 bg-gradient-to-r from-slate-200 to-slate-300 rounded mb-1"></div>
+                  <div className="h-4 bg-gradient-to-r from-slate-200 to-slate-300 rounded w-20"></div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Loading Text with Gradient */}
-          <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#27548A] to-[#578FCA] bg-clip-text text-transparent mb-3 animate-pulse">
-            {isLoadingQuestions
-              ? "Memuat Soal Kuis..."
-              : "Memuat Riwayat Kuis..."}
-          </h3>
+          <div className="px-4 sm:px-6 py-6 sm:py-8">
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Left Section Skeleton */}
+              <div className="lg:col-span-2 space-y-6 animate-pulse">
+                {/* Main Card Skeleton */}
+                <div
+                  className="bg-gradient-to-br from-[#5B9BD5] via-[#4A7FB8] to-[#27548A] rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[6px_6px_0px_#27548A]"
+                >
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-white/30 rounded-xl"></div>
+                    <div className="h-6 bg-white/30 rounded-lg w-1/3"></div>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4 mb-6">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="bg-white rounded-xl p-4 border-2 border-white shadow-[3px_3px_0px_rgba(0,0,0,0.1)]">
+                        <div className="h-20 bg-gradient-to-r from-slate-100 to-slate-200 rounded"></div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="bg-white/10 rounded-xl p-4 sm:p-6 border-2 border-white/20">
+                    <div className="space-y-3">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="h-5 bg-white/20 rounded"></div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-          <p className="text-sm sm:text-base text-gray-600 mb-6 leading-relaxed px-4">
-            Mohon tunggu sebentar, kami sedang menyiapkan kuis untuk Anda
-          </p>
+                {/* Button Skeleton */}
+                <div className="bg-gradient-to-br from-slate-200 to-slate-300 rounded-2xl sm:rounded-3xl p-5 sm:p-6 border-2 border-white shadow-[6px_6px_0px_rgba(148,163,184,0.3)] h-24"></div>
+              </div>
 
-          {/* Animated Progress Dots */}
-          <div className="flex justify-center gap-2 mb-8">
-            <div
-              className="w-2 h-2 sm:w-3 sm:h-3 bg-[#578FCA] rounded-full animate-bounce"
-              style={{ animationDelay: "0s" }}
-            ></div>
-            <div
-              className="w-2 h-2 sm:w-3 sm:h-3 bg-[#578FCA] rounded-full animate-bounce"
-              style={{ animationDelay: "0.2s" }}
-            ></div>
-            <div
-              className="w-2 h-2 sm:w-3 sm:h-3 bg-[#578FCA] rounded-full animate-bounce"
-              style={{ animationDelay: "0.4s" }}
-            ></div>
-          </div>
+              {/* Right Section Skeleton */}
+              <div className="lg:col-span-1 animate-pulse">
+                <div className="bg-white rounded-2xl sm:rounded-3xl p-6 border-2 border-white shadow-[6px_6px_0px_rgba(148,163,184,0.3)]">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-200 to-purple-300 rounded-xl"></div>
+                    <div className="h-6 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg w-2/3"></div>
+                  </div>
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div
+                        key={i}
+                        className="h-24 bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 rounded-xl border-2 border-slate-100"
+                      ></div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          {/* Skeleton Cards Preview */}
-          <div className="space-y-3 px-4">
-            <div className="h-14 sm:h-16 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded-xl animate-pulse"></div>
-            <div
-              className="h-14 sm:h-16 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded-xl animate-pulse"
-              style={{ animationDelay: "0.1s" }}
-            ></div>
-            <div
-              className="h-14 sm:h-16 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded-xl animate-pulse"
-              style={{ animationDelay: "0.2s" }}
-            ></div>
+            {/* Loading Indicator */}
+            <div className="flex justify-center gap-2 pt-8">
+              <div
+                className="w-2.5 h-2.5 bg-[#578FCA] rounded-full animate-bounce"
+                style={{ animationDelay: "0s" }}
+              ></div>
+              <div
+                className="w-2.5 h-2.5 bg-[#578FCA] rounded-full animate-bounce"
+                style={{ animationDelay: "0.2s" }}
+              ></div>
+              <div
+                className="w-2.5 h-2.5 bg-[#578FCA] rounded-full animate-bounce"
+                style={{ animationDelay: "0.4s" }}
+              ></div>
+            </div>
           </div>
         </div>
       </div>

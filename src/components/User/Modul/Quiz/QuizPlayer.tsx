@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Clock,
   ChevronLeft,
@@ -54,6 +54,15 @@ export default function QuizPlayer({
   // attemptId was previously stored but not used; removed to satisfy lint
   const [actualQuestions, setActualQuestions] = useState<Quiz[]>([]);
   const [questionsLoaded, setQuestionsLoaded] = useState(false);
+
+  // ✅ FIX: Use ref to stabilize onQuizComplete callback
+  const onQuizCompleteRef = useRef(onQuizComplete);
+  useEffect(() => {
+    onQuizCompleteRef.current = onQuizComplete;
+  }, [onQuizComplete]);
+
+  // ✅ FIX: Prevent double submission
+  const hasSubmittedRef = useRef(false);
 
   // Fetch actual quiz questions after attempt is started
   const fetchQuizQuestions = useCallback(
@@ -175,6 +184,12 @@ export default function QuizPlayer({
     [quizzes]
   );
 
+  // ✅ FIX: Reset submission flag when quiz changes (allow retake)
+  useEffect(() => {
+    hasSubmittedRef.current = false;
+    console.log("[QuizPlayer] 🔄 Reset submission flag for new quiz attempt");
+  }, [quizId, subMateriId]);
+
   // ✅ FIX: Load quiz questions on mount WITHOUT creating new attempt
   // Attempt will be created only when user submits quiz (in handleSubmitQuiz)
   useEffect(() => {
@@ -196,6 +211,13 @@ export default function QuizPlayer({
 
   // Submit handler (wrapped in useCallback so effects can depend on it)
   const handleSubmitQuiz = useCallback(async () => {
+    // ✅ FIX: Prevent double submission
+    if (hasSubmittedRef.current) {
+      console.log("[QuizPlayer] ⚠️ Quiz already submitted, skipping...");
+      return;
+    }
+    hasSubmittedRef.current = true;
+
     setIsSubmitting(true);
 
     const questionsToUseLocal =
@@ -497,7 +519,7 @@ export default function QuizPlayer({
     }
 
     setTimeout(() => {
-      onQuizComplete(result);
+      onQuizCompleteRef.current(result);
     }, 1000);
   }, [
     actualQuestions,
@@ -508,7 +530,7 @@ export default function QuizPlayer({
     quizId,
     moduleId,
     subMateriId,
-    onQuizComplete,
+    // ✅ REMOVED onQuizComplete from dependencies to prevent infinite loop
   ]);
 
   // Timer countdown
@@ -635,7 +657,7 @@ export default function QuizPlayer({
           <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
             <button
               onClick={onBack}
-              className="group flex items-center gap-1 sm:gap-2 text-[#27548A] hover:text-white bg-gray-100 hover:bg-[#578FCA] transition-all duration-300 p-2 sm:p-2.5 rounded-xl flex-shrink-0 shadow-sm hover:shadow-md"
+              className="cursor-pointer group flex items-center gap-1 sm:gap-2 text-[#27548A] hover:text-white bg-gray-100 hover:bg-[#578FCA] transition-all duration-300 p-2 sm:p-2.5 rounded-xl flex-shrink-0 shadow-sm hover:shadow-md"
             >
               <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="font-bold text-xs sm:text-sm">Kembali</span>
@@ -707,7 +729,7 @@ export default function QuizPlayer({
                     <button
                       key={index}
                       onClick={() => setCurrentQuestionIndex(index)}
-                      className={`group relative w-full aspect-square rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 ${
+                      className={`cursor-pointer group relative w-full aspect-square rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 ${
                         index === currentQuestionIndex
                           ? "bg-gradient-to-br from-[#578FCA] to-[#27548A] text-white shadow-lg scale-110"
                           : selectedAnswers[index] !== undefined
@@ -731,7 +753,7 @@ export default function QuizPlayer({
                   <button
                     onClick={handleSubmitQuiz}
                     disabled={!allAnswered}
-                    className={`group w-full relative overflow-hidden rounded-xl sm:rounded-2xl transition-all duration-300 ${
+                    className={`cursor-pointer group w-full relative overflow-hidden rounded-xl sm:rounded-2xl transition-all duration-300 ${
                       allAnswered
                         ? "shadow-lg hover:shadow-xl"
                         : "cursor-not-allowed opacity-60"
@@ -829,7 +851,7 @@ export default function QuizPlayer({
                       <button
                         key={index}
                         onClick={() => handleAnswerSelect(index)}
-                        className={`group w-full p-4 sm:p-5 text-left rounded-xl sm:rounded-2xl border-2 transition-all duration-300 transform hover:scale-[1.02] ${
+                        className={`cursor-pointer group w-full p-3 sm:p-4 text-left rounded-xl border-2 transition-all duration-300 transform hover:scale-[1.02] ${
                           isSelected
                             ? "border-[#578FCA] bg-gradient-to-r from-[#578FCA]/10 to-blue-100/50 shadow-lg"
                             : "border-gray-200 hover:border-[#578FCA]/50 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50/30 active:bg-gray-100"
@@ -838,7 +860,7 @@ export default function QuizPlayer({
                         <div className="flex items-start sm:items-center gap-3 sm:gap-4">
                           {/* Option Label Badge */}
                           <div
-                            className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm sm:text-base transition-all duration-300 ${
+                            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-sm transition-all duration-300 ${
                               isSelected
                                 ? "bg-gradient-to-br from-[#578FCA] to-[#27548A] text-white shadow-lg scale-110"
                                 : "bg-gray-100 text-gray-600 group-hover:bg-[#578FCA]/20 group-hover:text-[#578FCA]"
@@ -849,7 +871,7 @@ export default function QuizPlayer({
 
                           {/* Option Text */}
                           <span
-                            className={`flex-1 text-sm sm:text-base leading-relaxed transition-colors ${
+                            className={`flex-1 text-sm leading-relaxed transition-colors ${
                               isSelected
                                 ? "text-gray-900 font-medium"
                                 : "text-gray-700 group-hover:text-gray-900"
@@ -861,7 +883,7 @@ export default function QuizPlayer({
                           {/* Selected Indicator */}
                           {isSelected && (
                             <div className="flex-shrink-0">
-                              <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-[#578FCA] animate-bounce" />
+                              <CheckCircle className="w-5 h-5 text-[#578FCA] animate-bounce" />
                             </div>
                           )}
                         </div>
@@ -875,7 +897,7 @@ export default function QuizPlayer({
                   <button
                     onClick={handlePreviousQuestion}
                     disabled={isFirstQuestion}
-                    className={`group flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 text-sm sm:text-base shadow-md ${
+                    className={`cursor-pointer group flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 text-sm sm:text-base shadow-md ${
                       isFirstQuestion
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
                         : "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 hover:from-gray-200 hover:to-gray-300 hover:shadow-lg active:scale-95 border-2 border-gray-200"
@@ -906,7 +928,7 @@ export default function QuizPlayer({
                   <button
                     onClick={handleNextQuestion}
                     disabled={isLastQuestion}
-                    className={`group flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 text-sm sm:text-base shadow-lg ${
+                    className={`cursor-pointer group flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 text-sm sm:text-base shadow-lg ${
                       isLastQuestion
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
                         : "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white hover:shadow-xl active:scale-95"
@@ -943,7 +965,7 @@ export default function QuizPlayer({
                         <button
                           key={index}
                           onClick={() => setCurrentQuestionIndex(index)}
-                          className={`relative w-11 h-11 flex-shrink-0 rounded-xl font-bold text-sm transition-all duration-300 shadow-md ${
+                          className={`cursor-pointer relative w-11 h-11 flex-shrink-0 rounded-xl font-bold text-sm transition-all duration-300 shadow-md ${
                             isCurrent
                               ? "bg-gradient-to-br from-[#578FCA] to-[#27548A] text-white scale-110 shadow-lg"
                               : isAnswered
@@ -967,7 +989,7 @@ export default function QuizPlayer({
                     <button
                       onClick={handleSubmitQuiz}
                       disabled={!allAnswered}
-                      className={`group w-full relative overflow-hidden rounded-xl sm:rounded-2xl shadow-xl transition-all duration-300 ${
+                      className={`cursor-pointer group w-full relative overflow-hidden rounded-xl sm:rounded-2xl shadow-xl transition-all duration-300 ${
                         allAnswered ? "" : "opacity-60 cursor-not-allowed"
                       }`}
                     >

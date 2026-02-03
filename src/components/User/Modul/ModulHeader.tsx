@@ -9,7 +9,6 @@ interface ModulHeaderProps {
   selectedPoinIndex: number;
   toggleSidebar: () => void;
   sidebarOpen: boolean;
-  pageState?: "content" | "quiz";
 }
 
 export default function ModulHeader({
@@ -18,7 +17,6 @@ export default function ModulHeader({
   selectedPoinIndex,
   toggleSidebar,
   sidebarOpen,
-  pageState = "content",
 }: ModulHeaderProps) {
   const router = useRouter();
 
@@ -44,9 +42,7 @@ export default function ModulHeader({
             </h1>
             <p className="text-xs sm:text-sm text-gray-600 truncate">
               {selectedSubMateri?.title}{" "}
-              {pageState === "quiz"
-                ? "• Kuis"
-                : selectedSubMateri && `• Poin ${selectedPoinIndex + 1}`}
+              {selectedSubMateri && `• Poin ${selectedPoinIndex + 1}`}
             </p>
           </div>
         </div>

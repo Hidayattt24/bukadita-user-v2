@@ -16,6 +16,7 @@ import {
 import { PoinDetail, SubMateri } from "@/types/modul";
 import ContentRenderer from "./ContentRenderer";
 import CircularScrollProgress from "./CircularScrollProgress";
+import Link from "next/link";
 
 interface ModulContentProps {
   currentPoin: PoinDetail | null;
@@ -26,7 +27,8 @@ interface ModulContentProps {
   handlePreviousPoin: () => void;
   handleNextPoin: () => void;
   sidebarOpen: boolean;
-  onStartQuiz?: () => void;
+  modulSlug: string;
+  moduleId?: string;
 }
 
 export default function ModulContent({
@@ -38,7 +40,8 @@ export default function ModulContent({
   handlePreviousPoin,
   handleNextPoin,
   sidebarOpen,
-  onStartQuiz,
+  modulSlug,
+  moduleId,
 }: ModulContentProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [isScrollComplete, setIsScrollComplete] = useState(false);
@@ -246,30 +249,23 @@ export default function ModulContent({
                     </div>
 
                     {/* CTA Button */}
-                    {onStartQuiz && (
+                    {selectedSubMateri && (
                       <div className="relative">
-                        <button
-                          onClick={isScrollComplete ? onStartQuiz : undefined}
-                          disabled={!isScrollComplete}
-                          className={`group w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold transition-all duration-300 shadow-lg ${
-                            isScrollComplete
-                              ? "bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white hover:from-amber-600 hover:via-orange-600 hover:to-amber-700 transform hover:scale-[1.02] hover:shadow-xl active:scale-95 cursor-pointer"
-                              : "bg-gray-300 text-gray-500 cursor-not-allowed opacity-75"
-                          }`}
-                        >
-                          {isScrollComplete ? (
-                            <>
-                              <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                              <span>Mulai Kuis Sekarang</span>
-                              <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                            </>
-                          ) : (
-                            <>
-                              <Lock className="w-5 h-5" />
-                              <span>Selesaikan Bacaan Terlebih Dahulu</span>
-                            </>
-                          )}
-                        </button>
+                        {isScrollComplete ? (
+                          <Link
+                            href={`/user/modul/${modulSlug}/kuis?subMateriId=${selectedSubMateri.id}`}
+                            className="group w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold transition-all duration-300 shadow-lg bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white hover:from-amber-600 hover:via-orange-600 hover:to-amber-700 transform hover:scale-[1.02] hover:shadow-xl active:scale-95"
+                          >
+                            <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            <span>Mulai Kuis Sekarang</span>
+                            <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                          </Link>
+                        ) : (
+                          <div className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold bg-gray-300 text-gray-500 cursor-not-allowed opacity-75">
+                            <Lock className="w-5 h-5" />
+                            <span>Selesaikan Bacaan Terlebih Dahulu</span>
+                          </div>
+                        )}
                         {!isScrollComplete && (
                           <p className="text-xs text-amber-600 mt-2 text-center">
                             💡 Scroll ke bawah untuk membaca semua materi

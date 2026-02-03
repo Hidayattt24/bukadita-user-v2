@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   CheckCircle,
   XCircle,
@@ -7,6 +7,10 @@ import {
   ArrowRight,
   Target,
   Award,
+  TrendingUp,
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { type QuizResult, type Quiz } from "@/types/modul";
 
@@ -25,26 +29,21 @@ export default function QuizResultComponent({
   onContinue,
   onBackToInstruction,
 }: QuizResultProps) {
+  const [showAllReviews, setShowAllReviews] = useState(false);
   const { score, correctAnswers, totalQuestions, passed, answers } = result;
 
   const getScoreColor = () => {
-    if (score >= 80) return "text-emerald-600";
+    if (score >= 80) return "text-[#59AC77]";
     if (score >= 50) return "text-yellow-600";
     return "text-red-600";
   };
 
-  const getScoreGradient = () => {
-    if (score >= 80) return "from-emerald-500 to-emerald-600";
-    if (score >= 50) return "from-yellow-500 to-yellow-600";
-    return "from-red-500 to-red-600";
-  };
-
   const getPerformanceMessage = () => {
-    if (score >= 90) return "Luar Biasa! 🎉";
-    if (score >= 80) return "Sangat Baik! 👏";
-    if (score >= 70) return "Baik! 👍";
-    if (score >= 50) return "Cukup Baik 😊";
-    return "Perlu Diperbaiki 😔";
+    if (score >= 90) return "Luar Biasa!";
+    if (score >= 80) return "Sangat Baik!";
+    if (score >= 70) return "Baik!";
+    if (score >= 50) return "Cukup Baik";
+    return "Perlu Diperbaiki";
   };
 
   const getPerformanceDescription = () => {
@@ -57,258 +56,329 @@ export default function QuizResultComponent({
     return "Silakan pelajari kembali materi dan coba lagi.";
   };
 
+  const displayedAnswers = showAllReviews ? answers : answers.slice(0, 5);
+  const remainingCount = answers.length - 5;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 p-3 sm:p-4 md:p-6 pb-safe">
-      <div className="max-w-6xl mx-auto">
-        {/* Result Header - Enhanced with Animation */}
-        <div className="text-center mb-6 sm:mb-8 animate-fade-in">
-          <div className="relative mx-auto mb-4 sm:mb-6 w-24 h-24 sm:w-32 sm:h-32">
-            {/* Glow Effect */}
-            <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${getScoreGradient()} opacity-30 blur-2xl animate-pulse`}></div>
-            {/* Main Icon */}
-            <div
-              className={`relative w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-full bg-gradient-to-br ${getScoreGradient()} flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform duration-300`}
-            >
-              {passed ? (
-                <Trophy className="w-12 h-12 sm:w-16 sm:h-16 text-white animate-bounce" />
-              ) : (
-                <Target className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
-              )}
-            </div>
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-[#27548A] to-[#578FCA] bg-clip-text text-transparent mb-3 animate-slide-up">
-            {getPerformanceMessage()}
-          </h1>
-          <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-4 sm:mb-6 px-4 max-w-2xl mx-auto leading-relaxed">
-            {getPerformanceDescription()}
-          </p>
-
-          {/* Score Display - Enhanced */}
-          <div className="relative inline-block mb-3">
-            <div className={`absolute -inset-4 bg-gradient-to-r ${
-              score >= 80 ? "from-emerald-400/30 to-emerald-600/30" :
-              score >= 50 ? "from-yellow-400/30 to-yellow-600/30" :
-              "from-red-400/30 to-red-600/30"
-            } rounded-full blur-xl`}></div>
-            <div
-              className={`relative text-5xl sm:text-6xl lg:text-7xl font-bold ${getScoreColor()} animate-scale-in`}
-            >
-              {score}%
-            </div>
-          </div>
-
-          <p className="text-sm sm:text-base text-gray-600 font-medium">
-            {correctAnswers} dari {totalQuestions} jawaban benar
-          </p>
-        </div>
-
-        {/* Status Card - Enhanced */}
-        <div
-          className={`mb-6 sm:mb-8 p-5 sm:p-6 rounded-2xl sm:rounded-3xl backdrop-blur-sm border-2 shadow-xl animate-slide-up ${
-            passed
-              ? "bg-gradient-to-br from-emerald-50 via-emerald-100/80 to-emerald-50 border-emerald-300"
-              : "bg-gradient-to-br from-red-50 via-red-100/80 to-red-50 border-red-300"
-          }`}
-          style={{ animationDelay: '0.2s' }}
-        >
-          <div className="flex items-start sm:items-center gap-4 sm:gap-5">
-            <div className={`p-3 rounded-2xl ${passed ? "bg-emerald-500" : "bg-red-500"} shadow-lg`}>
-              {passed ? (
-                <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              ) : (
-                <XCircle className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-              )}
-            </div>
-            <div className="flex-1">
-              <h3
-                className={`text-lg sm:text-xl font-bold mb-1 ${
-                  passed ? "text-emerald-900" : "text-red-900"
-                }`}
+    <div className="min-h-[calc(100vh-73px)] bg-gradient-to-br from-[#578FCA]/5 via-[#27548A]/5 to-slate-50/90">
+      <div className="max-w-7xl mx-auto">
+        {/* Hero Section */}
+        <div className="relative overflow-hidden">
+          <div
+            className={`absolute inset-0 ${
+              passed
+                ? "bg-gradient-to-br from-[#59AC77] via-[#3d8a59] to-[#2d6943]"
+                : "bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700"
+            } opacity-10`}
+          ></div>
+          <div className="relative px-4 sm:px-6 py-8 sm:py-12 text-center">
+            <div className="relative mx-auto mb-6 w-24 h-24 sm:w-32 sm:h-32">
+              <div
+                className={`w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-full ${
+                  passed
+                    ? "bg-gradient-to-br from-[#59AC77] via-[#3d8a59] to-[#2d6943]"
+                    : "bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700"
+                } flex items-center justify-center shadow-[6px_6px_0px_rgba(0,0,0,0.15)] border-4 border-white`}
               >
-                {passed ? "🎉 Selamat! Anda Lulus" : "📚 Belum Lulus"}
-              </h3>
-              <p
-                className={`text-sm sm:text-base leading-relaxed ${
-                  passed ? "text-emerald-700" : "text-red-700"
-                }`}
-              >
-                {passed
-                  ? "Anda dapat melanjutkan ke materi berikutnya"
-                  : "Nilai minimum 70% diperlukan untuk lulus. Silakan coba lagi."}
+                {passed ? (
+                  <Trophy className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
+                ) : (
+                  <Target className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
+                )}
+              </div>
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#27548A] mb-3">
+              {getPerformanceMessage()}
+            </h1>
+            <p className="text-sm sm:text-base lg:text-lg text-slate-600 font-medium mb-6 px-4 max-w-2xl mx-auto">
+              {getPerformanceDescription()}
+            </p>
+
+            {/* Score Display */}
+            <div className="mb-6">
+              <div className={`text-6xl sm:text-7xl lg:text-8xl font-bold ${getScoreColor()}`}>
+                {score}%
+              </div>
+              <p className="text-sm sm:text-base text-slate-600 font-semibold mt-3">
+                {correctAnswers} dari {totalQuestions} jawaban benar
               </p>
             </div>
+
+            {/* Status Badge */}
+            <div className="inline-block">
+              <div
+                className={`${
+                  passed
+                    ? "bg-gradient-to-br from-[#59AC77] via-[#3d8a59] to-[#2d6943]"
+                    : "bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700"
+                } rounded-2xl px-8 py-4 border-2 border-white shadow-[4px_4px_0px_rgba(0,0,0,0.1)]`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md">
+                    {passed ? (
+                      <CheckCircle className="w-6 h-6 text-[#59AC77]" />
+                    ) : (
+                      <XCircle className="w-6 h-6 text-amber-600" />
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg sm:text-xl font-bold text-white">
+                      {passed ? "Selamat! Anda Lulus" : "Belum Lulus"}
+                    </h3>
+                    <p className="text-sm text-white/90 font-medium">
+                      {passed
+                        ? "Lanjutkan ke materi berikutnya"
+                        : "Nilai minimum 70% untuk lulus"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
-          {/* Performance Stats - Enhanced */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100/50 p-5 sm:p-6 animate-slide-up" style={{ animationDelay: '0.3s' }}>
-            <div className="flex items-center gap-2 mb-5 sm:mb-6">
-              <div className="w-1 h-6 bg-gradient-to-b from-[#578FCA] to-[#27548A] rounded-full"></div>
-              <h3 className="text-lg sm:text-xl font-bold text-[#27548A]">
-                📊 Statistik Performa
-              </h3>
-            </div>
+        <div className="px-4 sm:px-6 py-6 sm:py-8">
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Performance Stats */}
+            <div
+              className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[6px_6px_0px_rgba(148,163,184,0.3)]"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#578FCA] to-[#27548A] rounded-xl flex items-center justify-center shadow-lg">
+                  <Target className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#27548A]">
+                  Statistik Performa
+                </h3>
+              </div>
 
-            <div className="space-y-3">
-              <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-blue-600/10 group-hover:from-blue-500/20 group-hover:to-blue-600/20 transition-all"></div>
-                <div className="relative flex items-center justify-between p-4 border-2 border-blue-100 group-hover:border-blue-200 transition-all">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 bg-gradient-to-br from-[#578FCA] to-[#27548A] rounded-xl flex items-center justify-center shadow-lg">
-                      <Target className="w-5 h-5 text-white" />
+              <div className="space-y-4 mb-6">
+                {/* Score */}
+                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4 border-2 border-slate-200 shadow-[2px_2px_0px_rgba(148,163,184,0.2)]">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#578FCA] to-[#27548A] rounded-xl flex items-center justify-center shadow-md">
+                        <Trophy className="w-6 h-6 text-white" />
+                      </div>
+                      <span className="font-bold text-slate-700 text-base sm:text-lg">
+                        Skor Akhir
+                      </span>
                     </div>
-                    <span className="font-bold text-gray-800 text-sm sm:text-base">
-                      Skor Akhir
+                    <span className={`text-3xl font-bold ${getScoreColor()}`}>
+                      {score}%
                     </span>
                   </div>
-                  <span className={`text-xl sm:text-2xl font-bold ${getScoreColor()}`}>
-                    {score}%
-                  </span>
+                </div>
+
+                {/* Correct Answers */}
+                <div className="bg-gradient-to-br from-[#59AC77]/10 to-[#3d8a59]/10 rounded-xl p-4 border-2 border-[#59AC77]/20 shadow-[2px_2px_0px_rgba(89,172,119,0.2)]">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#59AC77] to-[#3d8a59] rounded-xl flex items-center justify-center shadow-md">
+                        <CheckCircle className="w-6 h-6 text-white" />
+                      </div>
+                      <span className="font-bold text-slate-700 text-base sm:text-lg">
+                        Jawaban Benar
+                      </span>
+                    </div>
+                    <span className="text-3xl font-bold text-[#59AC77]">
+                      {correctAnswers}/{totalQuestions}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div
+                  className={`rounded-xl p-4 border-2 shadow-[2px_2px_0px_rgba(0,0,0,0.1)] ${
+                    passed
+                      ? "bg-gradient-to-br from-[#59AC77]/10 to-[#3d8a59]/10 border-[#59AC77]/20"
+                      : "bg-gradient-to-br from-red-500/10 to-red-600/10 border-red-500/20"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${
+                          passed
+                            ? "bg-gradient-to-br from-[#59AC77] to-[#3d8a59]"
+                            : "bg-gradient-to-br from-red-500 to-red-600"
+                        }`}
+                      >
+                        <Award className="w-6 h-6 text-white" />
+                      </div>
+                      <span className="font-bold text-slate-700 text-base sm:text-lg">
+                        Status
+                      </span>
+                    </div>
+                    <span
+                      className={`text-lg font-bold px-4 py-2 rounded-xl ${
+                        passed
+                          ? "text-[#59AC77] bg-[#59AC77]/20"
+                          : "text-red-600 bg-red-500/20"
+                      }`}
+                    >
+                      {passed ? "LULUS" : "TIDAK LULUS"}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl">
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 group-hover:from-emerald-500/20 group-hover:to-emerald-600/20 transition-all"></div>
-                <div className="relative flex items-center justify-between p-4 border-2 border-emerald-100 group-hover:border-emerald-200 transition-all">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                      <CheckCircle className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-bold text-gray-800 text-sm sm:text-base">
-                      Jawaban Benar
-                    </span>
-                  </div>
-                  <span className="text-xl sm:text-2xl font-bold text-emerald-600">
-                    {correctAnswers}/{totalQuestions}
-                  </span>
-                </div>
-              </div>
+              {/* Action Buttons - Moved Here */}
+              <div className="space-y-2.5">
+                <button
+                  onClick={onBackToInstruction}
+                  className="w-full cursor-pointer bg-white text-[#27548A] rounded-lg p-3 border-2 border-[#27548A] shadow-[2px_2px_0px_#27548A] hover:shadow-[3px_3px_0px_#27548A] transition-all duration-300 hover:-translate-y-0.5 font-bold text-sm flex items-center gap-2 justify-center"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Kembali ke Instruksi
+                </button>
 
-              <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl">
-                <div className={`absolute inset-0 ${
-                  passed
-                    ? "bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 group-hover:from-yellow-500/20 group-hover:to-yellow-600/20"
-                    : "bg-gradient-to-r from-red-500/10 to-red-600/10 group-hover:from-red-500/20 group-hover:to-red-600/20"
-                } transition-all`}></div>
-                <div className={`relative flex items-center justify-between p-4 border-2 ${
-                  passed ? "border-yellow-100 group-hover:border-yellow-200" : "border-red-100 group-hover:border-red-200"
-                } transition-all`}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shadow-lg ${
-                      passed ? "bg-gradient-to-br from-yellow-400 to-yellow-500" : "bg-gradient-to-br from-red-500 to-red-600"
-                    }`}>
-                      <Award className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-bold text-gray-800 text-sm sm:text-base">
-                      Status
-                    </span>
-                  </div>
-                  <span className={`text-base sm:text-lg font-bold px-3 py-1 rounded-lg ${
-                    passed ? "text-emerald-700 bg-emerald-100" : "text-red-700 bg-red-100"
-                  }`}>
-                    {passed ? "LULUS" : "TIDAK LULUS"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Answer Review - Enhanced */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100/50 p-5 sm:p-6 animate-slide-up" style={{ animationDelay: '0.4s' }}>
-            <div className="flex items-center gap-2 mb-5 sm:mb-6">
-              <div className="w-1 h-6 bg-gradient-to-b from-[#578FCA] to-[#27548A] rounded-full"></div>
-              <h3 className="text-lg sm:text-xl font-bold text-[#27548A]">
-                📝 Review Jawaban
-              </h3>
-            </div>
-
-            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-              {answers.map((answer, index) => {
-                const quiz = quizzes[index];
-                // ✅ Use isCorrect from enriched answer data (from backend)
-                const isCorrect = answer.isCorrect ?? (quiz.correctAnswer === answer.selectedAnswer);
-                const userAnswerIndex = answer.selectedAnswer;
-                // ✅ Use correctAnswer from enriched data, fallback to quiz.correctAnswer
-                const correctAnswerIndex = answer.correctAnswer ?? quiz.correctAnswer ?? 0;
-                // ✅ Use question/options from enriched data if available
-                const questionText = answer.question ?? quiz.question;
-                const questionOptions = answer.options ?? quiz.options;
-
-                return (
-                  <div
-                    key={index}
-                    className={`group relative overflow-hidden rounded-xl sm:rounded-2xl transition-all duration-300 hover:shadow-lg ${
-                      isCorrect
-                        ? "bg-gradient-to-r from-emerald-50 to-emerald-100/50 hover:from-emerald-100 hover:to-emerald-200/50"
-                        : "bg-gradient-to-r from-red-50 to-red-100/50 hover:from-red-100 hover:to-red-200/50"
-                    }`}
+                {!passed && (
+                  <button
+                    onClick={onRetakeQuiz}
+                    className="w-full cursor-pointer group bg-gradient-to-br from-[#5B9BD5] via-[#4A7FB8] to-[#27548A] rounded-lg p-3 border-2 border-white shadow-[3px_3px_0px_#27548A] hover:shadow-[4px_4px_0px_#27548A] transition-all duration-300 hover:-translate-y-0.5"
                   >
-                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${
-                      isCorrect ? "bg-emerald-500" : "bg-red-500"
-                    }`}></div>
-                    <div className="p-3 sm:p-4 pl-4 sm:pl-5">
+                    <div className="flex items-center gap-2 justify-center">
+                      <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                        <RotateCcw className="w-4 h-4 text-[#27548A]" />
+                      </div>
+                      <span className="text-white font-bold text-sm">Ulangi Kuis</span>
+                    </div>
+                  </button>
+                )}
+
+                {passed && (
+                  <>
+                    <button
+                      onClick={onRetakeQuiz}
+                      className="w-full cursor-pointer group bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 rounded-lg p-3 border-2 border-white shadow-[3px_3px_0px_rgba(245,158,11,0.4)] hover:shadow-[4px_4px_0px_rgba(245,158,11,0.4)] transition-all duration-300 hover:-translate-y-0.5"
+                    >
+                      <div className="flex items-center gap-2 justify-center">
+                        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                          <TrendingUp className="w-4 h-4 text-amber-600" />
+                        </div>
+                        <span className="text-white font-bold text-sm">
+                          Tingkatkan Skor
+                        </span>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={onContinue}
+                      className="w-full cursor-pointer group bg-gradient-to-br from-[#59AC77] via-[#3d8a59] to-[#2d6943] rounded-lg p-3 border-2 border-white shadow-[3px_3px_0px_rgba(89,172,119,0.4)] hover:shadow-[4px_4px_0px_rgba(89,172,119,0.4)] transition-all duration-300 hover:-translate-y-0.5"
+                    >
+                      <div className="flex items-center gap-2 justify-center">
+                        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                          <ArrowRight className="w-4 h-4 text-[#59AC77]" />
+                        </div>
+                        <span className="text-white font-bold text-sm">
+                          Lanjut ke Materi Berikutnya
+                        </span>
+                      </div>
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Answer Review */}
+            <div
+              className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[6px_6px_0px_rgba(148,163,184,0.3)]"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <CheckCircle className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#27548A]">
+                  Review Jawaban
+                </h3>
+              </div>
+
+              <div className="space-y-3 mb-4">
+                {displayedAnswers.map((answer, index) => {
+                  const quiz = quizzes[index];
+                  const isCorrect = answer.isCorrect ?? (quiz.correctAnswer === answer.selectedAnswer);
+                  const userAnswerIndex = answer.selectedAnswer;
+                  const correctAnswerIndex = answer.correctAnswer ?? quiz.correctAnswer ?? 0;
+                  const questionText = answer.question ?? quiz.question;
+                  const questionOptions = answer.options ?? quiz.options;
+
+                  return (
+                    <div
+                      key={index}
+                      className={`rounded-xl border-2 p-4 transition-all duration-300 hover:shadow-md ${
+                        isCorrect
+                          ? "bg-gradient-to-br from-[#59AC77]/10 to-[#3d8a59]/10 border-[#59AC77]/20"
+                          : "bg-gradient-to-br from-red-500/10 to-red-600/10 border-red-500/20"
+                      }`}
+                    >
                       <div className="flex items-start gap-3">
-                        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md ${
-                          isCorrect ? "bg-emerald-500" : "bg-red-500"
-                        }`}>
+                        <div
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md ${
+                            isCorrect
+                              ? "bg-[#59AC77]"
+                              : "bg-red-500"
+                          }`}
+                        >
                           {isCorrect ? (
-                            <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                            <CheckCircle className="w-5 h-5 text-white" />
                           ) : (
-                            <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                            <XCircle className="w-5 h-5 text-white" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-800 text-xs sm:text-sm mb-2 leading-relaxed">
+                          <p className="font-bold text-slate-800 text-sm mb-2">
                             <span className="text-[#578FCA]">
                               Soal {index + 1}:
                             </span>{" "}
-                            {questionText.length > 80
-                              ? `${questionText.substring(0, 80)}...`
+                            {questionText.length > 60
+                              ? `${questionText.substring(0, 60)}...`
                               : questionText}
                           </p>
-                          <div className="space-y-1.5 text-xs sm:text-sm">
-                            {/* User's Answer */}
+                          <div className="space-y-2 text-xs sm:text-sm">
+                            {/* User Answer */}
                             <div
-                              className={`p-2 rounded-lg ${isCorrect
-                                  ? "bg-white/50 border border-emerald-200"
-                                  : "bg-white/50 border border-red-200"
-                                }`}
+                              className={`p-2.5 rounded-lg ${
+                                isCorrect
+                                  ? "bg-white/70 border border-[#59AC77]/30"
+                                  : "bg-white/70 border border-red-500/30"
+                              }`}
                             >
-                              <p className="font-medium text-gray-600 mb-0.5">
+                              <p className="font-semibold text-slate-600 mb-1">
                                 Jawaban Anda:
                               </p>
                               <p
-                                className={`font-semibold ${isCorrect ? "text-emerald-700" : "text-red-700"
-                                  }`}
+                                className={`font-bold ${
+                                  isCorrect ? "text-[#59AC77]" : "text-red-600"
+                                }`}
                               >
                                 {userAnswerIndex !== undefined &&
-                                  userAnswerIndex >= 0
+                                userAnswerIndex >= 0
                                   ? questionOptions[userAnswerIndex]
                                   : "Tidak dijawab"}
                               </p>
                             </div>
 
-                            {/* Correct Answer (only show if user was wrong) */}
+                            {/* Correct Answer */}
                             {!isCorrect && (
-                              <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-300">
-                                <p className="font-medium text-gray-600 mb-0.5">
-                                  ✓ Jawaban Benar:
+                              <div className="p-2.5 rounded-lg bg-[#59AC77]/20 border border-[#59AC77]/40">
+                                <p className="font-semibold text-slate-600 mb-1">
+                                  Jawaban Benar:
                                 </p>
-                                <p className="font-semibold text-emerald-700">
+                                <p className="font-bold text-[#59AC77]">
                                   {questionOptions[correctAnswerIndex]}
                                 </p>
                               </div>
                             )}
 
-                            {/* Explanation if available */}
+                            {/* Explanation */}
                             {(answer.explanation ?? quiz.explanation) && (
-                              <div className="p-2 rounded-lg bg-blue-50 border border-blue-200 mt-2">
-                                <p className="font-medium text-gray-600 mb-0.5">
-                                  💡 Penjelasan:
+                              <div className="p-2.5 rounded-lg bg-blue-50 border border-blue-200">
+                                <p className="font-semibold text-slate-600 mb-1">
+                                  Penjelasan:
                                 </p>
-                                <p className="text-gray-700 leading-relaxed">
+                                <p className="text-slate-700 font-medium leading-relaxed">
                                   {answer.explanation ?? quiz.explanation}
                                 </p>
                               </div>
@@ -317,126 +387,33 @@ export default function QuizResultComponent({
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+
+              {/* Expand Button */}
+              {remainingCount > 0 && (
+                <button
+                  onClick={() => setShowAllReviews(!showAllReviews)}
+                  className="w-full bg-gradient-to-br from-slate-50 to-slate-100 text-slate-700 rounded-xl p-3 border-2 border-slate-200 shadow-[2px_2px_0px_rgba(148,163,184,0.2)] hover:shadow-[3px_3px_0px_rgba(148,163,184,0.3)] transition-all duration-300 hover:-translate-y-0.5 font-semibold text-sm flex items-center justify-center gap-2"
+                >
+                  {showAllReviews ? (
+                    <>
+                      <ChevronUp className="w-4 h-4" />
+                      Sembunyikan
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4" />
+                      Lihat +{remainingCount} soal lainnya
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
-
-        {/* Action Buttons - Enhanced */}
-        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-slide-up" style={{ animationDelay: '0.5s' }}>
-          <button
-            onClick={onBackToInstruction}
-            className="group px-6 py-3.5 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-xl sm:rounded-2xl font-bold hover:from-gray-200 hover:to-gray-300 transition-all duration-300 text-sm sm:text-base shadow-md hover:shadow-lg border-2 border-gray-200"
-          >
-            ← Kembali ke Instruksi
-          </button>
-
-          {!passed && (
-            <button
-              onClick={onRetakeQuiz}
-              className="group relative overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-[#578FCA] to-[#27548A] rounded-xl sm:rounded-2xl group-hover:scale-105 transition-transform duration-300 shadow-lg group-hover:shadow-xl"></div>
-              <div className="relative flex items-center justify-center gap-2 px-8 py-3.5">
-                <RotateCcw className="w-5 h-5 text-white" />
-                <span className="text-white font-bold text-sm sm:text-base">Ulangi Kuis</span>
-              </div>
-            </button>
-          )}
-
-          {passed && (
-            <>
-              <button
-                onClick={onRetakeQuiz}
-                className="group relative overflow-hidden order-2 sm:order-1"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl sm:rounded-2xl group-hover:scale-105 transition-transform duration-300 shadow-lg group-hover:shadow-xl"></div>
-                <div className="relative flex items-center justify-center gap-2 px-6 py-3.5">
-                  <RotateCcw className="w-5 h-5 text-white" />
-                  <span className="text-white font-bold text-sm sm:text-base">Tingkatkan Skor</span>
-                </div>
-              </button>
-
-              <button
-                onClick={onContinue}
-                className="group relative overflow-hidden order-1 sm:order-2"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl sm:rounded-2xl group-hover:scale-105 transition-transform duration-300 shadow-lg group-hover:shadow-xl"></div>
-                <div className="relative flex items-center justify-center gap-2 px-8 py-3.5">
-                  <span className="text-white font-bold text-sm sm:text-base">Lanjut ke Materi Berikutnya</span>
-                  <ArrowRight className="w-5 h-5 text-white" />
-                </div>
-              </button>
-            </>
-          )}
-        </div>
       </div>
-
-      {/* Custom scrollbar and animation styles */}
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
-
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes slide-up {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes scale-in {
-          from {
-            opacity: 0;
-            transform: scale(0.8);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-
-        .animate-fade-in {
-          animation: fade-in 0.6s ease-out;
-        }
-
-        .animate-slide-up {
-          animation: slide-up 0.6s ease-out;
-          animation-fill-mode: both;
-        }
-
-        .animate-scale-in {
-          animation: scale-in 0.5s ease-out;
-        }
-      `}</style>
     </div>
   );
 }
