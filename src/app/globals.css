@@ -53,6 +53,7 @@ html {
 
 body {
   font-family: "Poppins", Arial, Helvetica, sans-serif;
+  touch-action: pan-y pan-x pinch-zoom;
 }
 
 /* Animation delays for staggered effects */
