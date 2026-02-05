@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import {
   Accessibility,
   X,
@@ -60,6 +61,7 @@ const DEFAULT_SETTINGS: AccessibilitySettings = {
 };
 
 export default function AccessibilityWidget() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"main" | "vision" | "orientation">(
     "main"
@@ -67,6 +69,10 @@ export default function AccessibilityWidget() {
   const [settings, setSettings] =
     useState<AccessibilitySettings>(DEFAULT_SETTINGS);
   const [mouseY, setMouseY] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Check if we're on modul detail page (no bottom navbar)
+  const isModulDetailPage = pathname?.includes("/user/modul/") && pathname !== "/user/modul";
 
   // Load settings from localStorage
   useEffect(() => {
@@ -98,6 +104,20 @@ export default function AccessibilityWidget() {
       return () => window.removeEventListener("mousemove", handleMouseMove);
     }
   }, [settings.readingGuide]);
+
+  // Listen to sidebar toggle (for hiding widget on mobile when sidebar is open)
+  useEffect(() => {
+    const handleSidebarToggle = (e: Event) => {
+      const customEvent = e as CustomEvent<{ isOpen: boolean }>;
+      setIsSidebarOpen(customEvent.detail.isOpen);
+    };
+
+    window.addEventListener("modulSidebarToggled", handleSidebarToggle);
+
+    return () => {
+      window.removeEventListener("modulSidebarToggled", handleSidebarToggle);
+    };
+  }, []);
 
   const applySettings = (newSettings: AccessibilitySettings) => {
     const root = document.documentElement;
@@ -195,7 +215,11 @@ export default function AccessibilityWidget() {
       {/* Floating Toggle Button - UserWay Style - Positioned on LEFT */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-24 sm:bottom-28 left-4 sm:left-6 z-[9999] w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#27548A] to-[#1e3d6b] text-white rounded-full shadow-2xl hover:scale-110 transition-all duration-300 flex items-center justify-center group border-4 border-white"
+        className={`fixed left-4 sm:left-6 z-[9999] w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#27548A] to-[#1e3d6b] text-white rounded-full shadow-2xl hover:scale-110 flex items-center justify-center group border-white transition-all duration-300 ${
+          isModulDetailPage ? "bottom-[100px] sm:bottom-28 sm:border-4" : "bottom-[192px] sm:bottom-28 border-4"
+        } ${
+          isSidebarOpen && isModulDetailPage ? "opacity-0 scale-0 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto" : "opacity-100 scale-100"
+        }`}
         aria-label="Menu Aksesibilitas"
         title="Buka Menu Aksesibilitas"
       >

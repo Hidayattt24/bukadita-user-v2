@@ -278,25 +278,25 @@ export default function ModulList({
               <Link
                 key={modul.id}
                 href={`/user/modul/${modul.slug}`}
-                className="group relative flex flex-col gap-4 sm:gap-6 bg-gradient-to-br from-[#5B9BD5] via-[#4A7FB8] to-[#27548A] backdrop-blur rounded-2xl sm:rounded-3xl p-5 sm:p-6 border-2 border-white shadow-[6px_6px_0px_#27548A] sm:shadow-[10px_10px_0px_#27548A] hover:shadow-[8px_8px_0px_#27548A] sm:hover:shadow-[12px_12px_0px_#27548A] transition-all duration-300 hover:-translate-y-1"
+                className="group relative flex flex-col gap-3 sm:gap-4 bg-gradient-to-br from-[#5B9BD5] via-[#4A7FB8] to-[#27548A] backdrop-blur rounded-xl sm:rounded-2xl p-4 sm:p-5 border-2 border-white shadow-[4px_4px_0px_#27548A] sm:shadow-[6px_6px_0px_#27548A] hover:shadow-[5px_5px_0px_#27548A] sm:hover:shadow-[7px_7px_0px_#27548A] transition-all duration-300 hover:-translate-y-1 cursor-pointer"
               >
                 {/* Icon with White Background */}
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
-                  <BookOpen className="w-8 h-8 sm:w-10 sm:h-10 text-[#27548A]" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+                  <BookOpen className="w-6 h-6 sm:w-7 sm:h-7 text-[#27548A]" />
                 </div>
 
                 {/* Title */}
-                <h3 className="text-xl sm:text-2xl font-bold text-white leading-tight line-clamp-2 min-h-[3.5rem]">
+                <h3 className="text-lg sm:text-xl font-bold text-white leading-tight line-clamp-2 min-h-[2.5rem]">
                   {modul.title}
                 </h3>
 
                 {/* Category Badge */}
                 <div className="flex items-center gap-2">
-                  <span className="inline-block px-3 py-1.5 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold rounded-full border border-white/30">
+                  <span className="inline-block px-2.5 py-1 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold rounded-full border border-white/30">
                     {modul.category}
                   </span>
                   {status === "completed" && (
-                    <span className="inline-block px-3 py-1.5 bg-green-500 text-white text-xs font-semibold rounded-full">
+                    <span className="inline-block px-2.5 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
                       Selesai
                     </span>
                   )}
@@ -304,11 +304,11 @@ export default function ModulList({
 
                 {/* Progress Bar */}
                 <div className="flex-1 flex flex-col justify-end">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-1.5">
                     <span className="text-xs font-medium text-white/90">Progress</span>
                     <span className="text-xs font-bold text-white">{Math.round(progressPercentage)}%</span>
                   </div>
-                  <div className="w-full bg-white/30 rounded-full h-3 overflow-hidden backdrop-blur-sm">
+                  <div className="w-full bg-white/30 rounded-full h-2 overflow-hidden backdrop-blur-sm">
                     <div
                       className="h-full bg-[#59AC77] rounded-full transition-all duration-500 shadow-sm"
                       style={{ width: `${progressPercentage}%` }}
@@ -317,7 +317,7 @@ export default function ModulList({
                 </div>
 
                 {/* Button */}
-                <button className="w-full bg-white hover:bg-slate-50 text-[#27548A] font-bold py-3 sm:py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl group-hover:scale-[1.02] text-sm sm:text-base">
+                <button className="w-full cursor-pointer bg-white hover:bg-slate-50 text-[#27548A] font-bold py-2.5 sm:py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl group-hover:scale-[1.02] text-sm sm:text-base">
                   {progressPercentage > 0 ? "Lanjutkan Belajar" : "Mulai Belajar"}
                 </button>
               </Link>

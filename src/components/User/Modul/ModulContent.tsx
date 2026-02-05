@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import {
   Clock,
   Video,
@@ -7,9 +7,16 @@ import {
   ArrowLeft,
   ChevronRight,
   BookOpen,
+  Target,
+  ClipboardList,
+  Timer,
+  Play,
+  Lock,
 } from "lucide-react";
 import { PoinDetail, SubMateri } from "@/types/modul";
 import ContentRenderer from "./ContentRenderer";
+import CircularScrollProgress from "./CircularScrollProgress";
+import Link from "next/link";
 
 interface ModulContentProps {
   currentPoin: PoinDetail | null;
@@ -20,7 +27,8 @@ interface ModulContentProps {
   handlePreviousPoin: () => void;
   handleNextPoin: () => void;
   sidebarOpen: boolean;
-  onStartQuiz?: () => void;
+  modulSlug: string;
+  moduleId?: string;
 }
 
 export default function ModulContent({
@@ -32,8 +40,36 @@ export default function ModulContent({
   handlePreviousPoin,
   handleNextPoin,
   sidebarOpen,
-  onStartQuiz,
+  modulSlug,
+  moduleId,
 }: ModulContentProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [isScrollComplete, setIsScrollComplete] = useState(false);
+
+  const handleScrollComplete = () => {
+    console.log("✅ ModulContent: handleScrollComplete called!");
+    setIsScrollComplete(true);
+    console.log("📖 User has completed reading this content");
+  };
+
+  // Debug: Log when component renders
+  console.log("🔍 ModulContent render:", {
+    hasCurrentPoin: !!currentPoin,
+    isScrollComplete,
+    contentRefReady: !!contentRef.current,
+  });
+
+  // Reset scroll completion when poin changes
+  React.useEffect(() => {
+    console.log("🔄 ModulContent: Resetting scroll state (poin changed)");
+    setIsScrollComplete(false);
+    // Reset scroll position to top
+    if (contentRef.current) {
+      contentRef.current.scrollTop = 0;
+      console.log("⬆️ Scroll position reset to top");
+    }
+  }, [selectedPoinIndex, selectedSubMateri?.id]);
+
   const getContentTypeIcon = (type: string) => {
     switch (type) {
       case "video":
@@ -117,7 +153,10 @@ export default function ModulContent({
         </div>
 
         {/* Content Body - Compact Spacing */}
-        <div className="flex-1 p-3 sm:p-4 md:p-5 overflow-y-auto bg-gray-50">
+        <div
+          ref={contentRef}
+          className="flex-1 p-3 sm:p-4 md:p-5 overflow-y-auto bg-gray-50"
+        >
           {currentPoin.type === "video" && (
             <div className="aspect-video bg-gradient-to-br from-white to-gray-100 rounded-xl sm:rounded-2xl flex items-center justify-center mb-6 sm:mb-8 border border-gray-200 shadow-sm">
               <div className="text-center p-4 sm:p-8">
@@ -163,40 +202,77 @@ export default function ModulContent({
             {selectedSubMateri &&
               selectedPoinIndex === selectedSubMateri.poinDetails.length - 1 &&
               selectedSubMateri.quiz.length > 0 && (
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-amber-200 shadow-sm">
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="p-2 sm:p-3 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl">
-                      <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                <div className="relative bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border-2 border-amber-200 shadow-lg overflow-hidden">
+                  {/* Decorative background pattern */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-amber-200/20 rounded-full blur-3xl"></div>
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-orange-200/20 rounded-full blur-3xl"></div>
+
+                  <div className="relative">
+                    {/* Header with icon */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex-shrink-0 p-3 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl shadow-md">
+                        <Target className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-lg sm:text-xl font-bold text-amber-900 flex items-center gap-2">
+                          Kuis Tersedia!
+                        </h4>
+                        <p className="text-xs sm:text-sm text-amber-600 mt-0.5">
+                          Uji pemahaman Anda
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h4 className="text-base sm:text-lg font-bold text-amber-800 mb-2">
-                        🎯 Kuis Tersedia!
-                      </h4>
-                      <p className="text-amber-700 mb-4 text-sm sm:text-base">
-                        Setelah menyelesaikan poin ini, Anda akan masuk ke kuis
-                        untuk menguji pemahaman materi{" "}
-                        <strong>{selectedSubMateri.title}</strong>.
-                      </p>
-                      <div className="flex items-center gap-2 text-sm text-amber-600 mb-4">
-                        <span className="font-medium">
-                          📝 {selectedSubMateri.quiz.length} soal
-                        </span>
-                        <span>•</span>
-                        <span className="font-medium">
-                          ⏱️ Estimasi {selectedSubMateri.quiz[0]?.time_limit_seconds 
-                            ? Math.round(selectedSubMateri.quiz[0].time_limit_seconds / 60) 
-                            : 15} menit
+
+                    {/* Description */}
+                    <p className="text-amber-800 mb-4 text-sm sm:text-base leading-relaxed">
+                      Setelah menyelesaikan poin ini, Anda akan masuk ke kuis
+                      untuk menguji pemahaman materi{" "}
+                      <strong className="text-amber-900">{selectedSubMateri.title}</strong>.
+                    </p>
+
+                    {/* Quiz Info */}
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-5">
+                      <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-amber-200/50">
+                        <ClipboardList className="w-4 h-4 text-amber-600" />
+                        <span className="text-sm font-semibold text-amber-800">
+                          {selectedSubMateri.quiz.length} Soal
                         </span>
                       </div>
-                      {onStartQuiz && (
-                        <button
-                          onClick={onStartQuiz}
-                          className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-3 rounded-xl font-medium hover:from-amber-600 hover:to-orange-600 transition-all transform hover:scale-105 shadow-lg"
-                        >
-                          🎯 Mulai Kuis Sekarang
-                        </button>
-                      )}
+                      <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-amber-200/50">
+                        <Timer className="w-4 h-4 text-amber-600" />
+                        <span className="text-sm font-semibold text-amber-800">
+                          ~{selectedSubMateri.quiz[0]?.time_limit_seconds
+                            ? Math.round(selectedSubMateri.quiz[0].time_limit_seconds / 60)
+                            : 15} Menit
+                        </span>
+                      </div>
                     </div>
+
+                    {/* CTA Button */}
+                    {selectedSubMateri && (
+                      <div className="relative">
+                        {isScrollComplete ? (
+                          <Link
+                            href={`/user/modul/${modulSlug}/kuis?subMateriId=${selectedSubMateri.id}`}
+                            className="group w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold transition-all duration-300 shadow-lg bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white hover:from-amber-600 hover:via-orange-600 hover:to-amber-700 transform hover:scale-[1.02] hover:shadow-xl active:scale-95"
+                          >
+                            <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            <span>Mulai Kuis Sekarang</span>
+                            <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                          </Link>
+                        ) : (
+                          <div className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold bg-gray-300 text-gray-500 cursor-not-allowed opacity-75">
+                            <Lock className="w-5 h-5" />
+                            <span>Selesaikan Bacaan Terlebih Dahulu</span>
+                          </div>
+                        )}
+                        {!isScrollComplete && (
+                          <p className="text-xs text-amber-600 mt-2 text-center">
+                            💡 Scroll ke bawah untuk membaca semua materi
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -289,6 +365,14 @@ export default function ModulContent({
           </div>
         </div>
       </div>
+
+      {/* Circular Scroll Progress - Only show when there's content to read */}
+      {currentPoin && (
+        <CircularScrollProgress
+          contentRef={contentRef}
+          onProgressComplete={handleScrollComplete}
+        />
+      )}
     </div>
   );
 }
