@@ -1,429 +1,64 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { LogOut, AlertTriangle } from "lucide-react";
-import { UserNavbar, MobileBottomNavbar } from "@/components/User/Beranda";
+import { UserNavbar, MobileBottomNavbar } from "@/components/layout";
 import {
   SettingsHeader,
   SettingsNavigation,
   ProfileSection,
   SecuritySection,
-} from "@/components/User/Pengaturan";
-import NotificationSection from "@/components/User/Pengaturan/NotificationSectionNew";
-import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/components/ui";
-import { showSuccessToast } from "@/utils/sweetalert";
+  NotificationSection,
+  LogoutSection,
+  DeleteAccountModal,
+  SettingsLoadingSkeleton,
+} from "@/components/settings";
+import { useSettingsState } from "@/hooks/useSettingsState";
 
 export default function PengaturanPage() {
-  const router = useRouter();
-  const authCtx = useAuth();
-  const { user, logout, isLoading, profilePending, upsertProfile } = authCtx;
-  const toast = useToast();
+  const {
+    user,
+    isLoading,
+    profilePending,
+    upsertProfile,
+    profileData,
+    setProfileData,
+    passwordData,
+    setPasswordData,
+    showPasswords,
+    setShowPasswords,
+    editMode,
+    setEditMode,
+    activeTab,
+    setActiveTab,
+    selectedImage,
+    setSelectedImage,
+    savingCompletion,
+    setSavingCompletion,
+    completionError,
+    setCompletionError,
+    completionSuccess,
+    setCompletionSuccess,
+    showDeleteModal,
+    setShowDeleteModal,
+    showDropdown,
+    setShowDropdown,
+    selectedFile,
+    uploadingPhoto,
+    handleImageUpload,
+    handleSaveProfilePhoto,
+    handleSaveProfile,
+    handleChangePassword,
+    handleDeleteAccount,
+  } = useSettingsState();
 
-  // All hooks must be declared first before any conditional logic
-  // Profile state - Initialize with user data
-  const [profileData, setProfileData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    birthDate: "",
-    address: "",
-    joinDate: "",
-    role: "",
-    backendLoaded: false,
-  });
-
-  // Removed backendStatus; no direct legacy fetch to backend profile endpoints
-
-  // Password state
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
-
-  // UI state
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false,
-  });
-  const [editMode, setEditMode] = useState({
-    profile: false,
-    password: false,
-    completeProfile: false,
-  });
-  const [activeTab, setActiveTab] = useState("profile");
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [savingCompletion, setSavingCompletion] = useState(false);
-  const [completionError, setCompletionError] = useState<string | null>(null);
-  const [completionSuccess, setCompletionSuccess] = useState<string | null>(
-    null
-  );
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-
-  // Initialize profile data when user data is available
-  useEffect(() => {
-    if (user) {
-      setProfileData((prev) => ({
-        ...prev,
-        name: user.profile?.full_name || user.email || "",
-        email: user.email || "",
-        phone: user.profile?.phone || "",
-        address: user.profile?.address || "",
-        birthDate: user.profile?.date_of_birth || "",
-      }));
-    }
-  }, [
-    user?.id,
-    user?.email,
-    user?.profile?.full_name,
-    user?.profile?.phone,
-    user?.profile?.address,
-    user?.profile?.date_of_birth,
-  ]);
-
-  // Separate useEffect for loading full profile (runs only once on mount if needed)
-  useEffect(() => {
-    let mounted = true;
-
-    const loadProfile = async () => {
-      if (user && authCtx.loadFullProfile) {
-        // Only load if some profile fields are missing
-        const needsFullProfile =
-          !user.profile?.address || !user.profile?.date_of_birth;
-
-        if (needsFullProfile && mounted) {
-          console.log("[PengaturanPage] Loading full profile...");
-          try {
-            await authCtx.loadFullProfile();
-          } catch (error) {
-            console.error("[PengaturanPage] Error loading profile:", error);
-          }
-        }
-      }
-    };
-
-    loadProfile();
-
-    return () => {
-      mounted = false;
-    };
-  }, []); // Empty dependency - only run once on mount
-
-  // Removed legacy fetch from ProfileService; rely on context 'user' and upsertProfile
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/login");
-    }
-  }, [user, isLoading, router]);
-
-  // Show loading while checking authentication
+  // Show loading skeleton while checking authentication
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-[#578FCA]/5 via-[#27548A]/5 to-slate-50/90">
-        <UserNavbar activeMenu="pengaturan" />
-        <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 pb-28 md:pb-8">
-          {/* Header Skeleton */}
-          <div className="mb-6 sm:mb-8">
-            <div className="relative overflow-hidden mx-auto rounded-2xl sm:rounded-3xl border-2 border-white shadow-[4px_4px_0px_rgba(0,0,0,0.1)] sm:shadow-[6px_6px_0px_rgba(0,0,0,0.1)] animate-pulse"
-              style={{
-                width: "min(1200px, 100%)",
-                minHeight: "140px",
-                background: "linear-gradient(to right, #cbd5e1, #94a3b8)",
-              }}
-            >
-              <div className="relative z-10 p-5 sm:p-6 md:p-8 flex items-center min-h-[140px]">
-                <div className="w-full flex flex-col md:flex-row justify-between items-center gap-4">
-                  <div className="flex-1 text-center md:text-left space-y-3">
-                    <div className="h-6 w-32 bg-white/30 rounded-full mx-auto md:mx-0"></div>
-                    <div className="h-10 w-64 bg-white/30 rounded mx-auto md:mx-0"></div>
-                    <div className="h-4 w-48 bg-white/30 rounded mx-auto md:mx-0"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation Skeleton */}
-          <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl sm:rounded-3xl p-2 border-2 border-white shadow-[3px_3px_0px_rgba(0,0,0,0.08)] max-w-4xl mx-auto mb-6 sm:mb-8 animate-pulse">
-            <div className="grid grid-cols-3 gap-2">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-20 bg-white/50 rounded-xl sm:rounded-2xl"></div>
-              ))}
-            </div>
-          </div>
-
-          {/* Content Skeleton */}
-          <div className="max-w-4xl mx-auto space-y-6">
-            {/* Profile Picture Card Skeleton */}
-            <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[3px_3px_0px_rgba(0,0,0,0.08)] animate-pulse">
-              <div className="h-6 w-32 bg-white/50 rounded mb-6"></div>
-              <div className="flex flex-col sm:flex-row items-center gap-6">
-                <div className="w-32 h-32 sm:w-40 sm:h-40 bg-white/50 rounded-full"></div>
-                <div className="flex-1 space-y-3 w-full">
-                  <div className="h-6 w-48 bg-white/50 rounded"></div>
-                  <div className="h-4 w-32 bg-white/50 rounded"></div>
-                  <div className="h-10 w-32 bg-white/50 rounded-xl"></div>
-                </div>
-              </div>
-            </div>
-
-            {/* Profile Info Card Skeleton */}
-            <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[3px_3px_0px_rgba(0,0,0,0.08)] animate-pulse">
-              <div className="flex items-center justify-between mb-6">
-                <div className="h-6 w-40 bg-white/50 rounded"></div>
-                <div className="h-10 w-20 bg-white/50 rounded-xl"></div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="space-y-2">
-                    <div className="h-4 w-24 bg-white/50 rounded"></div>
-                    <div className="h-12 w-full bg-white/50 rounded-xl"></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </main>
-        <MobileBottomNavbar activeMenu="pengaturan" />
-      </div>
-    );
+    return <SettingsLoadingSkeleton />;
   }
 
   // Return null if no user (will redirect)
   if (!user) {
     return null;
   }
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("Ukuran file maksimal 5MB");
-        return;
-      }
-
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        toast.error("File harus berupa gambar");
-        return;
-      }
-
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setSelectedImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSaveProfilePhoto = async () => {
-    if (!selectedFile) {
-      toast.warning("Pilih foto terlebih dahulu");
-      return;
-    }
-
-    // Additional file validation
-    console.log("📸 File to upload:", {
-      name: selectedFile.name,
-      size: selectedFile.size,
-      type: selectedFile.type,
-      lastModified: selectedFile.lastModified,
-    });
-
-    if (selectedFile.size === 0) {
-      toast.error("File kosong atau tidak valid");
-      return;
-    }
-
-    if (selectedFile.size > 5 * 1024 * 1024) {
-      toast.error("Ukuran file maksimal 5MB");
-      return;
-    }
-
-    if (!selectedFile.type.startsWith("image/")) {
-      toast.error("File harus berupa gambar");
-      return;
-    }
-
-    try {
-      setUploadingPhoto(true);
-      toast.info("Mengupload foto profil... 📤");
-
-      // Import ProfileService
-      const { ProfileService } = await import("@/services/userProfileService");
-
-      console.log("🚀 Starting photo upload...");
-      const response = await ProfileService.uploadProfilePhoto(selectedFile);
-      console.log("📝 Upload response:", response);
-      console.log("🔗 Photo URL from backend:", response.data?.photo_url);
-
-      if (response.data && !response.error) {
-        toast.success("✅ Foto profil berhasil diupload!");
-        setSelectedFile(null);
-        setSelectedImage(null);
-
-        // Reload profile to get updated photo URL
-        if (authCtx.loadFullProfile) {
-          await authCtx.loadFullProfile();
-        }
-      } else {
-        // Handle specific errors
-        if (response.code === "FILE_MISSING") {
-          toast.error("❌ File tidak ditemukan");
-        } else if (response.code === "PROFILE_NOT_FOUND") {
-          toast.error("❌ Profil tidak ditemukan");
-        } else if (response.message?.includes("size")) {
-          toast.error("❌ Ukuran file terlalu besar (max 5MB)");
-        } else {
-          toast.error(response.message || "❌ Gagal upload foto");
-        }
-      }
-    } catch (error: any) {
-      console.error("Error uploading photo:", error);
-
-      // Handle different error types
-      if (
-        error.message?.includes("fetch") ||
-        error.message?.includes("network")
-      ) {
-        toast.error("❌ Koneksi gagal. Periksa internet Anda.");
-      } else if (error.message?.includes("size")) {
-        toast.error("❌ File terlalu besar");
-      } else {
-        toast.error("❌ Gagal upload foto. Silakan coba lagi.");
-      }
-    } finally {
-      setUploadingPhoto(false);
-    }
-  };
-
-  const handleSaveProfile = async () => {
-    if (!profileData.name?.trim()) {
-      toast.warning("Nama wajib diisi");
-      return;
-    }
-    try {
-      const result = await upsertProfile({
-        full_name: profileData.name.trim(),
-        phone: profileData.phone || undefined,
-        address: profileData.address || undefined,
-        date_of_birth: profileData.birthDate || undefined,
-      });
-      if (result.success) {
-        setEditMode({ ...editMode, profile: false });
-        toast.success("Profil berhasil diperbarui");
-      } else {
-        toast.error(result.error || "Gagal memperbarui profil");
-      }
-    } catch (error) {
-      console.error("Error saving profile:", error);
-      toast.error("Gagal menyimpan profil. Silakan coba lagi.");
-    }
-  };
-
-  const handleChangePassword = async () => {
-    try {
-      // Validate passwords
-      if (!passwordData.currentPassword) {
-        toast.warning("Password saat ini wajib diisi!");
-        return;
-      }
-
-      if (!passwordData.newPassword) {
-        toast.warning("Password baru wajib diisi!");
-        return;
-      }
-
-      if (passwordData.newPassword !== passwordData.confirmPassword) {
-        toast.warning("Password baru dan konfirmasi password tidak cocok!");
-        return;
-      }
-
-      if (passwordData.newPassword.length < 6) {
-        toast.warning("Password baru minimal 6 karakter!");
-        return;
-      }
-
-      // Import ProfileService
-      const { ProfileService } = await import("@/services/userProfileService");
-
-      // Show loading state
-      toast.info("Mengubah password...");
-
-      // Call API to change password
-      const response = await ProfileService.changePassword(
-        passwordData.currentPassword,
-        passwordData.newPassword
-      );
-
-      if (!response.error) {
-        // Reset form
-        setPasswordData({
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        });
-        setEditMode({ ...editMode, password: false });
-
-        // Show success message
-        toast.success("Password berhasil diubah! ✅");
-      } else {
-        // Show specific error message
-        if (response.code === "INVALID_CURRENT_PASSWORD") {
-          toast.error("❌ Password saat ini salah!");
-        } else if (response.message?.includes("password")) {
-          toast.error(response.message);
-        } else {
-          toast.error("Gagal mengubah password. Silakan coba lagi.");
-        }
-      }
-    } catch (error: any) {
-      console.error("Error changing password:", error);
-
-      // Handle different types of errors
-      if (
-        error.message?.includes("fetch") ||
-        error.message?.includes("network")
-      ) {
-        toast.error("❌ Koneksi gagal. Periksa internet Anda.");
-      } else if (error.message?.includes("password")) {
-        toast.error(error.message);
-      } else {
-        toast.error("❌ Terjadi kesalahan. Silakan coba lagi.");
-      }
-    }
-  };
-
-  const handleLogout = () => {
-    // Close the modal first
-    setShowLogoutModal(false);
-
-    // Call logout from AuthContext
-    logout();
-
-    // Show simple success notification
-    showSuccessToast('Berhasil logout!');
-
-    // Redirect to landing page
-    router.push("/");
-  };
-
-  const handleDeleteAccount = () => {
-    // Delete account logic here
-    setShowDeleteModal(false);
-    // Redirect to login
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#578FCA]/5 via-[#27548A]/5 to-slate-50/90">
@@ -481,91 +116,13 @@ export default function PengaturanPage() {
           {activeTab === "notifications" && <NotificationSection />}
         </div>
 
-        {/* Logout Section - Always Visible */}
-        <div className="max-w-4xl mx-auto mt-6 sm:mt-8">
-          <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[3px_3px_0px_rgba(239,68,68,0.2)] hover:shadow-[4px_4px_0px_rgba(239,68,68,0.25)] transition-all duration-300">
-            <div className="text-center">
-              <h2 className="text-xl sm:text-2xl font-bold text-[#27548A] mb-4 flex items-center justify-center gap-3">
-                <LogOut className="w-6 h-6 text-[#578FCA]" />
-                Keluar dari Akun
-              </h2>
-              <p className="text-[#578FCA]/70 mb-6 text-sm sm:text-base">
-                Anda akan keluar dari akun dan diarahkan kembali ke halaman
-                login
-              </p>
-              <button
-                onClick={() => setShowLogoutModal(true)}
-                className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold transition-all duration-300 hover:shadow-lg hover:scale-[1.02] text-sm sm:text-base"
-              >
-                <LogOut className="w-5 h-5" />
-                Keluar dari Akun
-              </button>
-            </div>
-          </div>
-        </div>
+        <LogoutSection />
 
-        {/* Logout Modal */}
-        {showLogoutModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-            <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-md w-full border-2 border-white shadow-[4px_4px_0px_rgba(249,115,22,0.3)] animate-scale-in">
-              <div className="text-center">
-                <LogOut className="w-16 h-16 text-orange-500 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-[#27548A] mb-2">
-                  Keluar dari Akun?
-                </h3>
-                <p className="text-[#578FCA]/70 mb-6">
-                  Apakah Anda yakin ingin keluar dari akun?
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowLogoutModal(false)}
-                    className="flex-1 px-4 py-3 sm:py-2 border border-gray-300 text-gray-600 rounded-xl font-semibold transition-all duration-300 hover:bg-gray-50 text-sm sm:text-base min-h-[44px]"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="flex-1 px-4 py-3 sm:py-2 bg-orange-500 text-white rounded-xl font-semibold transition-all duration-300 hover:bg-orange-600 text-sm sm:text-base min-h-[44px]"
-                  >
-                    Keluar
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Delete Account Modal */}
-        {showDeleteModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-            <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 max-w-md w-full border-2 border-white shadow-[4px_4px_0px_rgba(239,68,68,0.3)] animate-scale-in">
-              <div className="text-center">
-                <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-[#27548A] mb-2">
-                  Hapus Akun Permanen?
-                </h3>
-                <p className="text-[#578FCA]/70 mb-6">
-                  Tindakan ini tidak dapat dibatalkan. Semua data Anda akan
-                  dihapus permanen.
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowDeleteModal(false)}
-                    className="flex-1 px-4 py-3 sm:py-2 border border-gray-300 text-gray-600 rounded-xl font-semibold transition-all duration-300 hover:bg-gray-50 text-sm sm:text-base min-h-[44px]"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    onClick={handleDeleteAccount}
-                    className="flex-1 px-4 py-3 sm:py-2 bg-red-500 text-white rounded-xl font-semibold transition-all duration-300 hover:bg-red-600 text-sm sm:text-base min-h-[44px]"
-                  >
-                    Hapus
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <DeleteAccountModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteAccount}
+        />
       </main>
 
       <MobileBottomNavbar activeMenu="pengaturan" />

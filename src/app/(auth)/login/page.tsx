@@ -8,6 +8,7 @@ import { Eye, EyeOff, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { validators } from "@/services/authService";
 import { showSuccessToast } from "@/utils/sweetalert";
+import { showErrorToast, showWarningToast } from "@/utils/modernToast";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -71,10 +72,40 @@ export default function LoginPage() {
           router.push("/user/beranda");
         }
       } else {
-        setErrors({ general: result.error || "Login gagal" });
+        // Check if error is about admin/superadmin trying to login
+        const errorMessage = result.error || "Login gagal";
+        
+        if (errorMessage.includes("ADMIN_LOGIN_REQUIRED") || 
+            errorMessage.toLowerCase().includes("admin") ||
+            errorMessage.toLowerCase().includes("superadmin")) {
+          showWarningToast(
+            "Akses Ditolak",
+            "Akun Anda adalah akun Ketua/Pembina Posyandu. Silakan gunakan portal admin untuk login.",
+            7000
+          );
+        } else {
+          setErrors({ general: errorMessage });
+        }
       }
-    } catch (error) {
-      setErrors({ general: "Terjadi kesalahan saat login" });
+    } catch (error: any) {
+      console.error("Login error:", error);
+      
+      // Check if error has code property
+      if (error?.code === "ADMIN_LOGIN_REQUIRED") {
+        showWarningToast(
+          "Akses Ditolak",
+          "Akun Anda adalah akun Ketua/Pembina Posyandu. Silakan gunakan portal admin untuk login.",
+          7000
+        );
+      } else if (error?.message?.includes("ADMIN_LOGIN_REQUIRED")) {
+        showWarningToast(
+          "Akses Ditolak", 
+          "Akun Anda adalah akun Ketua/Pembina Posyandu. Silakan gunakan portal admin untuk login.",
+          7000
+        );
+      } else {
+        setErrors({ general: error?.message || "Terjadi kesalahan saat login" });
+      }
     } finally {
       setIsLoading(false);
     }

@@ -11,4 +11,4 @@ export { default as ModuleList } from "./ModuleList";
 export { default as ContentRenderer } from "./ContentRenderer";
 
 // Quiz Components
-export { QuizManager, QuizInstruction, QuizPlayer, QuizResult } from "./Quiz";
+export { QuizManager, QuizInstruction, QuizPlayer, QuizResult } from "../quizzes";

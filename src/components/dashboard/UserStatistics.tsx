@@ -1,14 +1,23 @@
 "use client";
 
 import { BookOpen, Award, Clock, TrendingUp, Target, Zap } from "lucide-react";
-import { useModulesWithProgress } from "@/hooks/useModulesWithProgress";
+import { useAllModuleProgress } from "@/hooks/useUserDashboard";
 
 /**
  * UserStatistics - Menampilkan statistik pembelajaran user
  */
 export default function UserStatistics() {
-  const { getStatistics, isLoading } = useModulesWithProgress();
-  const stats = getStatistics();
+  const { data: moduleProgress, isLoading } = useAllModuleProgress();
+
+  // Calculate statistics from module progress
+  const stats = {
+    total: moduleProgress?.length || 0,
+    completed: moduleProgress?.filter((m: any) => m.progress_percent === 100).length || 0,
+    inProgress: moduleProgress?.filter((m: any) => m.progress_percent > 0 && m.progress_percent < 100).length || 0,
+    overallProgress: moduleProgress?.length 
+      ? moduleProgress.reduce((sum: number, m: any) => sum + (m.progress_percent || 0), 0) / moduleProgress.length
+      : 0,
+  };
 
   const statisticsCards = [
     {
@@ -162,7 +171,6 @@ export default function UserStatistics() {
           );
         })}
       </div>
-
     </div>
   );
 }

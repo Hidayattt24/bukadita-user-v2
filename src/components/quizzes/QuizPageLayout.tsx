@@ -1,0 +1,73 @@
+'use client';
+
+import { type DetailModul, type SubMateri, type QuizResult } from '@/types/modul';
+import { QuizManager } from '@/components/quizzes';
+import { ModulSidebar, ModulHeader } from '@/components/modules';
+
+interface QuizPageLayoutProps {
+  modul: DetailModul;
+  selectedSubMateri: SubMateri;
+  sidebarOpen: boolean;
+  expandedSubMateris: string[];
+  isFetchingProgress: boolean;
+  toggleSidebar: () => void;
+  handleSubMateriSelect: (subMateri: SubMateri) => void;
+  handlePoinSelect: () => void;
+  toggleSubMateriExpanded: (subMateriId: string) => void;
+  handleQuizComplete: (result: QuizResult) => Promise<void>;
+  handleContinueToNext: () => void;
+}
+
+export default function QuizPageLayout({
+  modul,
+  selectedSubMateri,
+  sidebarOpen,
+  expandedSubMateris,
+  isFetchingProgress,
+  toggleSidebar,
+  handleSubMateriSelect,
+  handlePoinSelect,
+  toggleSubMateriExpanded,
+  handleQuizComplete,
+  handleContinueToNext,
+}: QuizPageLayoutProps) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 relative">
+      <ModulHeader
+        modul={modul}
+        selectedSubMateri={selectedSubMateri}
+        selectedPoinIndex={-1}
+        toggleSidebar={toggleSidebar}
+        sidebarOpen={sidebarOpen}
+      />
+
+      <main className="flex flex-1 relative min-h-[calc(100vh-73px)] pb-safe">
+        <div
+          className={`flex-1 transition-all duration-300 ${
+            sidebarOpen ? 'md:mr-96' : 'mr-0'
+          }`}
+        >
+          <QuizManager
+            subMateri={selectedSubMateri}
+            moduleId={modul.moduleId || modul.id.toString()}
+            onQuizComplete={handleQuizComplete}
+            onContinueToNext={handleContinueToNext}
+          />
+        </div>
+
+        <ModulSidebar
+          modul={modul}
+          sidebarOpen={sidebarOpen}
+          toggleSidebar={toggleSidebar}
+          selectedSubMateri={selectedSubMateri}
+          selectedPoinIndex={-1}
+          expandedSubMateris={expandedSubMateris}
+          handleSubMateriSelect={handleSubMateriSelect}
+          handlePoinSelect={handlePoinSelect}
+          toggleSubMateriExpanded={toggleSubMateriExpanded}
+          isFetchingProgress={isFetchingProgress}
+        />
+      </main>
+    </div>
+  );
+}

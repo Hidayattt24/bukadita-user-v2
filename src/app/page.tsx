@@ -1,10 +1,10 @@
-import BerandaSection from "@/components/LandingPage/Beranda/BerandaSection";
-import StrukturKaderSection from "@/components/LandingPage/Struktur/StrukturSection";
-import { ILPSection } from "@/components/LandingPage/ILP";
-import GaleriSection from "@/components/LandingPage/Galeri/GaleriSection";
-import LokasiSection from "@/components/LandingPage/Lokasi/LokasiSection";
-import PertanyaanSection from "@/components/LandingPage/Pertanyaan/PertanyaanSection";
-import KontakSection from "@/components/LandingPage/Kontak/KontakSection";
+import BerandaSection from "@/components/landing/Beranda/BerandaSection";
+import StrukturKaderSection from "@/components/landing/Struktur/StrukturSection";
+import { ILPSection } from "@/components/landing/ILP";
+import GaleriSection from "@/components/landing/Galeri/GaleriSection";
+import LokasiSection from "@/components/landing/Lokasi/LokasiSection";
+import PertanyaanSection from "@/components/landing/Pertanyaan/PertanyaanSection";
+import KontakSection from "@/components/landing/Kontak/KontakSection";
 
 export default function Home() {
   return (

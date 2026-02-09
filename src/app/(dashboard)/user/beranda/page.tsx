@@ -1,12 +1,11 @@
 "use client";
 
 import {
-  UserNavbar,
-  MobileBottomNavbar,
   WelcomeHero,
   UserStatistics,
   InProgressModules,
-} from "@/components/User/Beranda";
+} from "@/components/dashboard";
+import { UserNavbar, MobileBottomNavbar } from "@/components/layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";

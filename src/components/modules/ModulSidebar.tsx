@@ -6,6 +6,7 @@ import {
   ChevronRight,
   BookOpen,
   X,
+  Lock,
 } from "lucide-react";
 import { DetailModul, SubMateri } from "@/types/modul";
 import { useToast } from "@/components/ui/toast";
@@ -233,17 +234,15 @@ export default function ModulSidebar({
 
                       <div className="flex-1 min-w-0">
                         <h4
-                          className={`font-bold text-xs sm:text-sm mb-1 leading-tight ${
+                          className={`font-bold text-xs sm:text-sm mb-1 leading-tight flex items-center gap-1.5 ${
                             subMateri.isUnlocked
                               ? "text-[#27548A]"
                               : "text-gray-400"
                           }`}
                         >
-                          {subMateri.title}
+                          <span>{subMateri.title}</span>
                           {!subMateri.isUnlocked && (
-                            <span className="ml-1 text-xs text-gray-400">
-                              🔒
-                            </span>
+                            <Lock className="w-3 h-3 text-gray-400 flex-shrink-0" />
                           )}
                         </h4>
 
@@ -321,9 +320,16 @@ export default function ModulSidebar({
                       onClick={() => {
                         if (subMateri.isUnlocked) {
                           handleSubMateriSelect(subMateri);
+                        } else {
+                          warning(
+                            "Selesaikan kuis di materi sebelumnya untuk membuka materi ini",
+                            {
+                              title: "Materi Terkunci",
+                              duration: 3000,
+                            }
+                          );
                         }
                       }}
-                      disabled={!subMateri.isUnlocked}
                       className={`w-full py-2.5 px-4 rounded-lg font-medium text-sm transition-all ${
                         selectedSubMateri?.id === subMateri.id
                           ? "bg-[#578FCA] text-white shadow-lg"
@@ -331,7 +337,7 @@ export default function ModulSidebar({
                           ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
                           : subMateri.isUnlocked
                           ? "bg-gray-100 text-[#27548A] hover:bg-gray-200"
-                          : "bg-gray-50 text-gray-400 cursor-not-allowed"
+                          : "bg-gray-50 text-gray-400 cursor-pointer hover:bg-gray-100"
                       }`}
                     >
                       {selectedSubMateri?.id === subMateri.id ? (
@@ -352,7 +358,8 @@ export default function ModulSidebar({
                         )
                       ) : (
                         <span className="flex items-center justify-center gap-2">
-                          🔒 Locked
+                          <Lock className="w-4 h-4" />
+                          Terkunci
                         </span>
                       )}
                     </button>
@@ -503,10 +510,10 @@ export default function ModulSidebar({
                                 ></div>
                                 <span className="truncate font-medium flex-1">
                                   Kuis
-                                  {!subMateri.isUnlocked && (
-                                    <span className="ml-1 text-xs">🔒</span>
-                                  )}
                                 </span>
+                                {!subMateri.isUnlocked && (
+                                  <Lock className="w-3 h-3 text-gray-400" />
+                                )}
                                 {quizCompleted && subMateri.isUnlocked && (
                                   <CheckCircle className="w-3 h-3 text-emerald-500" />
                                 )}
