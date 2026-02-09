@@ -20,13 +20,19 @@ export default function ModulHeader({
 }: ModulHeaderProps) {
   const router = useRouter();
 
+  const handleBack = () => {
+    // Navigate back to modul list page
+    router.push('/user/modul');
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
       <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
           <button
-            onClick={() => router.back()}
+            onClick={handleBack}
             className="flex items-center gap-1 sm:gap-2 text-[#27548A] hover:text-[#578FCA] transition-colors group p-1 sm:p-2 hover:bg-gray-100 rounded-lg shrink-0"
+            title="Kembali ke Daftar Modul"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="font-medium text-sm sm:text-base hidden xs:inline">

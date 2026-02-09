@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { UserNavbar, MobileBottomNavbar } from "@/components/User/Beranda";
-import ModulList from "@/components/User/Modul/ModulList";
+import { UserNavbar, MobileBottomNavbar } from "@/components/layout";
+import ModulList from "@/components/modules/ModulList";
 
 /**
  * Modul Page - Menampilkan semua modul dari database

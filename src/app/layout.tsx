@@ -8,9 +8,10 @@ import poppins from "@/components/font/poppins";
 import { AuthProvider } from "@/context/AuthContext";
 import { ProgressProvider } from "@/context/ProgressContext";
 import { ToastProvider } from "@/components/ui";
+import QueryProvider from "@/providers/QueryProvider";
 import InstallPrompt from "@/components/shared/InstallPrompt";
 import FloatingNotes from "@/components/shared/FloatingNotes";
-import AccessibilityWidget from "@/components/User/Accessibility/AccessibilityWidget";
+import AccessibilityWidget from "@/components/shared/AccessibilityWidget";
 import OfflineIndicator from "@/components/shared/OfflineIndicator";
 import { Agentation } from "agentation";
 
@@ -111,18 +112,20 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
       >
-        <AuthProvider>
-          <ProgressProvider>
-            <ToastProvider>
-              <OfflineIndicator />
-              <ConditionalLayout>{children}</ConditionalLayout>
-              <InstallPrompt />
-              <FloatingNotes />
-              <AccessibilityWidget />
-              {process.env.NODE_ENV === "development" && <Agentation />}
-            </ToastProvider>
-          </ProgressProvider>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <ProgressProvider>
+              <ToastProvider>
+                <OfflineIndicator />
+                <ConditionalLayout>{children}</ConditionalLayout>
+                <InstallPrompt />
+                <FloatingNotes />
+                <AccessibilityWidget />
+                {process.env.NODE_ENV === "development" && <Agentation />}
+              </ToastProvider>
+            </ProgressProvider>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

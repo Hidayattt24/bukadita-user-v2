@@ -621,4 +621,69 @@ export class ProgressService {
       };
     }
   }
+
+  /**
+   * Mark poin as scroll completed (user reached 100% scroll)
+   * POST /api/v1/progress/poins/:id/scroll-complete
+   */
+  static async markPoinScrollCompleted(
+    poinId: string
+  ): Promise<ApiResponse<{ success: boolean; already_completed: boolean; scroll_completed_at: string | null }>> {
+    try {
+      console.log('[PROGRESS_SERVICE] 📜 Marking poin as scroll completed:', poinId);
+      
+      return await apiClient.post(
+        `/progress/poins/${poinId}/scroll-complete`,
+        {},
+        { auth: true }
+      );
+    } catch (err) {
+      const error = err as ApiError;
+      console.error("[PROGRESS_SERVICE] Error marking poin scroll completed:", {
+        poinId,
+        error: error?.message || "Unknown error",
+        status: error?.status,
+        code: error?.code,
+      });
+
+      // Return error response instead of throwing
+      return {
+        error: true,
+        code: error?.code || "SCROLL_COMPLETE_ERROR",
+        message: error?.message || "Failed to mark poin as scroll completed",
+        data: undefined,
+      };
+    }
+  }
+
+  /**
+   * Get poin scroll status
+   * GET /api/v1/progress/poins/:id/scroll-status
+   */
+  static async getPoinScrollStatus(
+    poinId: string
+  ): Promise<ApiResponse<{ scroll_completed: boolean; scroll_completed_at: string | null }>> {
+    try {
+      return await apiClient.get(
+        `/progress/poins/${poinId}/scroll-status`,
+        { auth: true }
+      );
+    } catch (err) {
+      const error = err as ApiError;
+      console.error("[PROGRESS_SERVICE] Error fetching poin scroll status:", {
+        poinId,
+        error: error?.message || "Unknown error",
+        status: error?.status,
+        code: error?.code,
+      });
+
+      // Return default status if error
+      return {
+        error: false,
+        code: "SCROLL_STATUS_NOT_FOUND",
+        message: "Scroll status not found",
+        data: { scroll_completed: false, scroll_completed_at: null },
+      };
+    }
+  }
 }

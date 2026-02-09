@@ -169,9 +169,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Login error:", error);
       const e = error as { code?: string; message?: string };
+      
+      // Pass the error code and message through
       return {
         success: false,
-        error: e?.message || mapAuthError(e.code || ""),
+        error: e?.code === "ADMIN_LOGIN_REQUIRED" 
+          ? "ADMIN_LOGIN_REQUIRED" 
+          : (e?.message || mapAuthError(e.code || "")),
       };
     }
   };

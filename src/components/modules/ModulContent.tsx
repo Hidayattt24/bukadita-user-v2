@@ -371,6 +371,7 @@ export default function ModulContent({
         <CircularScrollProgress
           contentRef={contentRef}
           onProgressComplete={handleScrollComplete}
+          poinId={currentPoin.id}
         />
       )}
     </div>

@@ -35,9 +35,18 @@ export default function QuizInstruction({
 }: QuizInstructionProps) {
   const [showAllHistory, setShowAllHistory] = useState(false);
 
-  const latestResult = subMateri.quizResult || (quizHistory.length > 0 ? quizHistory[0] : null);
+  // ✅ FIX: Prioritize quizHistory[0] (most recent) over subMateri.quizResult
+  const latestResult = (quizHistory.length > 0 ? quizHistory[0] : null) || subMateri.quizResult;
   const hasPassedQuiz = latestResult?.passed || false;
   const canRetake = !hasPassedQuiz || true;
+
+  // 🔍 DEBUG: Log quiz state
+  console.log('[QuizInstruction] 📊 Quiz state:', {
+    quizHistoryLength: quizHistory.length,
+    latestResult,
+    hasPassedQuiz,
+    subMateriQuizResult: subMateri.quizResult,
+  });
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-[#59AC77]";

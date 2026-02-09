@@ -175,8 +175,15 @@ export default function QuizManager({
             };
           });
 
-          // Latest attempt is the first one (already sorted by backend by completed_at DESC)
-          const latestAttempt = allResults[0];
+          // ✅ FIX: Sort by completedAt DESC to ensure latest is first
+          // Don't trust backend sorting, do it manually
+          const sortedByDate = [...allResults].sort((a, b) => {
+            if (!a.completedAt) return 1;
+            if (!b.completedAt) return -1;
+            return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime();
+          });
+
+          const latestAttempt = sortedByDate[0];
 
           // Sort by score descending to get best attempt (for unlock logic)
           const sortedByScore = [...allResults].sort(
@@ -190,12 +197,18 @@ export default function QuizManager({
             bestPassed: bestAttempt.passed,
             latestScore: latestAttempt.score,
             latestPassed: latestAttempt.passed,
+            latestCompletedAt: latestAttempt.completedAt,
           });
 
           // ✅ FIX: Show LATEST attempt (not best) to avoid confusion
           // User sees their most recent quiz result, not the best historical result
           setLatestResult(latestAttempt);
-          setQuizHistory(allResults);
+          setQuizHistory(sortedByDate); // Use sorted array
+
+          console.log('[QuizManager] 📊 State updated:', {
+            latestResult: latestAttempt,
+            quizHistoryLength: allResults.length,
+          });
 
           // 🔥 FIX: Don't auto-show result, let user decide
           // User can see history and choose to retake or review
@@ -313,7 +326,7 @@ export default function QuizManager({
 
           console.log("[QuizManager] ✅ Result enriched with backend data");
           setLatestResult(enrichedResult);
-          setQuizHistory((prev) => [...prev, enrichedResult]);
+          setQuizHistory((prev) => [enrichedResult, ...prev]); // ✅ FIX: Prepend (add to start)
           setCurrentState("result");
           onQuizComplete(enrichedResult);
         } else {
@@ -322,7 +335,7 @@ export default function QuizManager({
             "[QuizManager] ⚠️ No detailed results from backend (404), using local calculation"
           );
           setLatestResult(result);
-          setQuizHistory((prev) => [...prev, result]);
+          setQuizHistory((prev) => [result, ...prev]); // ✅ FIX: Prepend (add to start)
           setCurrentState("result");
           onQuizComplete(result);
         }
@@ -333,13 +346,13 @@ export default function QuizManager({
         );
         // Fallback to original result
         setLatestResult(result);
-        setQuizHistory((prev) => [...prev, result]);
+        setQuizHistory((prev) => [result, ...prev]); // ✅ FIX: Prepend (add to start)
         setCurrentState("result");
         onQuizComplete(result);
       }
     } else {
       setLatestResult(result);
-      setQuizHistory((prev) => [...prev, result]);
+      setQuizHistory((prev) => [result, ...prev]); // ✅ FIX: Prepend (add to start)
       setCurrentState("result");
       onQuizComplete(result);
     }
@@ -366,6 +379,16 @@ export default function QuizManager({
   const handleBackToInstruction = () => {
     setCurrentState("instruction");
   };
+
+  // 🔍 DEBUG: Log state before rendering
+  console.log('[QuizManager] 🎬 Rendering state:', {
+    currentState,
+    latestResult,
+    quizHistoryLength: quizHistory.length,
+    quizHistoryFirst: quizHistory[0],
+    isLoadingHistory,
+    isLoadingQuestions,
+  });
 
   // Show skeleton loading state while fetching quiz history or questions
   if (isLoadingHistory || isLoadingQuestions) {
