@@ -63,7 +63,10 @@ export function useAllModuleProgress() {
       if (response.error) {
         throw new Error(response.message);
       }
-      return response.data;
+      // Backend returns { modules: [...], overall_progress: {...} }
+      // Extract just the modules array
+      const data = response.data as any;
+      return Array.isArray(data) ? data : (data?.modules || []);
     },
     enabled: !!user,
     staleTime: 2 * 60 * 1000, // 2 minutes

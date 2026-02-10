@@ -9,13 +9,16 @@ import { useAllModuleProgress } from "@/hooks/useUserDashboard";
 export default function UserStatistics() {
   const { data: moduleProgress, isLoading } = useAllModuleProgress();
 
+  // Safety check: ensure moduleProgress is an array
+  const safeModuleProgress = Array.isArray(moduleProgress) ? moduleProgress : [];
+
   // Calculate statistics from module progress
   const stats = {
-    total: moduleProgress?.length || 0,
-    completed: moduleProgress?.filter((m: any) => m.progress_percent === 100).length || 0,
-    inProgress: moduleProgress?.filter((m: any) => m.progress_percent > 0 && m.progress_percent < 100).length || 0,
-    overallProgress: moduleProgress?.length 
-      ? moduleProgress.reduce((sum: number, m: any) => sum + (m.progress_percent || 0), 0) / moduleProgress.length
+    total: safeModuleProgress.length || 0,
+    completed: safeModuleProgress.filter((m: any) => m.progress_percent === 100).length || 0,
+    inProgress: safeModuleProgress.filter((m: any) => m.progress_percent > 0 && m.progress_percent < 100).length || 0,
+    overallProgress: safeModuleProgress.length 
+      ? safeModuleProgress.reduce((sum: number, m: any) => sum + (m.progress_percent || 0), 0) / safeModuleProgress.length
       : 0,
   };
 

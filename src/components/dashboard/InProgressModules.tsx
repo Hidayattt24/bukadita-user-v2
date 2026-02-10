@@ -11,8 +11,11 @@ import { useModulesWithProgress } from "@/hooks/useModulesWithProgress";
 export default function InProgressModules() {
   const { modules, isLoading } = useModulesWithProgress();
 
+  // Safety check: ensure modules is an array
+  const safeModules = Array.isArray(modules) ? modules : [];
+
   // Filter modul yang pernah diakses (has last_accessed_at)
-  const accessedModules = modules.filter(
+  const accessedModules = safeModules.filter(
     (modul) => modul.progress?.last_accessed_at
   );
 
@@ -33,7 +36,7 @@ export default function InProgressModules() {
   const displayModules =
     sortedAccessedModules.length > 0
       ? sortedAccessedModules.slice(0, 3)
-      : modules.slice(0, 3);
+      : safeModules.slice(0, 3);
 
   // Get icon for module category
   const getCategoryIcon = (category: string) => {
