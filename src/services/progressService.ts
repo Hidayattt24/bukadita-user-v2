@@ -639,6 +639,18 @@ export class ProgressService {
       );
     } catch (err) {
       const error = err as ApiError;
+      
+      // If 401, user might not be logged in - fail silently
+      if (error?.status === 401) {
+        console.warn("[PROGRESS_SERVICE] Not authenticated, cannot mark scroll completed");
+        return {
+          error: true,
+          code: "NOT_AUTHENTICATED",
+          message: "Authentication required",
+          data: undefined,
+        };
+      }
+
       console.error("[PROGRESS_SERVICE] Error marking poin scroll completed:", {
         poinId,
         error: error?.message || "Unknown error",
@@ -670,6 +682,18 @@ export class ProgressService {
       );
     } catch (err) {
       const error = err as ApiError;
+      
+      // If 401, user might not be logged in - return default status silently
+      if (error?.status === 401) {
+        console.warn("[PROGRESS_SERVICE] Not authenticated, returning default scroll status");
+        return {
+          error: false,
+          code: "NOT_AUTHENTICATED",
+          message: "Not authenticated",
+          data: { scroll_completed: false, scroll_completed_at: null },
+        };
+      }
+
       console.error("[PROGRESS_SERVICE] Error fetching poin scroll status:", {
         poinId,
         error: error?.message || "Unknown error",

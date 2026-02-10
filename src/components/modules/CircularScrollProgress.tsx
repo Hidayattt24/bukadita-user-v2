@@ -36,7 +36,7 @@ export default function CircularScrollProgress({
     };
   }, []);
 
-  // ✅ Fetch scroll status on mount
+  // ✅ Fetch scroll status on mount (with delay to ensure token is loaded)
   useEffect(() => {
     if (!poinId) {
       setIsLoadingStatus(false);
@@ -45,22 +45,27 @@ export default function CircularScrollProgress({
 
     console.log('[CircularScrollProgress] 🔍 Fetching scroll status for poin:', poinId);
     
-    ProgressService.getPoinScrollStatus(poinId)
-      .then((response: any) => {
-        if (!response.error && response.data?.scroll_completed) {
-          console.log('[CircularScrollProgress] ✅ Poin already completed, setting to 100%');
-          setScrollProgress(100);
-          setIsComplete(true);
-          setWasAlreadyCompleted(true);
-          hasCompletedRef.current = true;
-          onProgressComplete?.();
-        }
-        setIsLoadingStatus(false);
-      })
-      .catch((error: any) => {
-        console.error('[CircularScrollProgress] ❌ Error fetching scroll status:', error);
-        setIsLoadingStatus(false);
-      });
+    // Add small delay to ensure token is loaded from storage
+    const timer = setTimeout(() => {
+      ProgressService.getPoinScrollStatus(poinId)
+        .then((response: any) => {
+          if (!response.error && response.data?.scroll_completed) {
+            console.log('[CircularScrollProgress] ✅ Poin already completed, setting to 100%');
+            setScrollProgress(100);
+            setIsComplete(true);
+            setWasAlreadyCompleted(true);
+            hasCompletedRef.current = true;
+            onProgressComplete?.();
+          }
+          setIsLoadingStatus(false);
+        })
+        .catch((error: any) => {
+          console.error('[CircularScrollProgress] ❌ Error fetching scroll status:', error);
+          setIsLoadingStatus(false);
+        });
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [poinId, onProgressComplete]);
 
   useEffect(() => {
