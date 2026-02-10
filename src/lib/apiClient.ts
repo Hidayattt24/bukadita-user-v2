@@ -124,9 +124,13 @@ export async function rawFetch<T = unknown>(
   // Prepare authorization header
   let authHeader = {};
   if (auth) {
+    // Always try to load token from storage first
+    tokenStore.loadFromStorage();
     const token = tokenStore.access;
     if (token) {
       authHeader = { Authorization: `Bearer ${token}` };
+    } else {
+      console.warn('[API_CLIENT] Auth required but no token found in storage');
     }
   }
 
