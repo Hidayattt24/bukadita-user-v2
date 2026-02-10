@@ -38,7 +38,7 @@ export class DashboardService {
    */
   static async getStats(): Promise<ApiResponse<DashboardStats>> {
     try {
-      return await apiClient.get<DashboardStats>('/users/me/stats', {
+      return await apiClient.get<DashboardStats>('/progress/stats', {
         auth: true,
       });
     } catch (err) {
@@ -64,7 +64,7 @@ export class DashboardService {
    */
   static async getAllModuleProgress(): Promise<ApiResponse<ModuleProgressSummary[]>> {
     try {
-      return await apiClient.get<ModuleProgressSummary[]>('/users/me/module-progress', {
+      return await apiClient.get<ModuleProgressSummary[]>('/progress/modules', {
         auth: true,
       });
     } catch (err) {

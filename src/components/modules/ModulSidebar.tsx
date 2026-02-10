@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   CheckCircle,
   Clock,
@@ -23,6 +24,7 @@ interface ModulSidebarProps {
   handlePoinSelect: (poinIndex: number) => void;
   toggleSubMateriExpanded: (subMateriId: string) => void;
   isFetchingProgress?: boolean;
+  modulSlug: string;
 }
 
 export default function ModulSidebar({
@@ -36,6 +38,7 @@ export default function ModulSidebar({
   handlePoinSelect,
   toggleSubMateriExpanded,
   isFetchingProgress = false,
+  modulSlug,
 }: ModulSidebarProps) {
   const { warning } = useToast();
 
@@ -461,13 +464,11 @@ export default function ModulSidebar({
                           
                           {/* Quiz Point - Add after all poins if quiz exists */}
                           {subMateri.quiz && subMateri.quiz.length > 0 && (
-                            <button
-                              onClick={() => {
-                                if (subMateri.isUnlocked) {
-                                  handleSubMateriSelect(subMateri);
-                                  // Set poin index to -1 to indicate quiz
-                                  handlePoinSelect(-1);
-                                } else {
+                            <Link
+                              href={`/user/modul/${modulSlug}/kuis?subMateriId=${subMateri.id}`}
+                              onClick={(e) => {
+                                if (!subMateri.isUnlocked) {
+                                  e.preventDefault();
                                   warning(
                                     "Selesaikan terlebih dahulu materi sebelumnya untuk mengakses kuis ini",
                                     {
@@ -477,12 +478,8 @@ export default function ModulSidebar({
                                   );
                                 }
                               }}
-                              className={`w-full text-left p-2.5 rounded-lg text-xs transition-all ${
-                                selectedPoinIndex === -1 &&
-                                selectedSubMateri?.id === subMateri.id &&
-                                subMateri.isUnlocked
-                                  ? "bg-[#578FCA]/10 text-[#27548A] border border-[#578FCA]/30"
-                                  : quizCompleted && subMateri.isUnlocked
+                              className={`w-full text-left p-2.5 rounded-lg text-xs transition-all block ${
+                                quizCompleted && subMateri.isUnlocked
                                   ? "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
                                   : subMateri.isUnlocked
                                   ? "text-gray-600 hover:bg-gray-100"
@@ -497,11 +494,7 @@ export default function ModulSidebar({
                               <div className="flex items-center gap-2">
                                 <div
                                   className={`w-1.5 h-1.5 rounded-full ${
-                                    selectedPoinIndex === -1 &&
-                                    selectedSubMateri?.id === subMateri.id &&
-                                    subMateri.isUnlocked
-                                      ? "bg-[#578FCA]"
-                                      : quizCompleted && subMateri.isUnlocked
+                                    quizCompleted && subMateri.isUnlocked
                                       ? "bg-emerald-500"
                                       : subMateri.isUnlocked
                                       ? "bg-gray-300"
@@ -518,7 +511,7 @@ export default function ModulSidebar({
                                   <CheckCircle className="w-3 h-3 text-emerald-500" />
                                 )}
                               </div>
-                            </button>
+                            </Link>
                           )}
                         </div>
                       )}
