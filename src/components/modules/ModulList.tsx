@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Search, Filter, BookOpen, Loader2, AlertCircle } from "lucide-react";
+import { Search, Filter, BookOpen, Loader2, AlertCircle, Info } from "lucide-react";
 import Link from "next/link";
 import { useModulesWithProgress } from "@/hooks/useModulesWithProgress";
+import ModuleDetailModal from "@/components/modules/ModuleDetailModal";
 
 interface ModulListProps {
   showHeader?: boolean;
@@ -30,6 +31,8 @@ export default function ModulList({
 }: ModulListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("all");
+  const [selectedModule, setSelectedModule] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // 🔥 Fetch modules dari database dengan progress
   const { modules, isLoading, error, getStatistics } = useModulesWithProgress();
@@ -285,10 +288,28 @@ export default function ModulList({
                   <BookOpen className="w-6 h-6 sm:w-7 sm:h-7 text-[#27548A]" />
                 </div>
 
-                {/* Title */}
-                <h3 className="text-lg sm:text-xl font-bold text-white leading-tight line-clamp-2 min-h-[2.5rem]">
-                  {modul.title}
-                </h3>
+                {/* Title with Info Icon */}
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="flex-1 text-lg sm:text-xl font-bold text-white leading-tight line-clamp-2 min-h-[2.5rem]">
+                    {modul.title}
+                  </h3>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setSelectedModule(modul);
+                      setIsModalOpen(true);
+                    }}
+                    className="flex-shrink-0 p-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-all duration-200 group"
+                    aria-label="Info Detail Modul"
+                  >
+                    <Info className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
+                  </button>
+                </div>
+
+                {/* Description */}
+                <p className="text-white/80 text-xs sm:text-sm leading-relaxed line-clamp-2 min-h-[2rem]">
+                  {modul.description || "Pelajari materi penting untuk meningkatkan kualitas pelayanan posyandu"}
+                </p>
 
                 {/* Category Badge */}
                 <div className="flex items-center gap-2">
@@ -336,6 +357,18 @@ export default function ModulList({
             Coba ubah kata kunci pencarian atau filter kategori
           </p>
         </div>
+      )}
+
+      {/* Module Detail Modal */}
+      {selectedModule && (
+        <ModuleDetailModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedModule(null);
+          }}
+          module={selectedModule}
+        />
       )}
     </div>
   );

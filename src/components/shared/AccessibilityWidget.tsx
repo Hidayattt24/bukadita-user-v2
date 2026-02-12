@@ -214,6 +214,7 @@ export default function AccessibilityWidget() {
     <>
       {/* Floating Toggle Button - UserWay Style - Positioned on LEFT */}
       <button
+        data-accessibility-widget
         onClick={() => setIsOpen(!isOpen)}
         className={`fixed left-4 sm:left-6 z-[9999] w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#27548A] to-[#1e3d6b] text-white rounded-full shadow-2xl hover:scale-110 flex items-center justify-center group border-white transition-all duration-300 ${
           isModulDetailPage ? "bottom-[100px] sm:bottom-28 sm:border-4" : "bottom-[192px] sm:bottom-28 border-4"

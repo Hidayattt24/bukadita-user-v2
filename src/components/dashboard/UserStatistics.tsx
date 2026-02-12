@@ -1,26 +1,16 @@
 "use client";
 
 import { BookOpen, Award, Clock, TrendingUp, Target, Zap } from "lucide-react";
-import { useAllModuleProgress } from "@/hooks/useUserDashboard";
+import { useModulesWithProgress } from "@/hooks/useModulesWithProgress";
 
 /**
- * UserStatistics - Menampilkan statistik pembelajaran user
+ * UserStatistics - Menampilkan statistik pembelajaran user dari database real-time
  */
 export default function UserStatistics() {
-  const { data: moduleProgress, isLoading } = useAllModuleProgress();
+  const { modules, isLoading, getStatistics } = useModulesWithProgress();
 
-  // Safety check: ensure moduleProgress is an array
-  const safeModuleProgress = Array.isArray(moduleProgress) ? moduleProgress : [];
-
-  // Calculate statistics from module progress
-  const stats = {
-    total: safeModuleProgress.length || 0,
-    completed: safeModuleProgress.filter((m: any) => m.progress_percent === 100).length || 0,
-    inProgress: safeModuleProgress.filter((m: any) => m.progress_percent > 0 && m.progress_percent < 100).length || 0,
-    overallProgress: safeModuleProgress.length 
-      ? safeModuleProgress.reduce((sum: number, m: any) => sum + (m.progress_percent || 0), 0) / safeModuleProgress.length
-      : 0,
-  };
+  // Get statistics from modules with progress
+  const stats = getStatistics();
 
   const statisticsCards = [
     {
@@ -53,7 +43,7 @@ export default function UserStatistics() {
     {
       icon: TrendingUp,
       label: "Progress Keseluruhan",
-      value: `${Math.round(stats.overallProgress)}%`,
+      value: `${stats.overallProgress}%`,
       sublabel: "Pencapaian Anda",
       color: "from-[#578FCA] via-[#59AC77] to-[#27548A]",
       bgGradient: "from-[#578FCA]/10 via-[#59AC77]/10 to-[#27548A]/10",
