@@ -297,7 +297,15 @@ export default function QuizResultComponent({
 
               <div className="space-y-3 mb-4">
                 {displayedAnswers.map((answer, index) => {
-                  const quiz = quizzes[index];
+                  // ✅ FIX: Find quiz by questionId instead of using index
+                  const quiz = quizzes.find(q => q.id === answer.questionId) || quizzes[index];
+                  
+                  // ✅ FIX: Handle case where quiz is not found
+                  if (!quiz) {
+                    console.warn(`[QuizResult] Quiz not found for answer at index ${index}`, answer);
+                    return null;
+                  }
+                  
                   const isCorrect = answer.isCorrect ?? (quiz.correctAnswer === answer.selectedAnswer);
                   const userAnswerIndex = answer.selectedAnswer;
                   const correctAnswerIndex = answer.correctAnswer ?? quiz.correctAnswer ?? 0;
