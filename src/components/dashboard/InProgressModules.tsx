@@ -1,26 +1,30 @@
 "use client";
 
-import { BookOpen, ArrowRight, Clock, GraduationCap, Baby, Heart, Settings, UserCheck } from "lucide-react";
+import { BookOpen, ArrowRight, Clock, GraduationCap, Baby, Heart, Settings, UserCheck, Info } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { useModulesWithProgress } from "@/hooks/useModulesWithProgress";
+import ModuleDetailModal from "@/components/modules/ModuleDetailModal";
 
 /**
- * InProgressModules - Menampilkan 3 pembelajaran terakhir yang diakses user
- * Untuk user baru, tampilkan 3 modul pertama dengan progress 0%
+ * InProgressModules - Menampilkan 3 modul dengan progress terbaru (bukan modul baru)
+ * Hanya tampilkan modul yang sudah pernah diakses/memiliki progress > 0%
  */
 export default function InProgressModules() {
   const { modules, isLoading } = useModulesWithProgress();
+  const [selectedModule, setSelectedModule] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Safety check: ensure modules is an array
   const safeModules = Array.isArray(modules) ? modules : [];
 
-  // Filter modul yang pernah diakses (has last_accessed_at)
-  const accessedModules = safeModules.filter(
-    (modul) => modul.progress?.last_accessed_at
+  // Filter modul yang memiliki progress > 0% (sudah pernah diakses)
+  const modulesWithProgress = safeModules.filter(
+    (modul) => modul.progress && modul.progress.progress_percent > 0
   );
 
   // Sort by last_accessed_at descending (terbaru dulu)
-  const sortedAccessedModules = [...accessedModules].sort((a, b) => {
+  const sortedModules = [...modulesWithProgress].sort((a, b) => {
     const dateA = a.progress?.last_accessed_at
       ? new Date(a.progress.last_accessed_at).getTime()
       : 0;
@@ -30,13 +34,8 @@ export default function InProgressModules() {
     return dateB - dateA; // Descending
   });
 
-  // Determine which modules to display
-  // If user has accessed modules, show last 3 accessed
-  // Otherwise, show first 3 modules
-  const displayModules =
-    sortedAccessedModules.length > 0
-      ? sortedAccessedModules.slice(0, 3)
-      : safeModules.slice(0, 3);
+  // Ambil 3 modul terakhir yang diakses
+  const displayModules = sortedModules.slice(0, 3);
 
   // Get icon for module category
   const getCategoryIcon = (category: string) => {
@@ -97,7 +96,7 @@ export default function InProgressModules() {
     );
   }
 
-  // Don't render if no modules
+  // Don't render if no modules with progress
   if (displayModules.length === 0) {
     return null;
   }
@@ -113,9 +112,7 @@ export default function InProgressModules() {
           </h2>
         </div>
         <p className="text-slate-600 text-sm sm:text-base">
-          {sortedAccessedModules.length > 0
-            ? "Tiga pembelajaran terakhir yang Anda akses"
-            : "Mulai perjalanan belajar Anda"}
+          Tiga pembelajaran terakhir yang Anda akses
         </p>
       </div>
 
@@ -124,26 +121,61 @@ export default function InProgressModules() {
         {displayModules.map((modul, index) => {
           const IconComponent = getCategoryIcon(modul.category);
           const progressPercentage = modul.progress?.progress_percent || 0;
+          const status = modul.progress?.status || "in-progress";
 
           return (
             <Link
               key={modul.id}
               href={`/user/modul/${modul.slug}`}
-              className="group relative flex flex-col gap-4 sm:gap-6 bg-gradient-to-br from-[#5B9BD5] via-[#4A7FB8] to-[#27548A] backdrop-blur rounded-2xl sm:rounded-3xl p-5 sm:p-6 border-2 border-white shadow-[6px_6px_0px_#27548A] sm:shadow-[10px_10px_0px_#27548A] hover:shadow-[8px_8px_0px_#27548A] sm:hover:shadow-[12px_12px_0px_#27548A] transition-all duration-300 hover:-translate-y-1"
+              className="group relative flex flex-col gap-3 sm:gap-4 bg-gradient-to-br from-[#5B9BD5] via-[#4A7FB8] to-[#27548A] backdrop-blur rounded-xl sm:rounded-2xl p-4 sm:p-5 border-2 border-white shadow-[4px_4px_0px_#27548A] sm:shadow-[6px_6px_0px_#27548A] hover:shadow-[5px_5px_0px_#27548A] sm:hover:shadow-[7px_7px_0px_#27548A] transition-all duration-300 hover:-translate-y-1"
             >
               {/* Icon with White Background */}
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
-                <IconComponent className="w-8 h-8 sm:w-10 sm:h-10 text-[#27548A]" />
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+                <IconComponent className="w-6 h-6 sm:w-7 sm:h-7 text-[#27548A]" />
               </div>
 
-              {/* Title */}
-              <h3 className="text-xl sm:text-2xl font-bold text-white leading-tight line-clamp-2 min-h-[3.5rem]">
-                {modul.title}
-              </h3>
+              {/* Title with Info Icon */}
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="flex-1 text-lg sm:text-xl font-bold text-white leading-tight line-clamp-2 min-h-[2.5rem]">
+                  {modul.title}
+                </h3>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSelectedModule(modul);
+                    setIsModalOpen(true);
+                  }}
+                  className="flex-shrink-0 p-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-all duration-200 group"
+                  aria-label="Info Detail Modul"
+                >
+                  <Info className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
+                </button>
+              </div>
 
-              {/* Progress Bar */}
+              {/* Description */}
+              <p className="text-white/80 text-xs sm:text-sm leading-relaxed line-clamp-2 min-h-[2rem]">
+                {modul.description || "Pelajari materi penting untuk meningkatkan kualitas pelayanan posyandu"}
+              </p>
+
+              {/* Category Badge */}
+              <div className="flex items-center gap-2">
+                <span className="inline-block px-2.5 py-1 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold rounded-full border border-white/30">
+                  {modul.category}
+                </span>
+                {status === "completed" && (
+                  <span className="inline-block px-2.5 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
+                    Selesai
+                  </span>
+                )}
+              </div>
+
+              {/* Progress Bar with Percentage */}
               <div className="flex-1 flex flex-col justify-end">
-                <div className="w-full bg-white/30 rounded-full h-3 overflow-hidden backdrop-blur-sm">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-medium text-white/90">Progress</span>
+                  <span className="text-xs font-bold text-white">{Math.round(progressPercentage)}%</span>
+                </div>
+                <div className="w-full bg-white/30 rounded-full h-2 overflow-hidden backdrop-blur-sm">
                   <div
                     className="h-full bg-[#59AC77] rounded-full transition-all duration-500 shadow-sm"
                     style={{ width: `${progressPercentage}%` }}
@@ -152,13 +184,25 @@ export default function InProgressModules() {
               </div>
 
               {/* Button */}
-              <button className="w-full bg-white hover:bg-slate-50 text-[#27548A] font-bold py-3 sm:py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl group-hover:scale-[1.02] text-sm sm:text-base">
-                {progressPercentage > 0 ? "Lanjutkan Belajar" : "Mulai Belajar"}
+              <button className="w-full bg-white hover:bg-slate-50 text-[#27548A] font-bold py-2.5 sm:py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl group-hover:scale-[1.02] text-sm sm:text-base">
+                {progressPercentage >= 100 ? "Lihat Kembali" : "Lanjutkan Belajar"}
               </button>
             </Link>
           );
         })}
       </div>
+
+      {/* Module Detail Modal */}
+      {selectedModule && (
+        <ModuleDetailModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedModule(null);
+          }}
+          module={selectedModule}
+        />
+      )}
     </div>
   );
 }
