@@ -20,6 +20,11 @@ import { type SubMateri, type QuizResult } from "@/types/modul";
 
 interface QuizInstructionProps {
   subMateri: SubMateri;
+  quizMetadata?: {
+    time_limit_seconds?: number;
+    passing_score?: number;
+    title?: string;
+  };
   onStartQuiz: () => void;
   onRetakeQuiz: () => void;
   onBackToContent?: () => void;
@@ -28,6 +33,7 @@ interface QuizInstructionProps {
 
 export default function QuizInstruction({
   subMateri,
+  quizMetadata,
   onStartQuiz,
   onRetakeQuiz,
   onBackToContent,
@@ -39,6 +45,12 @@ export default function QuizInstruction({
   const latestResult = (quizHistory.length > 0 ? quizHistory[0] : null) || subMateri.quizResult;
   const hasPassedQuiz = latestResult?.passed || false;
   const canRetake = !hasPassedQuiz || true;
+  
+  // ✅ NEW: Get time limit and passing score from quizMetadata
+  const timeLimit = quizMetadata?.time_limit_seconds 
+    ? Math.round(quizMetadata.time_limit_seconds / 60) 
+    : 15; // Default 15 minutes
+  const passingScore = quizMetadata?.passing_score || 70; // Default 70%
 
   // 🔍 DEBUG: Log quiz state
   console.log('[QuizInstruction] 📊 Quiz state:', {
@@ -168,7 +180,7 @@ export default function QuizInstruction({
                         </p>
                         {!hasPassedQuiz && (
                           <p className="text-white/90 text-xs font-semibold mt-2 bg-white/20 backdrop-blur-sm px-2 py-1.5 rounded-lg inline-block">
-                            Minimum untuk lulus: {subMateri.quiz[0]?.passing_score || 70}%
+                            Minimum untuk lulus: {passingScore}%
                           </p>
                         )}
                       </div>
@@ -212,9 +224,7 @@ export default function QuizInstruction({
                       <div>
                         <p className="text-xs text-slate-600 font-semibold">Waktu</p>
                         <p className="text-2xl font-bold text-[#27548A]">
-                          {subMateri.quiz[0]?.time_limit_seconds
-                            ? Math.round(subMateri.quiz[0].time_limit_seconds / 60)
-                            : 15} Menit
+                          {timeLimit} Menit
                         </p>
                       </div>
                     </div>
@@ -229,10 +239,9 @@ export default function QuizInstruction({
                   </div>
                   <ul className="space-y-3">
                     {[
-                      `Nilai minimum untuk lulus adalah ${subMateri.quiz[0]?.passing_score || 70}%`,
-                      "Setiap soal memiliki 4 pilihan jawaban",
+                      `Nilai minimum untuk lulus adalah ${passingScore}%`,
                       "Jawaban dapat diubah sebelum submit",
-                      `Anda harus mencapai nilai minimum ${subMateri.quiz[0]?.passing_score || 70}% untuk melanjutkan`,
+                      `Anda harus mencapai nilai minimum ${passingScore}% untuk melanjutkan`,
                       "Kuis dapat diulang berkali-kali hingga lulus",
                     ].map((rule, index) => (
                       <li key={index} className="flex items-start gap-3">

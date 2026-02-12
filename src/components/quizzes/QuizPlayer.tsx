@@ -19,6 +19,7 @@ interface QuizPlayerProps {
   quizId?: string; // Backend quiz ID (optional - for UUID system)
   moduleId: number | string; // ✅ Accept both integer and UUID string
   subMateriId: string; // Frontend sub-materi ID (required - for simple system)
+  timeLimit?: number; // ✅ NEW: Time limit in seconds from quiz metadata
   onQuizComplete: (result: QuizResult) => void;
   onBack: () => void;
 }
@@ -28,6 +29,7 @@ export default function QuizPlayer({
   quizId,
   moduleId,
   subMateriId,
+  timeLimit,
   onQuizComplete,
   onBack,
 }: QuizPlayerProps) {
@@ -38,6 +40,7 @@ export default function QuizPlayer({
     moduleId,
     subMateriId,
     quizzesLength: quizzes.length,
+    timeLimit,
   });
   console.log("[QuizPlayer] 🔍 User context:", {
     user: !!user,
@@ -48,7 +51,8 @@ export default function QuizPlayer({
   const [selectedAnswers, setSelectedAnswers] = useState<{
     [key: number]: number;
   }>({});
-  const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
+  // ✅ FIX: Use timeLimit from props, fallback to 15 minutes
+  const [timeLeft, setTimeLeft] = useState(timeLimit || 15 * 60);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [wentOfflineDuringQuiz, setWentOfflineDuringQuiz] = useState(false);
   // attemptId was previously stored but not used; removed to satisfy lint
@@ -63,6 +67,14 @@ export default function QuizPlayer({
 
   // ✅ FIX: Prevent double submission
   const hasSubmittedRef = useRef(false);
+  
+  // ✅ NEW: Reset timer when timeLimit prop changes
+  useEffect(() => {
+    if (timeLimit) {
+      console.log("[QuizPlayer] ⏱️ Resetting timer to:", timeLimit, "seconds");
+      setTimeLeft(timeLimit);
+    }
+  }, [timeLimit]);
 
   // Fetch actual quiz questions after attempt is started
   const fetchQuizQuestions = useCallback(
@@ -567,7 +579,7 @@ export default function QuizPlayer({
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < quizzes.length - 1) {
+    if (currentQuestionIndex < questionsToUse.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
@@ -813,7 +825,7 @@ export default function QuizPlayer({
                       className="h-full rounded-full bg-gradient-to-r from-[#578FCA] to-[#27548A] transition-all duration-500 ease-out shadow-md relative overflow-hidden"
                       style={{
                         width: `${
-                          ((currentQuestionIndex + 1) / quizzes.length) * 100
+                          ((currentQuestionIndex + 1) / questionsToUse.length) * 100
                         }%`,
                       }}
                     >
@@ -826,7 +838,7 @@ export default function QuizPlayer({
                     </span>
                     <span className="text-xs text-[#578FCA] font-bold">
                       {Math.round(
-                        ((currentQuestionIndex + 1) / quizzes.length) * 100
+                        ((currentQuestionIndex + 1) / questionsToUse.length) * 100
                       )}
                       %
                     </span>
@@ -925,19 +937,32 @@ export default function QuizPlayer({
                     )}
                   </div>
 
-                  <button
-                    onClick={handleNextQuestion}
-                    disabled={isLastQuestion}
-                    className={`cursor-pointer group flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 text-sm sm:text-base shadow-lg ${
-                      isLastQuestion
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
-                        : "bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white hover:shadow-xl active:scale-95"
-                    }`}
-                  >
-                    <span className="hidden sm:inline">Selanjutnya</span>
-                    <span className="sm:hidden">Next</span>
-                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </button>
+                  {/* ✅ FIX: Show Submit button on last question, Next button otherwise */}
+                  {isLastQuestion ? (
+                    <button
+                      onClick={handleSubmitQuiz}
+                      disabled={!allAnswered}
+                      className={`cursor-pointer group flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 text-sm sm:text-base shadow-lg ${
+                        allAnswered
+                          ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:shadow-xl active:scale-95"
+                          : "bg-gray-100 text-gray-400 cursor-not-allowed opacity-50"
+                      }`}
+                    >
+                      <Flag className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span className="hidden sm:inline">Selesaikan</span>
+                      <span className="sm:hidden">Done</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleNextQuestion}
+                      disabled={isLastQuestion}
+                      className="cursor-pointer group flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold transition-all duration-300 text-sm sm:text-base shadow-lg bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white hover:shadow-xl active:scale-95"
+                    >
+                      <span className="hidden sm:inline">Selanjutnya</span>
+                      <span className="sm:hidden">Next</span>
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+                  )}
                 </div>
 
                 {/* Mobile Question Navigation - Enhanced Design */}
@@ -951,13 +976,13 @@ export default function QuizPlayer({
                     </div>
                     <div className="px-3 py-1 bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-full">
                       <span className="text-xs font-bold text-blue-700">
-                        {getAnsweredCount()}/{quizzes.length}
+                        {getAnsweredCount()}/{questionsToUse.length}
                       </span>
                     </div>
                   </div>
 
                   <div className="flex gap-2.5 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-hide">
-                    {quizzes.map((_, index) => {
+                    {questionsToUse.map((_, index) => {
                       const isCurrent = index === currentQuestionIndex;
                       const isAnswered = selectedAnswers[index] !== undefined;
 
@@ -1006,7 +1031,7 @@ export default function QuizPlayer({
                           {allAnswered
                             ? "Selesaikan Kuis"
                             : `Jawab ${
-                                quizzes.length - getAnsweredCount()
+                                questionsToUse.length - getAnsweredCount()
                               } Soal Lagi`}
                         </span>
                       </div>

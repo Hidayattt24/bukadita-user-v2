@@ -39,6 +39,13 @@ export default function QuizManager({
 
   // ✅ CRITICAL FIX: Store actual quiz ID from backend (not question ID)
   const [quizId, setQuizId] = useState<string | undefined>();
+  
+  // ✅ NEW: Store quiz metadata (time_limit, passing_score, title)
+  const [quizMetadata, setQuizMetadata] = useState<{
+    time_limit_seconds?: number;
+    passing_score?: number;
+    title?: string;
+  }>({});
 
   // 🔥 NEW: Hook to sync progress from backend
   const { syncModuleProgress } = useProgressSync(moduleId);
@@ -71,6 +78,23 @@ export default function QuizManager({
             actualQuizId
           );
           setQuizId(actualQuizId);
+
+          // ✅ NEW: Fetch quiz metadata to get time_limit and passing_score
+          if (actualQuizId) {
+            try {
+              const quizResponse = await QuizService.getById(actualQuizId);
+              if (!quizResponse.error && quizResponse.data) {
+                console.log("[QuizManager] ✅ Quiz metadata fetched:", quizResponse.data);
+                setQuizMetadata({
+                  time_limit_seconds: quizResponse.data.time_limit_seconds,
+                  passing_score: quizResponse.data.passing_score,
+                  title: quizResponse.data.title,
+                });
+              }
+            } catch (error) {
+              console.error("[QuizManager] ⚠️ Failed to fetch quiz metadata:", error);
+            }
+          }
 
           // Convert backend questions to frontend Quiz type
           const frontendQuestions = response.data.questions.map((q) => ({
@@ -531,6 +555,7 @@ export default function QuizManager({
         quizId={quizId}
         moduleId={moduleId}
         subMateriId={subMateri.id}
+        timeLimit={quizMetadata.time_limit_seconds}
         onQuizComplete={handleQuizComplete}
         onBack={handleBackFromQuiz}
       />
@@ -556,6 +581,7 @@ export default function QuizManager({
         quiz: quizQuestions,
         quizResult: latestResult || subMateri.quizResult, // ✅ Use latestResult from history
       }}
+      quizMetadata={quizMetadata}
       onStartQuiz={handleStartQuiz}
       onRetakeQuiz={handleRetakeQuiz}
       onBackToContent={onContinueToNext}
