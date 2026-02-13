@@ -35,7 +35,14 @@ export default function InProgressModules() {
   });
 
   // Ambil 3 modul terakhir yang diakses
-  const displayModules = sortedModules.slice(0, 3);
+  let displayModules = sortedModules.slice(0, 3);
+
+  // Jika user baru (tidak ada progress), tampilkan 3 modul random
+  if (displayModules.length === 0 && safeModules.length > 0) {
+    // Shuffle array untuk random selection
+    const shuffled = [...safeModules].sort(() => Math.random() - 0.5);
+    displayModules = shuffled.slice(0, 3);
+  }
 
   // Get icon for module category
   const getCategoryIcon = (category: string) => {
@@ -108,11 +115,13 @@ export default function InProgressModules() {
         <div className="flex items-center gap-2 mb-2">
           <GraduationCap className="w-6 h-6 text-[#578FCA]" />
           <h2 className="text-2xl sm:text-3xl font-bold text-[#27548A]">
-            Lanjutkan Pembelajaran
+            {modulesWithProgress.length > 0 ? "Lanjutkan Pembelajaran" : "Mulai Pembelajaran"}
           </h2>
         </div>
         <p className="text-slate-600 text-sm sm:text-base">
-          Tiga pembelajaran terakhir yang Anda akses
+          {modulesWithProgress.length > 0 
+            ? "Tiga pembelajaran terakhir yang Anda akses"
+            : "Pilih modul untuk memulai pembelajaran Anda"}
         </p>
       </div>
 
@@ -185,7 +194,7 @@ export default function InProgressModules() {
 
               {/* Button */}
               <button className="w-full bg-white hover:bg-slate-50 text-[#27548A] font-bold py-2.5 sm:py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl group-hover:scale-[1.02] text-sm sm:text-base">
-                {progressPercentage >= 100 ? "Lihat Kembali" : "Lanjutkan Belajar"}
+                {progressPercentage >= 100 ? "Lihat Kembali" : progressPercentage > 0 ? "Lanjutkan Belajar" : "Mulai Belajar"}
               </button>
             </Link>
           );

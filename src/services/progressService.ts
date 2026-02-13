@@ -173,7 +173,7 @@ export class ProgressService {
         };
       }
 
-      // Only log actual errors (not 404)
+      // Only log actual errors (not 401/404 which are normal for new users)
       console.error("[PROGRESS_SERVICE] Error fetching module progress:", {
         moduleId,
         error: error?.message || "Unknown error",
