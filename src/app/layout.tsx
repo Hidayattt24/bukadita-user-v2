@@ -9,10 +9,10 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ProgressProvider } from "@/context/ProgressContext";
 import { ToastProvider } from "@/components/ui";
 import QueryProvider from "@/providers/QueryProvider";
+import ServiceWorkerProvider from "@/providers/ServiceWorkerProvider";
 import InstallPrompt from "@/components/shared/InstallPrompt";
 import FloatingNotes from "@/components/shared/FloatingNotes";
 import AccessibilityWidget from "@/components/shared/AccessibilityWidget";
-import OfflineIndicator from "@/components/shared/OfflineIndicator";
 import { Agentation } from "agentation";
 
 const geistSans = Geist({
@@ -116,12 +116,13 @@ export default function RootLayout({
           <AuthProvider>
             <ProgressProvider>
               <ToastProvider>
-                <OfflineIndicator />
-                <ConditionalLayout>{children}</ConditionalLayout>
-                <InstallPrompt />
-                <FloatingNotes />
-                <AccessibilityWidget />
-                {process.env.NODE_ENV === "development" && <Agentation />}
+                <ServiceWorkerProvider>
+                  <ConditionalLayout>{children}</ConditionalLayout>
+                  <InstallPrompt />
+                  <FloatingNotes />
+                  <AccessibilityWidget />
+                  {process.env.NODE_ENV === "development" && <Agentation />}
+                </ServiceWorkerProvider>
               </ToastProvider>
             </ProgressProvider>
           </AuthProvider>

@@ -108,7 +108,7 @@ export default function ModulList({
             <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-4">
               {[1, 2, 3].map((i) => (
                 <div
-                  key={i}
+                  key={`stat-skeleton-${i}`}
                   className="relative bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl sm:rounded-2xl p-3 sm:p-4 border-2 border-white shadow-[3px_3px_0px_rgba(0,0,0,0.08)] animate-pulse"
                 >
                   <div className="h-6 sm:h-8 w-10 sm:w-12 bg-white/50 rounded mb-1"></div>
@@ -123,7 +123,7 @@ export default function ModulList({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
-              key={i}
+              key={`module-skeleton-${i}`}
               className="relative bg-gradient-to-br from-slate-200 to-slate-300 rounded-2xl sm:rounded-3xl p-5 sm:p-6 border-2 border-white shadow-[6px_6px_0px_rgba(0,0,0,0.1)] sm:shadow-[10px_10px_0px_rgba(0,0,0,0.1)] animate-pulse"
             >
               {/* Icon Skeleton */}

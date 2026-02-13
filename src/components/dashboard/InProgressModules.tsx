@@ -79,7 +79,7 @@ export default function InProgressModules() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
           {[1, 2, 3].map((i) => (
             <div
-              key={i}
+              key={`inprogress-skeleton-${i}`}
               className="relative bg-gradient-to-br from-slate-200 to-slate-300 rounded-2xl sm:rounded-3xl p-5 sm:p-6 border-2 border-white shadow-[6px_6px_0px_rgba(0,0,0,0.1)] sm:shadow-[10px_10px_0px_rgba(0,0,0,0.1)] animate-pulse"
             >
               {/* Icon Skeleton */}
