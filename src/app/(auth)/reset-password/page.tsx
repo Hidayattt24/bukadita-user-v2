@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
-import { Smartphone, ArrowLeft, Send, CheckCircle } from "lucide-react";
+import { ArrowLeft, Send, CheckCircle } from "lucide-react";
 
 export default function ResetPasswordPage() {
   const [formData, setFormData] = useState({
@@ -40,18 +40,30 @@ export default function ResetPasswordPage() {
     }
 
     try {
-      // Simulasi API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+      
+      const response = await fetch(`${backendUrl}/api/v1/auth/request-password-reset`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone: formData.phone,
+        }),
+      });
 
-      // Handle reset password logic here
+      const data = await response.json();
 
+      if (!response.ok) {
+        throw new Error(data.message || "Gagal mengirim kode verifikasi");
+      }
 
-      // Show success state
+      // Show success state (no need to store userId anymore, it's in the WhatsApp link)
       setIsSuccess(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Reset password error:", error);
       setErrors({
-        general: "Terjadi kesalahan saat mengirim kode verifikasi",
+        general: error.message || "Terjadi kesalahan saat mengirim kode verifikasi",
       });
     } finally {
       setIsLoading(false);
@@ -112,11 +124,27 @@ export default function ResetPasswordPage() {
             </div>
             <div className="space-y-1">
               <p className="text-emerald-800 font-semibold text-sm">
-                Periksa SMS/WhatsApp Anda
+                Periksa WhatsApp Anda
               </p>
               <p className="text-emerald-700 text-xs leading-relaxed">
-                Silakan cek SMS atau WhatsApp Anda untuk mendapatkan kode verifikasi.
-                Kode akan kadaluarsa dalam 5 menit.
+                Kami telah mengirim kode OTP dan link reset password ke WhatsApp Anda. Klik link di WhatsApp untuk melanjutkan. Kode akan kadaluarsa dalam 5 menit.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Security Note */}
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-start space-x-2">
+            <div className="w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center mt-0.5">
+              <span className="text-white text-xs font-bold">!</span>
+            </div>
+            <div className="space-y-1">
+              <p className="text-amber-800 font-semibold text-sm">
+                Penting untuk Keamanan
+              </p>
+              <p className="text-amber-700 text-xs leading-relaxed">
+                Link reset password hanya berlaku untuk nomor HP Anda. Jangan bagikan link atau kode OTP kepada siapapun, termasuk yang mengaku dari BukaDita.
               </p>
             </div>
           </div>
@@ -124,13 +152,6 @@ export default function ResetPasswordPage() {
 
         {/* Action Buttons */}
         <div className="space-y-3">
-          <Link
-            href="/konfirmasi-password"
-            className="block w-full py-2.5 px-4 bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white font-semibold rounded-lg hover:from-[#4681c4] hover:to-[#1e3f6f] focus:ring-2 focus:ring-[#578FCA]/30 focus:outline-none transition-all duration-200 font-poppins shadow-md text-sm text-center"
-          >
-            Konfirmasi Password Baru
-          </Link>
-
           <button
             onClick={handleTryAgain}
             className="w-full py-2.5 px-4 border-2 border-[#578FCA] text-[#578FCA] font-semibold rounded-lg hover:bg-[#578FCA]/5 focus:ring-2 focus:ring-[#578FCA]/30 focus:outline-none transition-all duration-200 font-poppins text-sm"
