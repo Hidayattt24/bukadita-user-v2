@@ -40,7 +40,8 @@ export default function ResetPasswordPage() {
     }
 
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+      // Remove trailing slash if exists to prevent double slash in URL
+      const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080").replace(/\/$/, "");
       
       const response = await fetch(`${backendUrl}/api/v1/auth/request-password-reset`, {
         method: "POST",
