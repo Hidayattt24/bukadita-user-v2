@@ -69,19 +69,24 @@ export function useModuleDetailEffects(props: UseModuleDetailEffectsProps) {
 
             const subMateriProgressResponse = await ProgressService.getSubMateriProgress(sub.id);
             let completedPoinIds: string[] = [];
+            let scrollCompletedPoinIds: string[] = [];
             
             if (!subMateriProgressResponse.error && subMateriProgressResponse.data) {
               const subMateriData = subMateriProgressResponse.data as {
-                poin_details?: Array<{ id: string; is_completed: boolean }>;
+                poin_details?: Array<{ id: string; is_completed: boolean; scroll_completed?: boolean }>;
               };
               completedPoinIds = (subMateriData.poin_details || [])
                 .filter((p) => p.is_completed)
+                .map((p) => p.id);
+              scrollCompletedPoinIds = (subMateriData.poin_details || [])
+                .filter((p) => p.scroll_completed)
                 .map((p) => p.id);
             }
 
             const updatedPoinDetails = sub.poinDetails.map((poin) => ({
               ...poin,
               isCompleted: completedPoinIds.includes(poin.id),
+              scrollCompleted: scrollCompletedPoinIds.includes(poin.id),
             }));
 
             return {

@@ -25,6 +25,7 @@ interface ModulSidebarProps {
   toggleSubMateriExpanded: (subMateriId: string) => void;
   isFetchingProgress?: boolean;
   modulSlug: string;
+  isQuizActive?: boolean;
 }
 
 export default function ModulSidebar({
@@ -39,18 +40,51 @@ export default function ModulSidebar({
   toggleSubMateriExpanded,
   isFetchingProgress = false,
   modulSlug,
+  isQuizActive = false,
 }: ModulSidebarProps) {
   const { warning } = useToast();
+  const [isQuizMode, setIsQuizMode] = useState(false);
+
+  // Listen for quiz state changes
+  useEffect(() => {
+    const handleQuizStateChange = (e: CustomEvent) => {
+      setIsQuizMode(e.detail.isActive);
+    };
+
+    window.addEventListener("quizStateChanged", handleQuizStateChange as EventListener);
+
+    return () => {
+      window.removeEventListener("quizStateChanged", handleQuizStateChange as EventListener);
+    };
+  }, []);
+
+  // Override isQuizActive with event-based state
+  const quizActive = isQuizActive || isQuizMode;
+
+  // Block navigation when quiz is active
+  const handleBlockedNavigation = (e: React.MouseEvent) => {
+    if (quizActive) {
+      e.preventDefault();
+      e.stopPropagation();
+      warning("Anda sedang dalam mode kuis. Silakan selesaikan kuis terlebih dahulu.");
+    }
+  };
 
   // 🔥 FIX: Calculate progress from modul.subMateris (already updated by parent)
-  const completedSubMaterisCount = modul.subMateris.filter(
-    (s) => s.isCompleted
-  ).length;
+  // Count sub-materis with ANY progress (scroll or completion)
+  const completedSubMaterisCount = modul.subMateris.filter((s) => s.isCompleted).length;
+  const subMaterisWithProgress = modul.subMateris.filter((s) => {
+    const hasScrollProgress = s.poinDetails.some((p) => p.scrollCompleted);
+    return s.isCompleted || hasScrollProgress;
+  }).length;
   const totalSubMateris = modul.subMateris.length;
-  const actualProgress =
-    totalSubMateris > 0
-      ? Math.round((completedSubMaterisCount / totalSubMateris) * 100)
-      : 0;
+  
+  // Calculate actual progress percentage based on all poins across all sub-materis
+  const totalPoins = modul.subMateris.reduce((sum, s) => sum + s.poinDetails.length, 0);
+  const progressedPoins = modul.subMateris.reduce((sum, s) => {
+    return sum + s.poinDetails.filter((p) => p.isCompleted || p.scrollCompleted).length;
+  }, 0);
+  const actualProgress = totalPoins > 0 ? Math.round((progressedPoins / totalPoins) * 100) : 0;
 
   return (
     <>
@@ -136,7 +170,7 @@ export default function ModulSidebar({
                     <CheckCircle className="w-4 h-4 text-white" />
                     <span className="font-bold text-white text-sm">Selesai</span>
                   </>
-                ) : completedSubMaterisCount > 0 ? (
+                ) : subMaterisWithProgress > 0 ? (
                   <>
                     <div className="w-4 h-4 rounded-full border-2 border-white flex items-center justify-center">
                       <div className="w-2 h-2 rounded-full bg-white"></div>
@@ -156,7 +190,7 @@ export default function ModulSidebar({
             <div className="flex items-center justify-between">
               <div className="text-xs text-blue-100">
                 <span className="font-semibold text-white">
-                  {completedSubMaterisCount}
+                  {subMaterisWithProgress}
                 </span>
                 {" dari "}
                 <span className="font-semibold text-white">
@@ -185,28 +219,29 @@ export default function ModulSidebar({
               const isSubMateriCompleted = subMateri.isCompleted;
 
               // 🔥 FIX: Get completed poins from poinDetails (already updated from backend)
-              const completedPoinsIds = subMateri.poinDetails
-                .filter((p) => p.isCompleted)
+              // Count poins as "progressed" if either isCompleted OR scrollCompleted
+              const progressedPoinsIds = subMateri.poinDetails
+                .filter((p) => p.isCompleted || p.scrollCompleted)
                 .map((p) => p.id);
 
               // 🔥 Calculate progress percentage
-              // Progress = (completed poins / total items) * 100
+              // Progress = (progressed poins / total items) * 100
               // Total items = poins + (quiz ? 1 : 0)
               const totalPoins = subMateri.poinDetails.length;
               const hasQuiz = subMateri.quiz && subMateri.quiz.length > 0;
               const totalItems = totalPoins + (hasQuiz ? 1 : 0); // Total poin + quiz (if exists)
 
-              // Count completed items
-              const completedPoinsCount = completedPoinsIds.length;
+              // Count progressed items (scroll completed OR fully completed)
+              const progressedPoinsCount = progressedPoinsIds.length;
               // 🔥 FIX: Quiz is completed if sub-materi is completed and has quiz
               const quizCompleted = hasQuiz && isSubMateriCompleted;
-              const completedItems =
-                completedPoinsCount + (quizCompleted ? 1 : 0);
+              const progressedItems =
+                progressedPoinsCount + (quizCompleted ? 1 : 0);
 
               // Calculate percentage
               const progressPercentage =
                 totalItems > 0
-                  ? Math.round((completedItems / totalItems) * 100)
+                  ? Math.round((progressedItems / totalItems) * 100)
                   : 0;
 
               return (
@@ -287,7 +322,7 @@ export default function ModulSidebar({
                                 ✓ Selesai
                               </span>
                             </>
-                          ) : completedPoinsCount > 0 ? (
+                          ) : progressedPoinsCount > 0 ? (
                             <>
                               <div className="w-4 h-4 rounded-full border-2 border-[#578FCA] flex items-center justify-center">
                                 <div className="w-2 h-2 rounded-full bg-[#578FCA]"></div>
@@ -308,7 +343,7 @@ export default function ModulSidebar({
                         
                         {/* Detail count */}
                         <div className="text-xs text-gray-400">
-                          {completedPoinsCount}/{totalPoins} poin
+                          {progressedPoinsCount}/{totalPoins} poin
                           {hasQuiz && (
                             <span className="ml-1">
                               + {quizCompleted ? "✓" : "○"} quiz
@@ -320,7 +355,11 @@ export default function ModulSidebar({
 
                     {/* Action Button */}
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        if (quizActive) {
+                          handleBlockedNavigation(e);
+                          return;
+                        }
                         if (subMateri.isUnlocked) {
                           handleSubMateriSelect(subMateri);
                         } else {
@@ -334,7 +373,9 @@ export default function ModulSidebar({
                         }
                       }}
                       className={`w-full py-2.5 px-4 rounded-lg font-medium text-sm transition-all ${
-                        selectedSubMateri?.id === subMateri.id
+                        quizActive
+                          ? "bg-gray-200 text-gray-400 cursor-not-allowed opacity-60"
+                          : selectedSubMateri?.id === subMateri.id
                           ? "bg-[#578FCA] text-white shadow-lg"
                           : isSubMateriCompleted
                           ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
@@ -342,6 +383,7 @@ export default function ModulSidebar({
                           ? "bg-gray-100 text-[#27548A] hover:bg-gray-200"
                           : "bg-gray-50 text-gray-400 cursor-pointer hover:bg-gray-100"
                       }`}
+                      disabled={quizActive}
                     >
                       {selectedSubMateri?.id === subMateri.id ? (
                         <span className="flex items-center justify-center gap-2">
@@ -354,7 +396,7 @@ export default function ModulSidebar({
                           Selesai - Review
                         </span>
                       ) : subMateri.isUnlocked ? (
-                        completedPoinsCount > 0 ? (
+                        progressedPoinsCount > 0 ? (
                           "Lanjutkan Belajar"
                         ) : (
                           "Mulai Belajar"
@@ -394,15 +436,19 @@ export default function ModulSidebar({
                       subMateri.poinDetails.length > 0 && (
                         <div className="mt-3 space-y-1 pl-2 border-l-2 border-[#578FCA]/20">
                           {subMateri.poinDetails.map((poin, poinIndex) => {
-                            // Check if poin is completed from localStorage
-                            const isPoinCompleted = completedPoinsIds.includes(
-                              poin.id
-                            );
+                            // Check if poin is completed or scroll completed
+                            const isPoinCompleted = poin.isCompleted;
+                            const isPoinScrollCompleted = poin.scrollCompleted;
+                            const isPoinProgressed = isPoinCompleted || isPoinScrollCompleted;
 
                             return (
                               <button
                                 key={poin.id}
-                                onClick={() => {
+                                onClick={(e) => {
+                                  if (quizActive) {
+                                    handleBlockedNavigation(e);
+                                    return;
+                                  }
                                   if (subMateri.isUnlocked) {
                                     handleSubMateriSelect(subMateri);
                                     handlePoinSelect(poinIndex);
@@ -416,13 +462,18 @@ export default function ModulSidebar({
                                     );
                                   }
                                 }}
+                                disabled={quizActive}
                                 className={`w-full text-left p-2.5 rounded-lg text-xs transition-all ${
-                                  selectedPoinIndex === poinIndex &&
-                                  selectedSubMateri?.id === subMateri.id &&
-                                  subMateri.isUnlocked
+                                  quizActive
+                                    ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
+                                    : selectedPoinIndex === poinIndex &&
+                                      selectedSubMateri?.id === subMateri.id &&
+                                      subMateri.isUnlocked
                                     ? "bg-[#578FCA]/10 text-[#27548A] border border-[#578FCA]/30"
                                     : isPoinCompleted && subMateri.isUnlocked
                                     ? "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                                    : isPoinScrollCompleted && subMateri.isUnlocked
+                                    ? "bg-blue-50 text-blue-800 hover:bg-blue-100"
                                     : subMateri.isUnlocked
                                     ? "text-gray-600 hover:bg-gray-100"
                                     : "text-gray-400 hover:bg-red-50 hover:text-red-400 cursor-pointer"
@@ -430,6 +481,8 @@ export default function ModulSidebar({
                                 title={
                                   !subMateri.isUnlocked
                                     ? "Selesaikan materi sebelumnya untuk mengakses poin ini"
+                                    : isPoinScrollCompleted && !isPoinCompleted
+                                    ? "Sudah dibaca - Selesaikan kuis untuk menyelesaikan materi"
                                     : ""
                                 }
                               >
@@ -443,6 +496,9 @@ export default function ModulSidebar({
                                         : isPoinCompleted &&
                                           subMateri.isUnlocked
                                         ? "bg-emerald-500"
+                                        : isPoinScrollCompleted &&
+                                          subMateri.isUnlocked
+                                        ? "bg-blue-500"
                                         : subMateri.isUnlocked
                                         ? "bg-gray-300"
                                         : "bg-gray-300"
@@ -456,6 +512,9 @@ export default function ModulSidebar({
                                   </span>
                                   {isPoinCompleted && subMateri.isUnlocked && (
                                     <CheckCircle className="w-3 h-3 text-emerald-500" />
+                                  )}
+                                  {!isPoinCompleted && isPoinScrollCompleted && subMateri.isUnlocked && (
+                                    <BookOpen className="w-3 h-3 text-blue-500" />
                                   )}
                                 </div>
                               </button>

@@ -27,14 +27,15 @@ export default function ConditionalLayout({
     pathname?.includes("konfirmasi-password");
   const isDashboardPage =
     pathname?.includes("admin") || pathname?.includes("user");
+  const isNotFoundPage = pathname === "/not-found" || !pathname;
 
   // Prevent hydration mismatch by rendering consistent content until client-side
   if (!isClient || isLoading) {
     return <>{children}</>;
   }
 
-  // Jika halaman auth atau dashboard, return children tanpa navbar dan footer
-  if (isAuthPage || isDashboardPage) {
+  // Jika halaman auth, dashboard, atau 404, return children tanpa navbar dan footer
+  if (isAuthPage || isDashboardPage || isNotFoundPage) {
     return <>{children}</>;
   }
 

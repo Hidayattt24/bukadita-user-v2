@@ -79,15 +79,46 @@ export const useModulesWithProgress = () => {
             
             if (!progressResponse.error && progressResponse.data) {
               const data = progressResponse.data as any;
-              progressMap.set(module.id, {
-                status: data.progress?.status || "not-started",
-                progress_percent: data.progress?.progress_percent || 0,
-                last_accessed_at: data.progress?.last_accessed_at,
-              });
               
-              console.log(`[useModulesWithProgress] Progress for ${module.title}:`, {
-                status: data.progress?.status,
-                progress: data.progress?.progress_percent,
+              // Try to get detailed progress with poin_details
+              let calculatedProgress = 0;
+              let hasDetailedProgress = false;
+              
+              // Check if response includes sub_materis with poin_details
+              if (data.sub_materis && Array.isArray(data.sub_materis)) {
+                let totalPoins = 0;
+                let progressedPoins = 0;
+                
+                for (const subMateri of data.sub_materis) {
+                  if (subMateri.poin_details && Array.isArray(subMateri.poin_details)) {
+                    totalPoins += subMateri.poin_details.length;
+                    progressedPoins += subMateri.poin_details.filter(
+                      (p: any) => p.is_completed || p.scroll_completed
+                    ).length;
+                    hasDetailedProgress = true;
+                  }
+                }
+                
+                if (hasDetailedProgress && totalPoins > 0) {
+                  calculatedProgress = Math.round((progressedPoins / totalPoins) * 100);
+                  console.log(`[useModulesWithProgress] Calculated from poin details for ${module.title}:`, {
+                    totalPoins,
+                    progressedPoins,
+                    calculatedProgress
+                  });
+                }
+              }
+              
+              // Fallback: use progress_percent or progress_percentage from response
+              if (!hasDetailedProgress) {
+                calculatedProgress = data.progress_percentage || data.progress_percent || 0;
+                console.log(`[useModulesWithProgress] Using fallback progress for ${module.title}:`, calculatedProgress);
+              }
+              
+              progressMap.set(module.id, {
+                status: data.status || "not-started",
+                progress_percent: calculatedProgress,
+                last_accessed_at: data.last_accessed_at,
               });
             }
           } catch (err) {

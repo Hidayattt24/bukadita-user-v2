@@ -75,6 +75,20 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Skip range requests (video/audio streaming with partial content)
+  // These use status 206 which can't be cached
+  if (request.headers.get("range")) {
+    console.log("[SW] Skipping range request:", request.url);
+    return;
+  }
+
+  // Skip video and audio files (they often use range requests)
+  const videoAudioExtensions = [".mp4", ".webm", ".ogg", ".mp3", ".wav", ".m4a"];
+  if (videoAudioExtensions.some((ext) => url.pathname.endsWith(ext))) {
+    console.log("[SW] Skipping video/audio file:", request.url);
+    return;
+  }
+
   // Strategy 1: Cache-first for static assets
   if (isStaticAsset(url)) {
     event.respondWith(cacheFirst(request, STATIC_CACHE));
@@ -142,9 +156,11 @@ async function cacheFirst(request, cacheName) {
     console.log("[SW] Fetching from network:", request.url);
     const networkResponse = await fetch(request);
     
-    // Cache the response for future use
-    if (networkResponse.ok) {
+    // Only cache successful, complete responses (status 200)
+    // Don't cache partial responses (206), redirects (3xx), or errors (4xx, 5xx)
+    if (networkResponse.status === 200) {
       const cache = await caches.open(cacheName);
+      // Clone the response before caching
       cache.put(request, networkResponse.clone());
     }
     
@@ -165,9 +181,11 @@ async function networkFirstWithCache(request, cacheName) {
     console.log("[SW] Fetching API from network:", request.url);
     const networkResponse = await fetch(request);
     
-    // Cache successful responses
-    if (networkResponse.ok) {
+    // Only cache successful, complete responses (status 200)
+    // Don't cache partial responses (206), redirects (3xx), or errors (4xx, 5xx)
+    if (networkResponse.status === 200) {
       const cache = await caches.open(cacheName);
+      // Clone the response before caching
       cache.put(request, networkResponse.clone());
       console.log("[SW] Cached API response:", request.url);
     }
@@ -219,7 +237,8 @@ async function cacheFirstForPages(request, cacheName) {
       // Update cache in background (stale-while-revalidate)
       fetch(request)
         .then((networkResponse) => {
-          if (networkResponse.ok) {
+          // Only cache successful, complete responses (status 200)
+          if (networkResponse.status === 200) {
             caches.open(cacheName).then((cache) => {
               cache.put(request, networkResponse);
               console.log("[SW] Updated cache for:", request.url);
@@ -238,8 +257,8 @@ async function cacheFirstForPages(request, cacheName) {
     console.log("[SW] Fetching page from network:", request.url);
     const networkResponse = await fetch(request);
     
-    // Cache the response
-    if (networkResponse.ok) {
+    // Only cache successful, complete responses (status 200)
+    if (networkResponse.status === 200) {
       const cache = await caches.open(cacheName);
       cache.put(request, networkResponse.clone());
       console.log("[SW] Cached page:", request.url);
@@ -268,9 +287,11 @@ async function networkFirst(request, cacheName) {
   try {
     const networkResponse = await fetch(request);
     
-    // Cache successful responses
-    if (networkResponse.ok) {
+    // Only cache successful responses (status 200-299)
+    // Don't cache partial responses (206) or redirects (3xx)
+    if (networkResponse.ok && networkResponse.status === 200) {
       const cache = await caches.open(cacheName);
+      // Clone the response before caching
       cache.put(request, networkResponse.clone());
     }
     

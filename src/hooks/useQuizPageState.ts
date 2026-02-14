@@ -23,9 +23,22 @@ export function useQuizPageState({ modulSlug, subMateriId }: UseQuizPageStatePro
   const [expandedSubMateris, setExpandedSubMateris] = useState<string[]>([]);
   const [isMobile, setIsMobile] = useState(true);
   const [isFetchingProgress, setIsFetchingProgress] = useState(false);
+  const [isQuizActive, setIsQuizActive] = useState(false);
 
   const { initializeModuleProgress } = useProgress();
   const { syncModuleProgress } = useProgressSync(modul?.moduleId || null);
+
+  // Listen for quiz state changes
+  useEffect(() => {
+    const handleQuizStateChange = (event: CustomEvent) => {
+      setIsQuizActive(event.detail.isActive);
+    };
+
+    window.addEventListener('quizStateChanged', handleQuizStateChange as EventListener);
+    return () => {
+      window.removeEventListener('quizStateChanged', handleQuizStateChange as EventListener);
+    };
+  }, []);
 
   // Update modul state when modulFromDB changes
   useEffect(() => {
@@ -294,6 +307,7 @@ export function useQuizPageState({ modulSlug, subMateriId }: UseQuizPageStatePro
     sidebarOpen,
     expandedSubMateris,
     isFetchingProgress,
+    isQuizActive,
     loadingModule,
     handleSubMateriSelect,
     handlePoinSelect,

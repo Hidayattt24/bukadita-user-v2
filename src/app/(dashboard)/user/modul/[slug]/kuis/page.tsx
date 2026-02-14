@@ -18,6 +18,7 @@ function KuisPageContent() {
     sidebarOpen,
     expandedSubMateris,
     isFetchingProgress,
+    isQuizActive,
     loadingModule,
     handleSubMateriSelect,
     handlePoinSelect,
@@ -44,6 +45,7 @@ function KuisPageContent() {
       sidebarOpen={sidebarOpen}
       expandedSubMateris={expandedSubMateris}
       isFetchingProgress={isFetchingProgress}
+      isQuizActive={isQuizActive}
       toggleSidebar={toggleSidebar}
       handleSubMateriSelect={handleSubMateriSelect}
       handlePoinSelect={handlePoinSelect}

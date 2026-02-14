@@ -23,6 +23,11 @@ export default function InProgressModules() {
     (modul) => modul.progress && modul.progress.progress_percent > 0
   );
 
+  // Filter modul yang belum dipelajari (progress = 0% atau null)
+  const modulesNotStarted = safeModules.filter(
+    (modul) => !modul.progress || modul.progress.progress_percent === 0
+  );
+
   // Sort by last_accessed_at descending (terbaru dulu)
   const sortedModules = [...modulesWithProgress].sort((a, b) => {
     const dateA = a.progress?.last_accessed_at
@@ -34,15 +39,48 @@ export default function InProgressModules() {
     return dateB - dateA; // Descending
   });
 
-  // Ambil 3 modul terakhir yang diakses
-  let displayModules = sortedModules.slice(0, 3);
+  // Shuffle modul yang belum dipelajari untuk random selection
+  const shuffledNotStarted = [...modulesNotStarted].sort(() => Math.random() - 0.5);
 
-  // Jika user baru (tidak ada progress), tampilkan 3 modul random
-  if (displayModules.length === 0 && safeModules.length > 0) {
-    // Shuffle array untuk random selection
-    const shuffled = [...safeModules].sort(() => Math.random() - 0.5);
-    displayModules = shuffled.slice(0, 3);
+  // 🔥 LOGIC: Always show 3 modules
+  // Priority: in-progress modules (sorted by last accessed) + unstarted modules (random) to fill remaining slots
+  let displayModules: typeof safeModules = [];
+  
+  if (sortedModules.length >= 3) {
+    // If we have 3+ modules with progress, show top 3
+    displayModules = sortedModules.slice(0, 3);
+  } else {
+    // If less than 3 modules with progress, fill with random unstarted modules
+    const slotsNeeded = 3 - sortedModules.length;
+    displayModules = [
+      ...sortedModules,
+      ...shuffledNotStarted.slice(0, slotsNeeded)
+    ];
   }
+
+  // Edge case: if total modules < 3, show all available
+  if (displayModules.length < 3 && safeModules.length > 0) {
+    const shuffledAll = [...safeModules].sort(() => Math.random() - 0.5);
+    displayModules = shuffledAll.slice(0, Math.min(3, safeModules.length));
+  }
+
+  console.log('[InProgressModules] Display logic:', {
+    totalModules: safeModules.length,
+    modulesWithProgress: modulesWithProgress.length,
+    modulesNotStarted: modulesNotStarted.length,
+    sortedModulesCount: sortedModules.length,
+    displayModulesCount: displayModules.length,
+    displayModulesData: displayModules.map(m => ({
+      title: m.title,
+      progress: m.progress?.progress_percent || 0,
+      lastAccessed: m.progress?.last_accessed_at || 'never'
+    })),
+    allModulesProgress: safeModules.map(m => ({
+      title: m.title,
+      progress: m.progress?.progress_percent || 0,
+      lastAccessed: m.progress?.last_accessed_at || 'never'
+    }))
+  });
 
   // Get icon for module category
   const getCategoryIcon = (category: string) => {

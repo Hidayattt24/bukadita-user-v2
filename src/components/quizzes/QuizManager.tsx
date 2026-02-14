@@ -3,11 +3,14 @@ import { type SubMateri, type QuizResult } from "@/types/modul";
 import QuizInstruction from "./QuizInstruction";
 import QuizPlayer from "./QuizPlayer";
 import QuizResultComponent from "./QuizResult";
+import QuizStartConfirmation from "./QuizStartConfirmation";
 import OfflineBlocker from "@/components/shared/OfflineBlocker";
 import { QuizService } from "@/services/quizService";
 import { useAuth } from "@/context/AuthContext";
 import { useProgressSync } from "@/hooks/useProgressSync";
 import { useOnline } from "@/hooks/useOnline";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface QuizManagerProps {
   subMateri: SubMateri;
@@ -25,8 +28,10 @@ export default function QuizManager({
   onContinueToNext,
 }: QuizManagerProps) {
   const { user } = useAuth();
+  const router = useRouter();
   const isOnline = useOnline();
   const [currentState, setCurrentState] = useState<QuizState>("instruction");
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [quizHistory, setQuizHistory] = useState<QuizResult[]>([]);
   const [latestResult, setLatestResult] = useState<QuizResult | null>(
     subMateri.quizResult || null
@@ -265,22 +270,92 @@ export default function QuizManager({
     fetchQuizHistory();
   }, [fetchQuizHistory]);
 
+  // 🔥 NEW: Notify parent when quiz state changes
+  useEffect(() => {
+    // Dispatch custom event for quiz state
+    window.dispatchEvent(
+      new CustomEvent("quizStateChanged", {
+        detail: { isActive: currentState === "playing" },
+      })
+    );
+  }, [currentState]);
+
+  // 🔥 NEW: Block navigation when quiz is in progress
+  useEffect(() => {
+    if (currentState === "playing") {
+      // Block browser back button
+      const handlePopState = (e: PopStateEvent) => {
+        e.preventDefault();
+        toast.error("Anda sedang dalam mode kuis. Silakan selesaikan kuis terlebih dahulu.", {
+          duration: 3000,
+          position: "top-center",
+          style: {
+            background: "#ef4444",
+            color: "#fff",
+            fontWeight: "600",
+            borderRadius: "12px",
+            padding: "16px",
+          },
+        });
+        // Push state back to prevent navigation
+        window.history.pushState(null, "", window.location.href);
+      };
+
+      // Add initial state
+      window.history.pushState(null, "", window.location.href);
+      window.addEventListener("popstate", handlePopState);
+
+      // Block page unload
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = "Anda sedang mengerjakan kuis. Yakin ingin keluar?";
+        return e.returnValue;
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      return () => {
+        window.removeEventListener("popstate", handlePopState);
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      };
+    }
+  }, [currentState]);
+
   const handleStartQuiz = () => {
     // Check if online before allowing quiz start
     if (!isOnline) {
       console.log("[QuizManager] ⚠️ Cannot start quiz while offline");
+      toast.error("Kuis memerlukan koneksi internet", {
+        duration: 3000,
+        position: "top-center",
+      });
       return;
     }
+    // Show confirmation dialog
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmStart = () => {
+    setShowConfirmation(false);
     setCurrentState("playing");
+  };
+
+  const handleCancelStart = () => {
+    setShowConfirmation(false);
   };
 
   const handleRetakeQuiz = () => {
     // Check if online before allowing retake
     if (!isOnline) {
       console.log("[QuizManager] ⚠️ Cannot retake quiz while offline");
+      toast.error("Kuis memerlukan koneksi internet", {
+        duration: 3000,
+        position: "top-center",
+      });
       return;
     }
-    setCurrentState("playing");
+    // Show confirmation dialog
+    setShowConfirmation(true);
   };
 
   const handleBackFromQuiz = () => {
@@ -414,8 +489,21 @@ export default function QuizManager({
     isLoadingQuestions,
   });
 
-  // Show skeleton loading state while fetching quiz history or questions
-  if (isLoadingHistory || isLoadingQuestions) {
+  return (
+    <>
+      <QuizStartConfirmation
+        isOpen={showConfirmation}
+        onConfirm={handleConfirmStart}
+        onCancel={handleCancelStart}
+        quizTitle={quizMetadata.title || subMateri.title}
+        totalQuestions={quizQuestions.length}
+        timeLimit={quizMetadata.time_limit_seconds}
+        passingScore={quizMetadata.passing_score}
+      />
+
+      {(() => {
+        // Show skeleton loading state while fetching quiz history or questions
+        if (isLoadingHistory || isLoadingQuestions) {
     return (
       <div className="min-h-[calc(100vh-73px)] bg-gradient-to-br from-[#578FCA]/5 via-[#27548A]/5 to-slate-50/90">
         <div className="max-w-7xl mx-auto">
@@ -587,5 +675,8 @@ export default function QuizManager({
       onBackToContent={onContinueToNext}
       quizHistory={quizHistory}
     />
+  );
+      })()}
+    </>
   );
 }

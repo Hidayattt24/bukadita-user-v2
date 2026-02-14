@@ -10,6 +10,7 @@ interface QuizPageLayoutProps {
   sidebarOpen: boolean;
   expandedSubMateris: string[];
   isFetchingProgress: boolean;
+  isQuizActive?: boolean;
   toggleSidebar: () => void;
   handleSubMateriSelect: (subMateri: SubMateri) => void;
   handlePoinSelect: () => void;
@@ -24,6 +25,7 @@ export default function QuizPageLayout({
   sidebarOpen,
   expandedSubMateris,
   isFetchingProgress,
+  isQuizActive = false,
   toggleSidebar,
   handleSubMateriSelect,
   handlePoinSelect,
@@ -39,6 +41,8 @@ export default function QuizPageLayout({
         selectedPoinIndex={-1}
         toggleSidebar={toggleSidebar}
         sidebarOpen={sidebarOpen}
+        isQuizPage={true}
+        isQuizActive={isQuizActive}
       />
 
       <main className="flex flex-1 relative min-h-[calc(100vh-73px)] pb-safe">
@@ -66,6 +70,7 @@ export default function QuizPageLayout({
           handlePoinSelect={handlePoinSelect}
           toggleSubMateriExpanded={toggleSubMateriExpanded}
           isFetchingProgress={isFetchingProgress}
+          isQuizActive={isQuizActive}
         />
       </main>
     </div>

@@ -16,7 +16,8 @@ export interface PoinDetail {
   title: string;
   content: string; // Mapped from content_html
   duration: string; // Mapped from duration_label
-  isCompleted: boolean; // Derived from progress
+  isCompleted: boolean; // Derived from progress (quiz completion)
+  scrollCompleted?: boolean; // Derived from scroll progress (reading completion)
   type: "text" | "video" | "image"; // Default to text
   // Media items for this poin
   media?: Array<{

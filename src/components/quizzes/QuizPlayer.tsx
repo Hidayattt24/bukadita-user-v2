@@ -665,16 +665,8 @@ export default function QuizPlayer({
       {/* Header - Enhanced Modern Design */}
       <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-xl border-b border-gray-200/50 shadow-lg">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 sm:px-4 md:px-6 py-3 sm:py-4 gap-3 sm:gap-4">
-          {/* Left Section - Enhanced */}
+          {/* Left Section - Quiz Info */}
           <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
-            <button
-              onClick={onBack}
-              className="cursor-pointer group flex items-center gap-1 sm:gap-2 text-[#27548A] hover:text-white bg-gray-100 hover:bg-[#578FCA] transition-all duration-300 p-2 sm:p-2.5 rounded-xl flex-shrink-0 shadow-sm hover:shadow-md"
-            >
-              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="font-bold text-xs sm:text-sm">Kembali</span>
-            </button>
-            <div className="h-8 w-px bg-gradient-to-b from-transparent via-gray-300 to-transparent hidden sm:block"></div>
             <div className="flex-1 sm:flex-initial">
               <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-[#27548A] to-[#578FCA] bg-clip-text text-transparent">
                 Kuis
