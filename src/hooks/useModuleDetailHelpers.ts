@@ -20,9 +20,19 @@ export function useModuleDetailHelpers(
     const isLastSubMateri = currentSubMateriIndex === modul.subMateris.length - 1;
     const hasQuiz = selectedSubMateri.quiz && selectedSubMateri.quiz.length > 0;
 
+    console.log('[canNavigateNext] Debug:', {
+      isLastPoinInSubMateri,
+      hasQuiz,
+      isCompleted: selectedSubMateri.isCompleted,
+      subMateriTitle: selectedSubMateri.title,
+      currentSubMateriIndex,
+      isLastSubMateri
+    });
+
     // ✅ FIX: If at last poin and has quiz, check if quiz is completed
     if (isLastPoinInSubMateri && hasQuiz) {
       // Can only navigate next if quiz is completed (sub-materi is completed)
+      console.log('[canNavigateNext] Last poin with quiz - checking completion:', selectedSubMateri.isCompleted);
       return selectedSubMateri.isCompleted;
     }
 

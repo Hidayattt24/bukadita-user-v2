@@ -29,6 +29,7 @@ interface ModulContentProps {
   sidebarOpen: boolean;
   modulSlug: string;
   moduleId?: string;
+  isFetchingProgress?: boolean; // Add loading state
 }
 
 export default function ModulContent({
@@ -42,6 +43,7 @@ export default function ModulContent({
   sidebarOpen,
   modulSlug,
   moduleId,
+  isFetchingProgress = false,
 }: ModulContentProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [isScrollComplete, setIsScrollComplete] = useState(false);
@@ -281,88 +283,113 @@ export default function ModulContent({
 
         {/* Navigation Footer */}
         <div className="bg-white border-t border-gray-200 p-3 sm:p-6">
-          {/* Mobile Layout - Progress di atas, tombol di bawah */}
-          <div className="flex flex-col gap-3 sm:hidden">
-            <div className="flex justify-center">
-              <span className="text-xs text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
-                <span className="font-bold text-[#578FCA]">
-                  {selectedPoinIndex + 1}
-                </span>
-                {" / "}
-                <span className="font-medium">
-                  {selectedSubMateri?.poinDetails.length}
-                </span>
-              </span>
-            </div>
-            <div className="flex justify-between gap-3">
-              <button
-                onClick={handlePreviousPoin}
-                disabled={!canNavigatePrevious()}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center ${
-                  canNavigatePrevious()
-                    ? "bg-gray-100 text-[#27548A] hover:bg-gray-200"
-                    : "bg-gray-50 text-gray-400 cursor-not-allowed"
-                }`}
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Sebelumnya
-              </button>
-              <button
-                onClick={handleNextPoin}
-                disabled={!canNavigateNext()}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center ${
-                  canNavigateNext()
-                    ? "bg-[#578FCA] text-white hover:bg-[#27548A]"
-                    : "bg-gray-50 text-gray-400 cursor-not-allowed"
-                }`}
-              >
-                Selanjutnya
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+          {/* Show loading skeleton when fetching progress */}
+          {isFetchingProgress ? (
+            <>
+              {/* Mobile Loading Skeleton */}
+              <div className="flex flex-col gap-3 sm:hidden">
+                <div className="flex justify-center">
+                  <div className="h-6 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <div className="flex-1 h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+                  <div className="flex-1 h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+                </div>
+              </div>
 
-          {/* Desktop Layout */}
-          <div className="hidden sm:flex items-center justify-between">
-            <button
-              onClick={handlePreviousPoin}
-              disabled={!canNavigatePrevious()}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors text-base ${
-                canNavigatePrevious()
-                  ? "bg-gray-100 text-[#27548A] hover:bg-gray-200"
-                  : "bg-gray-50 text-gray-400 cursor-not-allowed"
-              }`}
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Sebelumnya
-            </button>
+              {/* Desktop Loading Skeleton */}
+              <div className="hidden sm:flex items-center justify-between">
+                <div className="h-12 w-32 bg-gray-200 rounded-xl animate-pulse"></div>
+                <div className="h-6 w-24 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="h-12 w-32 bg-gray-200 rounded-xl animate-pulse"></div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Mobile Layout - Progress di atas, tombol di bawah */}
+              <div className="flex flex-col gap-3 sm:hidden">
+                <div className="flex justify-center">
+                  <span className="text-xs text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
+                    <span className="font-bold text-[#578FCA]">
+                      {selectedPoinIndex + 1}
+                    </span>
+                    {" / "}
+                    <span className="font-medium">
+                      {selectedSubMateri?.poinDetails.length}
+                    </span>
+                  </span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <button
+                    onClick={handlePreviousPoin}
+                    disabled={!canNavigatePrevious()}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center ${
+                      canNavigatePrevious()
+                        ? "bg-gray-100 text-[#27548A] hover:bg-gray-200"
+                        : "bg-gray-50 text-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Sebelumnya
+                  </button>
+                  <button
+                    onClick={handleNextPoin}
+                    disabled={!canNavigateNext()}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center ${
+                      canNavigateNext()
+                        ? "bg-[#578FCA] text-white hover:bg-[#27548A]"
+                        : "bg-gray-50 text-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    Selanjutnya
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
 
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">
-                Progress:
-                <span className="font-bold text-[#578FCA] ml-1">
-                  {selectedPoinIndex + 1}
-                </span>
-                {" / "}
-                <span className="font-medium">
-                  {selectedSubMateri?.poinDetails.length}
-                </span>
-              </span>
-            </div>
+              {/* Desktop Layout */}
+              <div className="hidden sm:flex items-center justify-between">
+                <button
+                  onClick={handlePreviousPoin}
+                  disabled={!canNavigatePrevious()}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors text-base ${
+                    canNavigatePrevious()
+                      ? "bg-gray-100 text-[#27548A] hover:bg-gray-200"
+                      : "bg-gray-50 text-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Sebelumnya
+                </button>
 
-            <button
-              onClick={handleNextPoin}
-              disabled={!canNavigateNext()}
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors text-base ${
-                canNavigateNext()
-                  ? "bg-[#578FCA] text-white hover:bg-[#27548A]"
-                  : "bg-gray-50 text-gray-400 cursor-not-allowed"
-              }`}
-            >
-              Selanjutnya
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-gray-600">
+                    Progress:
+                    <span className="font-bold text-[#578FCA] ml-1">
+                      {selectedPoinIndex + 1}
+                    </span>
+                    {" / "}
+                    <span className="font-medium">
+                      {selectedSubMateri?.poinDetails.length}
+                    </span>
+                  </span>
+                </div>
+
+                <button
+                  onClick={handleNextPoin}
+                  disabled={!canNavigateNext()}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors text-base ${
+                    canNavigateNext()
+                      ? "bg-[#578FCA] text-white hover:bg-[#27548A]"
+                      : "bg-gray-50 text-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  Selanjutnya
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

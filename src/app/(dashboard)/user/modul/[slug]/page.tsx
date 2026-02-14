@@ -71,6 +71,7 @@ export default function DetailModulPage() {
           sidebarOpen={sidebarOpen}
           modulSlug={modulSlug}
           moduleId={modul?.moduleId || modul?.id.toString()}
+          isFetchingProgress={isFetchingProgress}
         />
 
         <ModulSidebar

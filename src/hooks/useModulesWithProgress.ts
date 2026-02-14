@@ -72,60 +72,43 @@ export const useModulesWithProgress = () => {
           "[useModulesWithProgress] User logged in, fetching progress from backend..."
         );
         
-        // Fetch progress for each module from backend
-        for (const module of modulesData) {
+        // 🔥 OPTIMIZATION: Fetch all module progress in parallel instead of serial
+        const progressPromises = modulesData.map(async (module) => {
           try {
             const progressResponse = await ProgressService.getModuleProgress(module.id);
             
             if (!progressResponse.error && progressResponse.data) {
               const data = progressResponse.data as any;
-              
-              // Try to get detailed progress with poin_details
-              let calculatedProgress = 0;
-              let hasDetailedProgress = false;
-              
-              // Check if response includes sub_materis with poin_details
-              if (data.sub_materis && Array.isArray(data.sub_materis)) {
-                let totalPoins = 0;
-                let progressedPoins = 0;
-                
-                for (const subMateri of data.sub_materis) {
-                  if (subMateri.poin_details && Array.isArray(subMateri.poin_details)) {
-                    totalPoins += subMateri.poin_details.length;
-                    progressedPoins += subMateri.poin_details.filter(
-                      (p: any) => p.is_completed || p.scroll_completed
-                    ).length;
-                    hasDetailedProgress = true;
-                  }
+              return {
+                moduleId: module.id,
+                moduleTitle: module.title,
+                progress: {
+                  status: data.progress?.status || "not-started",
+                  progress_percent: data.progress?.progress_percent || 0,
+                  last_accessed_at: data.progress?.last_accessed_at,
                 }
-                
-                if (hasDetailedProgress && totalPoins > 0) {
-                  calculatedProgress = Math.round((progressedPoins / totalPoins) * 100);
-                  console.log(`[useModulesWithProgress] Calculated from poin details for ${module.title}:`, {
-                    totalPoins,
-                    progressedPoins,
-                    calculatedProgress
-                  });
-                }
-              }
-              
-              // Fallback: use progress_percent or progress_percentage from response
-              if (!hasDetailedProgress) {
-                calculatedProgress = data.progress_percentage || data.progress_percent || 0;
-                console.log(`[useModulesWithProgress] Using fallback progress for ${module.title}:`, calculatedProgress);
-              }
-              
-              progressMap.set(module.id, {
-                status: data.status || "not-started",
-                progress_percent: calculatedProgress,
-                last_accessed_at: data.last_accessed_at,
-              });
+              };
             }
+            return null;
           } catch (err) {
             console.warn(`[useModulesWithProgress] Failed to fetch progress for module ${module.id}:`, err);
-            // Continue with other modules
+            return null;
           }
-        }
+        });
+
+        // Wait for all progress fetches to complete
+        const progressResults = await Promise.all(progressPromises);
+        
+        // Build progress map from results
+        progressResults.forEach((result) => {
+          if (result) {
+            progressMap.set(result.moduleId, result.progress);
+            console.log(`[useModulesWithProgress] Progress for ${result.moduleTitle}:`, {
+              status: result.progress.status,
+              progress: result.progress.progress_percent,
+            });
+          }
+        });
         
         console.log(`[useModulesWithProgress] Fetched progress for ${progressMap.size} modules`);
       }

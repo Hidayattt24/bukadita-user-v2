@@ -19,6 +19,7 @@ interface UseModuleDetailEffectsProps {
   updateCurrentPoin: (moduleId: number, subId: string, poinIndex: number) => void;
   syncModuleProgress: () => Promise<void>;
   targetSubMateriId?: string | null;
+  selectedSubMateri?: SubMateri | null; // Add this
 }
 
 export function useModuleDetailEffects(props: UseModuleDetailEffectsProps) {
@@ -46,11 +47,16 @@ export function useModuleDetailEffects(props: UseModuleDetailEffectsProps) {
     if (!modul || !user || !modul.moduleId) return;
 
     const loadProgressFromBackend = async () => {
+      console.log('[Effects] 🔄 Loading progress from backend...');
       setIsFetchingProgress(true);
       try {
         const progressResponse = await ProgressService.getModuleProgress(modul.moduleId!);
 
-        if (progressResponse.error || !progressResponse.data) return;
+        if (progressResponse.error || !progressResponse.data) {
+          console.log('[Effects] ⚠️ No progress data found');
+          setIsFetchingProgress(false);
+          return;
+        }
 
         const backendData = progressResponse.data as {
           sub_materis?: Array<{
@@ -60,34 +66,38 @@ export function useModuleDetailEffects(props: UseModuleDetailEffectsProps) {
           }>;
         };
 
-        if (!backendData.sub_materis || backendData.sub_materis.length === 0) return;
+        if (!backendData.sub_materis || backendData.sub_materis.length === 0) {
+          console.log('[Effects] ⚠️ No sub-materis in progress data');
+          setIsFetchingProgress(false);
+          return;
+        }
 
-        const updatedSubMateris = await Promise.all(
-          modul.subMateris.map(async (sub) => {
-            const backendProgress = backendData.sub_materis?.find((bp) => bp.id === sub.id);
-            if (!backendProgress) return sub;
+        console.log('[Effects] 📊 Fetching detailed progress for each sub-materi...');
+        
+        // 🔥 OPTIMIZATION: Fetch all sub-materi progress in parallel
+        const subMateriProgressPromises = modul.subMateris.map(async (sub) => {
+          const backendProgress = backendData.sub_materis?.find((bp) => bp.id === sub.id);
+          if (!backendProgress) return sub;
 
+          try {
             const subMateriProgressResponse = await ProgressService.getSubMateriProgress(sub.id);
             let completedPoinIds: string[] = [];
-            let scrollCompletedPoinIds: string[] = [];
             
             if (!subMateriProgressResponse.error && subMateriProgressResponse.data) {
               const subMateriData = subMateriProgressResponse.data as {
-                poin_details?: Array<{ id: string; is_completed: boolean; scroll_completed?: boolean }>;
+                poin_details?: Array<{ id: string; is_completed: boolean }>;
               };
               completedPoinIds = (subMateriData.poin_details || [])
                 .filter((p) => p.is_completed)
-                .map((p) => p.id);
-              scrollCompletedPoinIds = (subMateriData.poin_details || [])
-                .filter((p) => p.scroll_completed)
                 .map((p) => p.id);
             }
 
             const updatedPoinDetails = sub.poinDetails.map((poin) => ({
               ...poin,
               isCompleted: completedPoinIds.includes(poin.id),
-              scrollCompleted: scrollCompletedPoinIds.includes(poin.id),
             }));
+
+            console.log(`[Effects] ✅ Sub-materi "${sub.title}": completed=${backendProgress.is_completed}, unlocked=${backendProgress.is_unlocked}`);
 
             return {
               ...sub,
@@ -95,18 +105,140 @@ export function useModuleDetailEffects(props: UseModuleDetailEffectsProps) {
               isUnlocked: backendProgress.is_unlocked,
               poinDetails: updatedPoinDetails,
             };
-          })
-        );
+          } catch (error) {
+            console.error(`[Effects] Error fetching progress for sub-materi ${sub.id}:`, error);
+            return sub;
+          }
+        });
+
+        const updatedSubMateris = await Promise.all(subMateriProgressPromises);
 
         setModul({ ...modul, subMateris: updatedSubMateris });
+        console.log('[Effects] ✅ Progress loaded successfully');
+        console.log('[Effects] 📊 Updated sub-materis:', updatedSubMateris.map(s => ({
+          title: s.title,
+          isCompleted: s.isCompleted,
+          isUnlocked: s.isUnlocked
+        })));
+        
+        // 🔥 FIX: Update selectedSubMateri with fresh data
+        if (props.selectedSubMateri) {
+          const updatedSelectedSubMateri = updatedSubMateris.find(
+            s => s.id === props.selectedSubMateri!.id
+          );
+          if (updatedSelectedSubMateri) {
+            console.log('[Effects] 🔄 Updating selectedSubMateri with fresh data:', {
+              title: updatedSelectedSubMateri.title,
+              isCompleted: updatedSelectedSubMateri.isCompleted
+            });
+            setSelectedSubMateri(updatedSelectedSubMateri);
+          }
+        }
       } catch (error) {
-        console.error('[Effects] Error loading progress:', error);
+        console.error('[Effects] ❌ Error loading progress:', error);
       } finally {
         setIsFetchingProgress(false);
       }
     };
 
     loadProgressFromBackend();
+  }, [modul?.moduleId, user]);
+
+  // 🔥 NEW: Refresh progress when window gains focus (user returns from quiz page)
+  useEffect(() => {
+    if (!modul || !user || !modul.moduleId) return;
+
+    const handleWindowFocus = async () => {
+      console.log('[Effects] 👁️ Window focused - refreshing progress...');
+      setIsFetchingProgress(true);
+      
+      try {
+        const progressResponse = await ProgressService.getModuleProgress(modul.moduleId!);
+
+        if (progressResponse.error || !progressResponse.data) {
+          setIsFetchingProgress(false);
+          return;
+        }
+
+        const backendData = progressResponse.data as {
+          sub_materis?: Array<{
+            id: string;
+            is_completed: boolean;
+            is_unlocked: boolean;
+          }>;
+        };
+
+        if (!backendData.sub_materis || backendData.sub_materis.length === 0) {
+          setIsFetchingProgress(false);
+          return;
+        }
+
+        const updatedSubMateris = await Promise.all(
+          modul.subMateris.map(async (sub) => {
+            const backendProgress = backendData.sub_materis?.find((bp) => bp.id === sub.id);
+            if (!backendProgress) return sub;
+
+            try {
+              const subMateriProgressResponse = await ProgressService.getSubMateriProgress(sub.id);
+              let completedPoinIds: string[] = [];
+              
+              if (!subMateriProgressResponse.error && subMateriProgressResponse.data) {
+                const subMateriData = subMateriProgressResponse.data as {
+                  poin_details?: Array<{ id: string; is_completed: boolean }>;
+                };
+                completedPoinIds = (subMateriData.poin_details || [])
+                  .filter((p) => p.is_completed)
+                  .map((p) => p.id);
+              }
+
+              const updatedPoinDetails = sub.poinDetails.map((poin) => ({
+                ...poin,
+                isCompleted: completedPoinIds.includes(poin.id),
+              }));
+
+              return {
+                ...sub,
+                isCompleted: backendProgress.is_completed,
+                isUnlocked: backendProgress.is_unlocked,
+                poinDetails: updatedPoinDetails,
+              };
+            } catch (error) {
+              console.error(`[Effects] Error refreshing progress for sub-materi ${sub.id}:`, error);
+              return sub;
+            }
+          })
+        );
+
+        setModul({ ...modul, subMateris: updatedSubMateris });
+        console.log('[Effects] ✅ Progress refreshed on focus');
+        console.log('[Effects] 📊 Updated sub-materis (focus):', updatedSubMateris.map(s => ({
+          title: s.title,
+          isCompleted: s.isCompleted,
+          isUnlocked: s.isUnlocked
+        })));
+        
+        // 🔥 FIX: Update selectedSubMateri with fresh data
+        if (props.selectedSubMateri) {
+          const updatedSelectedSubMateri = updatedSubMateris.find(
+            s => s.id === props.selectedSubMateri!.id
+          );
+          if (updatedSelectedSubMateri) {
+            console.log('[Effects] 🔄 Updating selectedSubMateri with fresh data (focus):', {
+              title: updatedSelectedSubMateri.title,
+              isCompleted: updatedSelectedSubMateri.isCompleted
+            });
+            setSelectedSubMateri(updatedSelectedSubMateri);
+          }
+        }
+      } catch (error) {
+        console.error('[Effects] ❌ Error refreshing progress:', error);
+      } finally {
+        setIsFetchingProgress(false);
+      }
+    };
+
+    window.addEventListener('focus', handleWindowFocus);
+    return () => window.removeEventListener('focus', handleWindowFocus);
   }, [modul?.moduleId, user]);
 
   // Screen size detection

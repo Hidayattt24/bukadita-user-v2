@@ -45,6 +45,7 @@ export function useModuleDetailState(modulSlug: string, targetSubMateriId?: stri
     updateCurrentPoin,
     syncModuleProgress,
     targetSubMateriId,
+    selectedSubMateri, // Add this
   });
 
   // Handlers
