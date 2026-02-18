@@ -1,36 +1,120 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bukadita User v2
 
-## Getting Started
+Welcome to the **Bukadita User v2** repository. This is a modern, high-performance web application built with **Next.js 15**, designed to provide an interactive learning experince with features like quizzes, modules, and progress tracking. It is optimized as a **Progressive Web App (PWA)** for seamless offline usage.
 
-First, run the development server:
+## 🚀 Tech Stack
+
+This project leverages the latest web technologies for best performance and developer experience:
+
+### Core Framework
+- **[Next.js 15](https://nextjs.org/)**: React framework with App Router, Server Components, and Turbopack.
+- **[React 19](https://react.dev/)**: The latest version of React for building user interfaces.
+- **[TypeScript](https://www.typescriptlang.org/)**: Strong typing for better maintainability and developer tooling.
+
+### Styling & UI
+- **[Tailwind CSS 4](https://tailwindcss.com/)**: Utility-first CSS framework for rapid UI development.
+- **[shadcn/ui](https://ui.shadcn.com/)**: Reusable components built with Radix UI and Tailwind CSS.
+- **[Framer Motion](https://www.framer.com/motion/)** & **[Tw Animate CSS](https://github.com/theamigo/tw-animate-css)**: For smooth animations and transitions.
+- **[Lucide React](https://lucide.dev/)** & **[React Icons](https://react-icons.github.io/react-icons/)**: Comprehensive icon libraries.
+
+### State Management & Data
+- **[TanStack Query v5](https://tanstack.com/query/latest)**: Powerful asynchronous state management for data fetching.
+- **[Supabase](https://supabase.com/)**: Open source Firebase alternative for Backend, Database, and Authentication.
+
+### Features & Integrations
+- **PWA (Progressive Web App)**: Powered by `next-pwa` with custom caching strategies for offline support (Images, APIs, Static Assets).
+- **Maps**: Interactive maps using **[Leaflet](https://leafletjs.com/)** and **[React Leaflet](https://react-leaflet.js.org/)**.
+- **PDF Generation**: Client-side PDF generation using **[jspdf](https://github.com/parallax/jsPDF)** and **[jspdf-autotable](https://github.com/simonbengtsson/jsPDF-AutoTable)**.
+- **Markdown Rendering**: Rich text formatting with **[react-markdown](https://github.com/remarkjs/react-markdown)**, `rehype-highlight`, and `remark-gfm`.
+
+## 🔋 Key Features
+
+- **Offline-First Experience**: Aggressive caching strategies ensure the app works reliably even with unstable internet connections.
+- **Interactive Quizzes**: dedicated modules for taking quizzes and tracking attempts.
+- **Learning Materials**: Access to modules and educational content.
+- **User Progress**: Tracking user achievements and progress.
+- **Secure**: Strict Content Security Policies and headers configured for production.
+
+## 🛠️ Getting Started
+
+### Prerequisites
+
+- Node.js (v20 or newer recommended)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd bukadita-user-v2
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Configure Environment Variables:
+   Copy `.env.example` to `.env` and fill in the required Supabase credentials.
+   ```bash
+   cp .env.example .env
+   ```
+
+### Development
+
+Run the development server with Turbopack:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build for Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+To create a production build:
 
-## Learn More
+```bash
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+To start the production server:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### PWA Asset Generation
 
-## Deploy on Vercel
+To generate icons and screenshots for the PWA manifest:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run generate-icons
+npm run generate-screenshots
+# Or build everything together
+npm run pwa:build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📂 Project Structure
+
+- `src/app`: Next.js App Router pages and layouts.
+- `src/components`: Reusable UI components (including shadcn/ui).
+- `src/lib`: Utility functions and libraries.
+- `src/hooks`: Custom React hooks.
+- `src/services`: API service layers.
+- `public`: Static assets (images, icons, manifest).
+
+## ☁️ Deployment
+
+This project is optimized for deployment on **Vercel**.
+
+For a detailed step-by-step deployment guide, please refer to **[VERCEL_DEPLOY_GUIDE.md](./VERCEL_DEPLOY_GUIDE.md)** included in this repository.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+[MIT](LICENSE)
