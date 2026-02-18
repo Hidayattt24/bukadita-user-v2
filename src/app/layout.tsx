@@ -28,10 +28,28 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Bukadita - Posyandu Learning Platform",
   description:
-    "Platform pembelajaran untuk kader posyandu dengan materi lengkap dan interaktif",
+    "Solusi edukasi digital kader Posyandu. Belajar materi kesehatan lebih mudah, interaktif, dan dapat diakses kapan saja untuk dukung pelayanan kesehatan masyarakat yang lebih baik.",
   generator: "Next.js",
   manifest: "/manifest.json",
-  keywords: ["posyandu", "pembelajaran", "kader", "kesehatan", "edukasi"],
+  keywords: [
+    "posyandu",
+    "pembelajaran kader",
+    "kader posyandu",
+    "kesehatan masyarakat",
+    "edukasi kesehatan",
+    "bukadita",
+    "buku digital kader",
+    "monitoring posyandu",
+    "transformasi digital kesehatan",
+    "aplikasi posyandu",
+    "learning management system posyandu",
+    "posyandu cerdas",
+    "pelatihan kader",
+    "kesehatan ibu dan anak",
+    "pwa kesehatan",
+    "posyandu indonesia",
+    "sistem informasi posyandu",
+  ],
   authors: [{ name: "Bukadita Team" }],
   creator: "Bukadita Team",
   publisher: "Bukadita",
@@ -40,7 +58,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://bukadita.vercel.app"),
+  metadataBase: new URL("https://www.bukadita.id/"),
   alternates: {
     canonical: "/",
   },
@@ -52,7 +70,7 @@ export const metadata: Metadata = {
       template: "%s | Bukadita",
     },
     description:
-      "Platform pembelajaran untuk kader posyandu dengan materi lengkap dan interaktif",
+      "Solusi edukasi digital kader Posyandu. Belajar materi kesehatan lebih mudah, interaktif, dan dapat diakses kapan saja untuk dukung pelayanan kesehatan masyarakat yang lebih baik. ",
     images: [
       {
         url: "/icons/icon-512x512.png",
@@ -66,7 +84,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Bukadita - Posyandu Learning Platform",
     description:
-      "Platform pembelajaran untuk kader posyandu dengan materi lengkap dan interaktif",
+      "Solusi edukasi digital kader Posyandu. Belajar materi kesehatan lebih mudah, interaktif, dan dapat diakses kapan saja untuk dukung pelayanan kesehatan masyarakat yang lebih baik.",
     images: ["/icons/icon-512x512.png"],
   },
 
