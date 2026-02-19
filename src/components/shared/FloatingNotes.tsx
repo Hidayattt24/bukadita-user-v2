@@ -36,7 +36,8 @@ const FloatingNotes: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Check if we're on modul detail page (no bottom navbar)
-  const isModulDetailPage = pathname?.includes("/user/modul/") && pathname !== "/user/modul";
+  const isModulDetailPage =
+    pathname?.includes("/user/modul/") && pathname !== "/user/modul";
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -79,19 +80,26 @@ const FloatingNotes: React.FC = () => {
 
     setIsFetching(true);
     try {
-      const response = await NoteService.getUserNotes(1, 100, undefined, searchTerm);
+      const response = await NoteService.getUserNotes(
+        1,
+        100,
+        undefined,
+        searchTerm,
+      );
 
       if (!response.error && response.data) {
         // Convert backend format to component format
-        const convertedNotes: Note[] = response.data.items.map((note: UserNote) => ({
-          id: note.id,
-          title: note.title,
-          content: note.content,
-          material: note.category,
-          createdAt: new Date(note.created_at),
-          updatedAt: new Date(note.updated_at),
-          is_pinned: note.is_pinned,
-        }));
+        const convertedNotes: Note[] = response.data.items.map(
+          (note: UserNote) => ({
+            id: note.id,
+            title: note.title,
+            content: note.content,
+            material: note.category,
+            createdAt: new Date(note.created_at),
+            updatedAt: new Date(note.updated_at),
+            is_pinned: note.is_pinned,
+          }),
+        );
         setNotes(convertedNotes);
       }
     } catch (error) {
@@ -190,12 +198,13 @@ const FloatingNotes: React.FC = () => {
   // Helper function for toast notifications
   const showToast = (
     message: string,
-    type: "success" | "error" = "success"
+    type: "success" | "error" = "success",
   ) => {
     const toastDiv = document.createElement("div");
     toastDiv.textContent = message;
-    toastDiv.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-[70] text-sm text-white ${type === "success" ? "bg-green-500" : "bg-red-500"
-      }`;
+    toastDiv.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-[10010] text-sm text-white ${
+      type === "success" ? "bg-green-500" : "bg-red-500"
+    }`;
     document.body.appendChild(toastDiv);
 
     // Add fade in animation
@@ -250,7 +259,7 @@ const FloatingNotes: React.FC = () => {
           minute: "2-digit",
         })}`,
         margin,
-        yPosition
+        yPosition,
       );
 
       yPosition += 20;
@@ -287,7 +296,7 @@ const FloatingNotes: React.FC = () => {
         pdf.setFontSize(9);
         pdf.setFont("helvetica", "italic");
         const dateText = `Dibuat: ${note.createdAt.toLocaleDateString(
-          "id-ID"
+          "id-ID",
         )} | Diupdate: ${note.updatedAt.toLocaleDateString("id-ID")}`;
         pdf.text(dateText, margin, yPosition);
         yPosition += 15;
@@ -309,13 +318,14 @@ const FloatingNotes: React.FC = () => {
           `Halaman ${i} dari ${totalPages} - Bukadita Posyandu Learning Platform`,
           pageWidth / 2,
           pdf.internal.pageSize.getHeight() - 10,
-          { align: "center" }
+          { align: "center" },
         );
       }
 
       // Save PDF
-      const fileName = `catatan-bukadita-${new Date().toISOString().split("T")[0]
-        }.pdf`;
+      const fileName = `catatan-bukadita-${
+        new Date().toISOString().split("T")[0]
+      }.pdf`;
       pdf.save(fileName);
 
       showToast(`Catatan berhasil diekspor ke ${fileName}`);
@@ -385,7 +395,10 @@ const FloatingNotes: React.FC = () => {
       setEditingNote(null);
       setIsDialogOpen(false);
     } catch (error: any) {
-      showToast(error.message || "Terjadi kesalahan saat menyimpan catatan!", "error");
+      showToast(
+        error.message || "Terjadi kesalahan saat menyimpan catatan!",
+        "error",
+      );
       console.error("Error saving note:", error);
     } finally {
       setIsLoading(false);
@@ -448,7 +461,9 @@ const FloatingNotes: React.FC = () => {
       const response = await NoteService.togglePinNote(noteId);
 
       if (!response.error) {
-        showToast(response.data?.is_pinned ? "Catatan dipasang" : "Catatan dilepas");
+        showToast(
+          response.data?.is_pinned ? "Catatan dipasang" : "Catatan dilepas",
+        );
         await fetchNotes(); // Refresh notes list
       } else {
         throw new Error(response.message);
@@ -476,11 +491,15 @@ const FloatingNotes: React.FC = () => {
   return (
     <>
       {/* Floating Icon - Positioned on LEFT */}
-      <div className={`fixed left-4 z-50 transition-all duration-300 ${
-        isModulDetailPage ? "bottom-6" : "bottom-28"
-      } sm:left-6 sm:bottom-6 ${
-        isSidebarOpen && isModulDetailPage ? "opacity-0 scale-0 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto" : "opacity-100 scale-100"
-      }`}>
+      <div
+        className={`fixed left-4 z-50 transition-all duration-300 ${
+          isModulDetailPage ? "bottom-6" : "bottom-28"
+        } sm:left-6 sm:bottom-6 ${
+          isSidebarOpen && isModulDetailPage
+            ? "opacity-0 scale-0 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto"
+            : "opacity-100 scale-100"
+        }`}
+      >
         <div className="relative">
           {/* Greeting Message */}
           <AnimatePresence>
@@ -512,8 +531,9 @@ const FloatingNotes: React.FC = () => {
           {/* Main Icon */}
           <button
             onClick={() => setIsOpen(true)}
-            className={`w-14 h-14 sm:w-14 sm:h-14 bg-gradient-to-br from-[#578FCA] to-[#27548A] text-white rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-300 flex items-center justify-center ${showGreeting ? "animate-subtle-glow" : ""
-              }`}
+            className={`w-14 h-14 sm:w-14 sm:h-14 bg-gradient-to-br from-[#578FCA] to-[#27548A] text-white rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-300 flex items-center justify-center ${
+              showGreeting ? "animate-subtle-glow" : ""
+            }`}
             aria-label="Buka Catatan"
           >
             <BookOpen size={22} className="sm:w-6 sm:h-6" />
@@ -522,60 +542,81 @@ const FloatingNotes: React.FC = () => {
       </div>
 
       {/* Notes Panel */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {isOpen && (
           <>
             {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-black bg-opacity-30 floating-notes-backdrop z-50"
+            <div
+              className="fixed inset-0 bg-black/20 z-[10000] backdrop-blur-sm"
+              onClick={() => {
+                // Only close panel if dialog and delete confirm are not open
+                if (!isDialogOpen && !deleteConfirm.show) {
+                  setIsOpen(false);
+                }
+              }}
             />
 
-            {/* Panel - Slides from LEFT */}
-            <motion.div
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed left-0 top-0 h-full w-full sm:max-w-md bg-white floating-notes-panel z-50 overflow-hidden flex flex-col safe-area-inset"
+            {/* Panel - Centered Popup */}
+            <div
+              className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10001] w-[96vw] max-w-[500px] max-h-[90vh] bg-white rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-scale-in flex flex-col transition-opacity duration-200 ${
+                isDialogOpen || deleteConfirm.show
+                  ? "opacity-0 pointer-events-none"
+                  : "opacity-100"
+              }`}
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white p-3 sm:p-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <BookOpen size={20} className="sm:w-5 sm:h-5" />
-                  <h2 className="text-base sm:text-lg font-semibold">
-                    Catatan Saya
-                  </h2>
-                </div>
-                <div className="flex items-center gap-1">
-                  {/* Export Button */}
-                  <button
-                    onClick={exportNotes}
-                    title="Export ke PDF"
-                    className="p-2.5 sm:p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors active:scale-95"
-                    aria-label="Export ke PDF"
-                  >
-                    <FileText size={20} className="sm:w-[18px] sm:h-[18px]" />
-                  </button>
-
-                  {/* Close Button */}
+              <div className="bg-gradient-to-r from-[#578FCA] to-[#27548A] p-4 sm:p-5 flex-shrink-0">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                      <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-white font-bold text-base sm:text-lg">
+                        Catatan Saya
+                      </h2>
+                      <p className="text-blue-100 text-[10px] sm:text-xs">
+                        Kelola catatan pembelajaran Anda
+                      </p>
+                    </div>
+                  </div>
                   <button
                     onClick={() => setIsOpen(false)}
-                    title="Tutup"
-                    className="p-2.5 sm:p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors active:scale-95"
-                    aria-label="Tutup Panel"
+                    className="text-white hover:bg-white/20 p-2 sm:p-2.5 rounded-full transition-colors flex-shrink-0"
+                    aria-label="Tutup"
                   >
-                    <X size={20} className="sm:w-[18px] sm:h-[18px]" />
+                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={exportNotes}
+                    className="flex-1 py-2 sm:py-2 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white/10 text-white hover:bg-white/20 active:bg-white/30 flex items-center justify-center gap-2"
+                    aria-label="Export ke PDF"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span className="hidden sm:inline">Export PDF</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingNote(null);
+                      setFormData({ title: "", content: "", material: "" });
+                      setIsDialogOpen(true);
+                    }}
+                    className="flex-1 py-2 sm:py-2 px-3 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white text-[#27548A] shadow-lg hover:bg-blue-50 flex items-center justify-center gap-2"
+                    aria-label="Tambah Catatan Baru"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Tambah Catatan</span>
                   </button>
                 </div>
               </div>
 
               {/* Search and Filter */}
-              <div className="p-3 sm:p-4 border-b bg-gray-50">
-                <div className="relative mb-0">
+              <div className="p-3 sm:p-4 border-b bg-gray-50 flex-shrink-0">
+                <div className="relative">
                   <Search
                     className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                     size={18}
@@ -590,160 +631,172 @@ const FloatingNotes: React.FC = () => {
                 </div>
               </div>
 
-              {/* Notes List */}
-              <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 notes-scrollbar">
-                {isFetching ? (
-                  <div className="text-center text-gray-500 py-8 sm:py-12">
-                    <div className="w-12 h-12 border-4 border-[#578FCA] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-sm sm:text-base">Memuat catatan...</p>
-                  </div>
-                ) : filteredNotes.length === 0 ? (
-                  <div className="text-center text-gray-500 py-8 sm:py-12">
-                    <BookOpen
-                      size={48}
-                      className="mx-auto mb-4 text-gray-300"
-                    />
-                    <p className="text-sm sm:text-base">
-                      {searchTerm ? "Tidak ada catatan ditemukan" : "Belum ada catatan"}
-                    </p>
-                    <p className="text-xs sm:text-sm mt-1">
-                      {searchTerm ? "Coba kata kunci lain" : "Mulai buat catatan pertama Anda!"}
-                    </p>
-                  </div>
-                ) : (
-                  filteredNotes.map((note) => (
-                    <motion.div
-                      key={note.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      whileHover={{ y: -2 }}
-                      className="bg-white border border-gray-200 rounded-lg p-3 sm:p-3 hover:shadow-md transition-all duration-200 cursor-pointer active:scale-[0.98]"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2 flex-1 pr-2">
-                          {note.is_pinned && (
-                            <Pin size={14} className="text-[#578FCA] fill-[#578FCA]" />
-                          )}
-                          <h3 className="font-medium text-gray-900 text-sm sm:text-sm">
-                            {note.title}
-                          </h3>
-                        </div>
-                        <div className="flex gap-1.5 sm:gap-1 flex-shrink-0">
-                          <button
-                            onClick={() => handleTogglePin(note.id)}
-                            className={`p-2 sm:p-1 rounded transition-colors ${note.is_pinned
-                                ? "text-[#578FCA] bg-blue-50"
-                                : "text-gray-400 hover:bg-gray-50"
-                              }`}
-                            aria-label={note.is_pinned ? "Lepas Pin" : "Pin Catatan"}
-                            title={note.is_pinned ? "Lepas Pin" : "Pin Catatan"}
-                          >
-                            <Pin
-                              size={16}
-                              className={`sm:w-[14px] sm:h-[14px] ${note.is_pinned ? "fill-[#578FCA]" : ""
-                                }`}
-                            />
-                          </button>
-                          <button
-                            onClick={() => handleEditNote(note)}
-                            className="p-2 sm:p-1 text-[#578FCA] hover:bg-blue-50 active:bg-blue-100 rounded transition-colors"
-                            aria-label="Edit Catatan"
-                          >
-                            <Edit
-                              size={16}
-                              className="sm:w-[14px] sm:h-[14px]"
-                            />
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleDeleteNote(note.id, note.title)
-                            }
-                            className="p-2 sm:p-1 text-red-500 hover:bg-red-50 active:bg-red-100 rounded transition-colors"
-                            aria-label="Hapus Catatan"
-                          >
-                            <Trash2
-                              size={16}
-                              className="sm:w-[14px] sm:h-[14px]"
-                            />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="text-xs text-[#578FCA] bg-blue-50 px-2 py-1 rounded mb-2 inline-block">
-                        {note.material}
-                      </div>
-
-                      <p className="text-gray-600 text-xs sm:text-sm line-clamp-3 mb-2">
-                        {note.content}
+              {/* Notes List - Scrollable Content */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <div className="p-3 sm:p-4 space-y-3">
+                  {isFetching ? (
+                    <div className="text-center text-gray-500 py-8 sm:py-12">
+                      <div className="w-12 h-12 border-4 border-[#578FCA] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                      <p className="text-sm sm:text-base">Memuat catatan...</p>
+                    </div>
+                  ) : filteredNotes.length === 0 ? (
+                    <div className="text-center text-gray-500 py-8 sm:py-12">
+                      <BookOpen
+                        size={48}
+                        className="mx-auto mb-4 text-gray-300"
+                      />
+                      <p className="text-sm sm:text-base">
+                        {searchTerm
+                          ? "Tidak ada catatan ditemukan"
+                          : "Belum ada catatan"}
                       </p>
+                      <p className="text-xs sm:text-sm mt-1">
+                        {searchTerm
+                          ? "Coba kata kunci lain"
+                          : "Mulai buat catatan pertama Anda!"}
+                      </p>
+                    </div>
+                  ) : (
+                    filteredNotes.map((note) => (
+                      <div
+                        key={note.id}
+                        className="bg-gray-50 border border-gray-200 rounded-xl p-3 sm:p-4 hover:shadow-md hover:border-[#578FCA] transition-all duration-200"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2 flex-1 pr-2">
+                            {note.is_pinned && (
+                              <Pin
+                                size={14}
+                                className="text-[#578FCA] fill-[#578FCA]"
+                              />
+                            )}
+                            <h3 className="font-bold text-gray-900 text-sm sm:text-base">
+                              {note.title}
+                            </h3>
+                          </div>
+                          <div className="flex gap-1.5 sm:gap-1 flex-shrink-0">
+                            <button
+                              onClick={() => handleTogglePin(note.id)}
+                              className={`p-2 sm:p-1.5 rounded-lg transition-all ${
+                                note.is_pinned
+                                  ? "text-[#578FCA] bg-blue-100 hover:bg-blue-200"
+                                  : "text-gray-400 hover:bg-gray-200 hover:text-[#578FCA]"
+                              }`}
+                              aria-label={
+                                note.is_pinned ? "Lepas Pin" : "Pin Catatan"
+                              }
+                              title={
+                                note.is_pinned ? "Lepas Pin" : "Pin Catatan"
+                              }
+                            >
+                              <Pin
+                                size={16}
+                                className={`sm:w-[14px] sm:h-[14px] ${
+                                  note.is_pinned ? "fill-[#578FCA]" : ""
+                                }`}
+                              />
+                            </button>
+                            <button
+                              onClick={() => handleEditNote(note)}
+                              className="p-2 sm:p-1.5 text-[#578FCA] hover:bg-blue-100 rounded-lg transition-all"
+                              aria-label="Edit Catatan"
+                              title="Edit Catatan"
+                            >
+                              <Edit
+                                size={16}
+                                className="sm:w-[14px] sm:h-[14px]"
+                              />
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleDeleteNote(note.id, note.title)
+                              }
+                              className="p-2 sm:p-1.5 text-red-500 hover:bg-red-100 rounded-lg transition-all"
+                              aria-label="Hapus Catatan"
+                              title="Hapus Catatan"
+                            >
+                              <Trash2
+                                size={16}
+                                className="sm:w-[14px] sm:h-[14px]"
+                              />
+                            </button>
+                          </div>
+                        </div>
 
-                      <div className="text-xs text-gray-400">
-                        {note.updatedAt.toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        <div className="text-xs font-medium text-[#578FCA] bg-blue-100 px-2 py-1 rounded-md mb-2 inline-block">
+                          {note.material}
+                        </div>
+
+                        <p className="text-gray-700 text-xs sm:text-sm line-clamp-3 mb-2">
+                          {note.content}
+                        </p>
+
+                        <div className="text-xs text-gray-500 font-medium">
+                          {note.updatedAt.toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
                       </div>
-                    </motion.div>
-                  ))
-                )}
+                    ))
+                  )}
+                </div>
               </div>
 
-              {/* Statistics */}
+              {/* Footer Statistics */}
               {notes.length > 0 && (
-                <div className="px-3 sm:px-4 py-2 bg-gray-50 border-t text-xs text-gray-600 text-center">
-                  <span>
-                    {filteredNotes.length} dari {notes.length} catatan
-                  </span>
+                <div className="px-3 sm:px-4 py-3 bg-gray-50 border-t flex-shrink-0">
+                  <div className="text-center text-xs sm:text-sm text-gray-600 font-medium">
+                    Menampilkan {filteredNotes.length} dari {notes.length}{" "}
+                    catatan
+                  </div>
                 </div>
               )}
-
-              {/* Add Note Button */}
-              <div className="p-3 sm:p-4 border-t bg-gray-50">
-                <button
-                  onClick={() => {
-                    setEditingNote(null);
-                    setFormData({ title: "", content: "", material: "" });
-                    setIsDialogOpen(true);
-                  }}
-                  className="w-full bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white py-3 sm:py-3 rounded-lg hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm sm:text-base font-medium"
-                  aria-label="Tambah Catatan Baru"
-                >
-                  <Plus size={20} className="sm:w-[18px] sm:h-[18px]" />
-                  Tambah Catatan Baru
-                </button>
-              </div>
-            </motion.div>
+            </div>
           </>
         )}
       </AnimatePresence>
 
       {/* Note Dialog */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {isDialogOpen && (
           <>
+            {/* Dialog Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setIsDialogOpen(false)}
-              className="fixed inset-0 bg-black bg-opacity-30 z-[60]"
+              className="fixed inset-0 bg-black/20 z-[10000] backdrop-blur-sm"
             />
 
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] sm:w-full max-w-md bg-white rounded-lg shadow-2xl z-[60] max-h-[85vh] sm:max-h-[90vh] overflow-y-auto"
+              className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] sm:w-full max-w-md bg-white rounded-xl sm:rounded-2xl shadow-2xl z-[10001] max-h-[85vh] sm:max-h-[90vh] overflow-hidden border-2 border-[#578FCA]"
             >
-              <div className="p-4 sm:p-6">
-                <h3 className="text-base sm:text-lg font-semibold mb-4 text-gray-900">
+              {/* Dialog Header */}
+              <div className="bg-gradient-to-r from-[#578FCA] to-[#27548A] p-4 sm:p-5 flex items-center justify-between">
+                <h3 className="text-white font-bold text-base sm:text-lg">
                   {editingNote ? "Edit Catatan" : "Tambah Catatan Baru"}
                 </h3>
+                <button
+                  onClick={() => setIsDialogOpen(false)}
+                  className="text-white hover:bg-white/20 p-1.5 rounded-full transition-colors"
+                  aria-label="Tutup"
+                >
+                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                </button>
+              </div>
 
+              {/* Dialog Body */}
+              <div
+                className="p-4 sm:p-6 overflow-y-auto"
+                style={{ maxHeight: "calc(85vh - 140px)" }}
+              >
                 <div className="space-y-3 sm:space-y-4">
                   <div>
                     <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-1">
@@ -822,24 +875,32 @@ const FloatingNotes: React.FC = () => {
       </AnimatePresence>
 
       {/* Delete Confirmation Dialog */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {deleteConfirm.show && (
           <>
+            {/* Delete Dialog Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={cancelDeleteNote}
-              className="fixed inset-0 bg-black bg-opacity-30 z-[70]"
+              className="fixed inset-0 bg-black/20 z-[10000] backdrop-blur-sm"
             />
 
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] sm:w-full max-w-sm bg-white rounded-lg shadow-2xl z-[70]"
+              className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] sm:w-full max-w-sm bg-white rounded-xl sm:rounded-2xl shadow-2xl z-[10001] border-2 border-red-500"
             >
-              <div className="p-5 sm:p-6">
+              <div className="p-5 sm:p-6 relative">
+                <button
+                  onClick={cancelDeleteNote}
+                  className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-full transition-colors"
+                  aria-label="Tutup"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
                 <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-3 sm:mb-4">
                   <Trash2 className="w-6 h-6 text-red-600" />
                 </div>
@@ -850,9 +911,7 @@ const FloatingNotes: React.FC = () => {
 
                 <p className="text-xs sm:text-sm text-center text-gray-600 mb-5 sm:mb-6 px-2">
                   Apakah Anda yakin ingin menghapus catatan{" "}
-                  <span className="font-medium">
-                    {deleteConfirm.noteTitle}
-                  </span>
+                  <span className="font-medium">{deleteConfirm.noteTitle}</span>
                   ? Tindakan ini tidak dapat dibatalkan.
                 </p>
 
@@ -876,6 +935,55 @@ const FloatingNotes: React.FC = () => {
           </>
         )}
       </AnimatePresence>
+
+      {/* Global Styles */}
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f5f9;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+          }
+        }
+
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
+        }
+
+        @keyframes subtle-glow {
+          0%,
+          100% {
+            box-shadow: 0 10px 15px -3px rgba(87, 143, 202, 0.3);
+          }
+          50% {
+            box-shadow: 0 10px 25px -3px rgba(87, 143, 202, 0.5);
+          }
+        }
+
+        .animate-subtle-glow {
+          animation: subtle-glow 2s ease-in-out infinite;
+        }
+      `}</style>
     </>
   );
 };
