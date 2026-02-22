@@ -19,9 +19,16 @@ export default function UpdateNotification({
 
   const handleUpdate = () => {
     setIsUpdating(true);
+    console.log("[UpdateNotification] Starting update...");
+    
+    // Call onUpdate immediately
+    onUpdate();
+    
+    // Fallback: If reload doesn't happen in 3 seconds, force reload
     setTimeout(() => {
-      onUpdate();
-    }, 500);
+      console.log("[UpdateNotification] Forcing reload...");
+      window.location.reload();
+    }, 3000);
   };
 
   return (

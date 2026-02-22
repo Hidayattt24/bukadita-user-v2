@@ -36,9 +36,16 @@ export default function UpdateToast({
 
   const handleUpdate = () => {
     setIsUpdating(true);
+    console.log("[UpdateToast] Starting update...");
+    
+    // Call onUpdate immediately
+    onUpdate();
+    
+    // Fallback: If reload doesn't happen in 3 seconds, force reload
     setTimeout(() => {
-      onUpdate();
-    }, 500);
+      console.log("[UpdateToast] Forcing reload...");
+      window.location.reload();
+    }, 3000);
   };
 
   return (

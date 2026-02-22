@@ -6,6 +6,7 @@ export function useServiceWorker() {
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
   const [isOnline, setIsOnline] = useState(true);
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [swVersion, setSwVersion] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if service workers are supported
@@ -19,6 +20,7 @@ export function useServiceWorker() {
       if (event.data && event.data.type === "SW_UPDATED") {
         console.log("[SW] Service Worker updated:", event.data);
         setUpdateAvailable(true);
+        setSwVersion(event.data.version || Date.now().toString());
       }
     };
 
@@ -45,6 +47,8 @@ export function useServiceWorker() {
             if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
               console.log("[SW] New service worker available");
               setUpdateAvailable(true);
+              // Generate version from timestamp if not provided by SW
+              setSwVersion(Date.now().toString());
             }
           });
         });
@@ -91,16 +95,29 @@ export function useServiceWorker() {
 
   // Function to update service worker
   const updateServiceWorker = () => {
-    if (!registration || !registration.waiting) return;
-
-    registration.waiting.postMessage({ type: "SKIP_WAITING" });
-    window.location.reload();
+    console.log("[SW] updateServiceWorker called");
+    
+    if (registration?.waiting) {
+      console.log("[SW] Sending SKIP_WAITING to waiting worker");
+      registration.waiting.postMessage({ type: "SKIP_WAITING" });
+      
+      // Wait a bit for the message to be processed, then reload
+      setTimeout(() => {
+        console.log("[SW] Reloading page...");
+        window.location.reload();
+      }, 100);
+    } else {
+      // No waiting worker, just reload to get the new version
+      console.log("[SW] No waiting worker, reloading immediately");
+      window.location.reload();
+    }
   };
 
   return {
     registration,
     isOnline,
     updateAvailable,
+    swVersion,
     updateServiceWorker,
   };
 }
