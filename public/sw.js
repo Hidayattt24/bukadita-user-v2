@@ -1,7 +1,8 @@
 // Service Worker for Bukadita User PWA
 // Implements offline caching for beranda, modul list, and modul detail pages
 
-const CACHE_VERSION = "bukadita-v1";
+// 🔥 IMPORTANT: Increment this version to force cache refresh
+const CACHE_VERSION = "bukadita-v2-scroll-fix";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const API_CACHE = `${CACHE_VERSION}-api`;
@@ -41,23 +42,38 @@ self.addEventListener("activate", (event) => {
   console.log("[SW] Activating service worker...");
   
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((cacheName) => {
-            // Delete old caches that don't match current version
-            return cacheName.startsWith("bukadita-") && cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE && cacheName !== API_CACHE;
-          })
-          .map((cacheName) => {
-            console.log("[SW] Deleting old cache:", cacheName);
-            return caches.delete(cacheName);
-          })
-      );
-    })
+    Promise.all([
+      // Clear all old caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter((cacheName) => {
+              // Delete ALL old caches that don't match current version
+              return cacheName.startsWith("bukadita-") && 
+                     cacheName !== STATIC_CACHE && 
+                     cacheName !== DYNAMIC_CACHE && 
+                     cacheName !== API_CACHE;
+            })
+            .map((cacheName) => {
+              console.log("[SW] Deleting old cache:", cacheName);
+              return caches.delete(cacheName);
+            })
+        );
+      }),
+      // Take control of all pages immediately
+      self.clients.claim(),
+      // Notify all clients about the update
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            type: "SW_UPDATED",
+            version: CACHE_VERSION,
+            message: "Service Worker updated! Please refresh for the latest version."
+          });
+        });
+      })
+    ])
   );
-  
-  // Take control of all pages immediately
-  return self.clients.claim();
 });
 
 // Fetch event - implement caching strategies

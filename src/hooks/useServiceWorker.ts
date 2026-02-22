@@ -14,12 +14,23 @@ export function useServiceWorker() {
       return;
     }
 
+    // Listen for messages from service worker
+    const handleSWMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === "SW_UPDATED") {
+        console.log("[SW] Service Worker updated:", event.data);
+        setUpdateAvailable(true);
+      }
+    };
+
+    navigator.serviceWorker.addEventListener("message", handleSWMessage);
+
     // Register service worker
     const registerServiceWorker = async () => {
       try {
         console.log("[SW] Registering service worker...");
         const reg = await navigator.serviceWorker.register("/sw.js", {
           scope: "/",
+          updateViaCache: "none", // Always check for updates
         });
 
         console.log("[SW] Service worker registered successfully");
@@ -38,10 +49,15 @@ export function useServiceWorker() {
           });
         });
 
-        // Check for updates periodically (every hour)
-        setInterval(() => {
+        // Check for updates immediately
+        reg.update();
+
+        // Check for updates periodically (every 30 minutes)
+        const updateInterval = setInterval(() => {
           reg.update();
-        }, 60 * 60 * 1000);
+        }, 30 * 60 * 1000);
+
+        return () => clearInterval(updateInterval);
       } catch (error) {
         console.error("[SW] Service worker registration failed:", error);
       }
@@ -69,6 +85,7 @@ export function useServiceWorker() {
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      navigator.serviceWorker.removeEventListener("message", handleSWMessage);
     };
   }, []);
 

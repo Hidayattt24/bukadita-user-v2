@@ -4,7 +4,7 @@ import React from "react";
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-x-hidden overflow-y-auto">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute top-20 left-20 w-96 h-96 bg-[#578FCA]/10 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
@@ -20,7 +20,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
       <div className="absolute bottom-32 right-16 w-5 h-5 bg-blue-400/25 rounded-square rotate-12 animate-pulse delay-500"></div>
 
       {/* Main Content Container */}
-      <div className="flex items-center justify-center min-h-screen p-4 sm:p-6">
+      <div className="flex items-center justify-center min-h-screen p-4 sm:p-6 overflow-y-auto">
         <div className="relative z-10 w-full max-w-sm sm:max-w-md mx-auto">
           {/* Card Container */}
           <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl shadow-blue-500/10 border border-white/30 overflow-hidden">

@@ -128,7 +128,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full space-y-5">
+    <div className="w-full space-y-5 overflow-y-auto">
       {/* Header Section */}
       <div className="text-center space-y-3">
         <div className="flex justify-center">

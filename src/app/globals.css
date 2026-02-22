@@ -49,11 +49,41 @@
 
 html {
   scroll-behavior: smooth;
+  /* Ensure html can scroll on mobile */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  height: 100%;
 }
 
 body {
   font-family: "Poppins", Arial, Helvetica, sans-serif;
   touch-action: pan-y pan-x pinch-zoom;
+  /* Ensure body can scroll on mobile */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 100%;
+  /* Fix for iOS Safari address bar */
+  min-height: -webkit-fill-available;
+}
+
+/* PWA Standalone Mode Fixes */
+@media (display-mode: standalone) {
+  html {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  body {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    position: relative !important;
+  }
+  
+  /* Ensure main containers are scrollable */
+  main {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* Animation delays for staggered effects */
@@ -378,6 +408,27 @@ body {
 
   .xs\:inline-block {
     display: inline-block;
+  }
+}
+
+/* Mobile Scroll Fix - Ensure all pages are scrollable */
+@media (max-width: 768px) {
+  html, body {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    position: relative !important;
+  }
+  
+  /* Fix for pages that might have overflow issues */
+  .min-h-screen {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+  
+  /* Ensure main content areas are scrollable */
+  main {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
