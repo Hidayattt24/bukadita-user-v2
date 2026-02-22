@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Initialize auth state from storage on mount (use tokenStore/sessionStorage for access token)
   useEffect(() => {
-    const initializeAuth = () => {
+    const initializeAuth = async () => {
       try {
         if (typeof window !== "undefined") {
           tokenStore.loadFromStorage();
@@ -114,6 +114,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               profilePending: !parsedUser?.profile,
               isLoading: false,
             }));
+
+            // 🔥 AUTO-FETCH PROFILE: Load full profile data after auth initialization
+            // This ensures profile photo and other data are always up-to-date
+            console.log("[AuthContext] Auto-fetching profile data...");
+            try {
+              const profileResponse = await ProfileService.getUserProfile();
+              if (profileResponse.data) {
+                const updatedUser = {
+                  ...parsedUser,
+                  profile: {
+                    full_name: profileResponse.data.full_name,
+                    phone: profileResponse.data.phone,
+                    address: profileResponse.data.address,
+                    date_of_birth: profileResponse.data.date_of_birth,
+                    profil_url: profileResponse.data.profil_url,
+                    role: profileResponse.data.role,
+                    created_at: profileResponse.data.created_at,
+                    updated_at: profileResponse.data.updated_at,
+                  },
+                };
+
+                // Update state with fresh profile data
+                setAuthState((prev) => ({
+                  ...prev,
+                  user: updatedUser,
+                  profilePending: false,
+                }));
+
+                // Update localStorage with fresh data
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+                console.log("[AuthContext] Profile auto-fetch successful");
+              }
+            } catch (profileError) {
+              console.error("[AuthContext] Profile auto-fetch failed:", profileError);
+              // Don't fail auth if profile fetch fails, just log it
+            }
           } else {
             setAuthState((prev) => ({ ...prev, isLoading: false }));
           }
@@ -144,6 +180,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           | { full_name?: string; phone?: string | null; role?: string | null }
           | null
           | undefined;
+        
+        // Set initial auth state
         setAuthState((prev) => ({
           ...prev,
           user: {
@@ -164,6 +202,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           profilePending: pending,
           isLoading: false,
         }));
+
+        // 🔥 AUTO-FETCH FULL PROFILE: Load complete profile data including photo
+        if (!pending) {
+          console.log("[AuthContext] Login successful, fetching full profile...");
+          try {
+            const profileResponse = await ProfileService.getUserProfile();
+            if (profileResponse.data) {
+              const updatedUser = {
+                id: res.data!.user.id,
+                email: res.data!.user.email,
+                profile: {
+                  full_name: profileResponse.data.full_name,
+                  phone: profileResponse.data.phone,
+                  address: profileResponse.data.address,
+                  date_of_birth: profileResponse.data.date_of_birth,
+                  profil_url: profileResponse.data.profil_url,
+                  role: profileResponse.data.role,
+                  created_at: profileResponse.data.created_at,
+                  updated_at: profileResponse.data.updated_at,
+                },
+              };
+
+              // Update state with complete profile
+              setAuthState((prev) => ({
+                ...prev,
+                user: updatedUser,
+              }));
+
+              // Update localStorage
+              if (typeof window !== "undefined") {
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+              }
+              console.log("[AuthContext] Full profile loaded successfully");
+            }
+          } catch (profileError) {
+            console.error("[AuthContext] Failed to load full profile:", profileError);
+            // Don't fail login if profile fetch fails
+          }
+        }
       }
       return { success: true, pendingProfile: pending };
     } catch (error) {

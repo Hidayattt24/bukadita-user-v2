@@ -9,6 +9,7 @@ import {
   Award,
 } from "lucide-react";
 import { SubMateri, QuizResult } from "@/types/modul";
+import { showSuccessConfetti } from "@/utils/sweetalert";
 
 interface ModulQuizContentProps {
   selectedSubMateri: SubMateri;
@@ -67,6 +68,24 @@ export default function ModulQuizContent({
     setQuizResult(result);
     setCurrentState("result");
     onQuizComplete(result);
+
+    // 🎉 Show confetti if passed with excellent score (>= 80)
+    if (score >= 80) {
+      setTimeout(() => {
+        showSuccessConfetti(
+          "Luar Biasa! 🎉",
+          `Anda menyelesaikan kuis dengan nilai ${score}! Prestasi yang membanggakan!`
+        );
+      }, 500);
+    } else if (score >= 70) {
+      // Show confetti for passing score (70-79)
+      setTimeout(() => {
+        showSuccessConfetti(
+          "Selamat! 🎊",
+          `Anda lulus dengan nilai ${score}! Terus tingkatkan kemampuan Anda!`
+        );
+      }, 500);
+    }
   }, [selectedAnswers, selectedSubMateri.quiz, onQuizComplete]);
 
   // Timer effect

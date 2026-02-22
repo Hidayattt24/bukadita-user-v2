@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useServiceWorker } from "@/hooks/useServiceWorker";
 import OfflineIndicator from "@/components/shared/OfflineIndicator";
+import UpdateNotification from "@/components/shared/UpdateNotification";
 
 export default function ServiceWorkerProvider({
   children,
@@ -10,24 +11,32 @@ export default function ServiceWorkerProvider({
   children: React.ReactNode;
 }) {
   const { registration, isOnline, updateAvailable, updateServiceWorker } = useServiceWorker();
+  const [showUpdateNotification, setShowUpdateNotification] = useState(false);
 
   useEffect(() => {
     // Show update notification if available
     if (updateAvailable) {
-      const shouldUpdate = window.confirm(
-        "Versi baru aplikasi tersedia. Muat ulang untuk mendapatkan pembaruan?"
-      );
-      
-      if (shouldUpdate) {
-        updateServiceWorker();
-      }
+      setShowUpdateNotification(true);
     }
-  }, [updateAvailable, updateServiceWorker]);
+  }, [updateAvailable]);
+
+  const handleUpdate = () => {
+    updateServiceWorker();
+  };
+
+  const handleDismiss = () => {
+    setShowUpdateNotification(false);
+  };
 
   return (
     <>
       {children}
       <OfflineIndicator />
+      <UpdateNotification
+        isVisible={showUpdateNotification}
+        onUpdate={handleUpdate}
+        onDismiss={handleDismiss}
+      />
     </>
   );
 }
