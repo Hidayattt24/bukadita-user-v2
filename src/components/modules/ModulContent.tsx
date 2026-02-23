@@ -12,6 +12,7 @@ import {
   Timer,
   Play,
   Lock,
+  AlertCircle,
 } from "lucide-react";
 import { PoinDetail, SubMateri } from "@/types/modul";
 import ContentRenderer from "./ContentRenderer";
@@ -47,6 +48,23 @@ export default function ModulContent({
 }: ModulContentProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [isScrollComplete, setIsScrollComplete] = useState(false);
+
+  // Check why next button is disabled
+  const getNavigationBlockReason = () => {
+    if (!selectedSubMateri) return null;
+
+    const isLastPoin =
+      selectedPoinIndex === selectedSubMateri.poinDetails.length - 1;
+    const hasQuiz = selectedSubMateri.quiz && selectedSubMateri.quiz.length > 0;
+
+    if (isLastPoin && hasQuiz && !selectedSubMateri.isCompleted) {
+      return "Selesaikan kuis terlebih dahulu untuk melanjutkan";
+    }
+
+    return null;
+  };
+
+  const navigationBlockReason = getNavigationBlockReason();
 
   const handleScrollComplete = () => {
     console.log("✅ ModulContent: handleScrollComplete called!");
@@ -229,7 +247,10 @@ export default function ModulContent({
                     <p className="text-amber-800 mb-4 text-sm sm:text-base leading-relaxed">
                       Setelah menyelesaikan poin ini, Anda akan masuk ke kuis
                       untuk menguji pemahaman materi{" "}
-                      <strong className="text-amber-900">{selectedSubMateri.title}</strong>.
+                      <strong className="text-amber-900">
+                        {selectedSubMateri.title}
+                      </strong>
+                      .
                     </p>
 
                     {/* Quiz Info */}
@@ -243,9 +264,14 @@ export default function ModulContent({
                       <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-amber-200/50">
                         <Timer className="w-4 h-4 text-amber-600" />
                         <span className="text-sm font-semibold text-amber-800">
-                          ~{selectedSubMateri.quiz[0]?.time_limit_seconds
-                            ? Math.round(selectedSubMateri.quiz[0].time_limit_seconds / 60)
-                            : 15} Menit
+                          ~
+                          {selectedSubMateri.quiz[0]?.time_limit_seconds
+                            ? Math.round(
+                                selectedSubMateri.quiz[0].time_limit_seconds /
+                                  60,
+                              )
+                            : 15}{" "}
+                          Menit
                         </span>
                       </div>
                     </div>
@@ -281,8 +307,8 @@ export default function ModulContent({
           </div>
         </div>
 
-        {/* Navigation Footer */}
-        <div className="bg-white border-t border-gray-200 p-3 sm:p-6">
+        {/* Navigation Footer - Fixed at bottom */}
+        <div className="flex-shrink-0 bg-white border-t border-gray-200 p-3 sm:p-4 md:p-6">
           {/* Show loading skeleton when fetching progress */}
           {isFetchingProgress ? (
             <>
@@ -307,9 +333,9 @@ export default function ModulContent({
           ) : (
             <>
               {/* Mobile Layout - Progress di atas, tombol di bawah */}
-              <div className="flex flex-col gap-3 sm:hidden">
+              <div className="flex flex-col gap-2.5 sm:hidden">
                 <div className="flex justify-center">
-                  <span className="text-xs text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
+                  <span className="text-xs text-gray-600 bg-gray-50 px-2.5 py-1 rounded-full font-medium">
                     <span className="font-bold text-[#578FCA]">
                       {selectedPoinIndex + 1}
                     </span>
@@ -319,74 +345,138 @@ export default function ModulContent({
                     </span>
                   </span>
                 </div>
-                <div className="flex justify-between gap-3">
+
+                {/* Info message for blocked navigation - Mobile */}
+                {!canNavigateNext() && navigationBlockReason && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+                    <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <p className="text-xs text-amber-700 font-medium leading-tight">
+                      {navigationBlockReason}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex justify-between gap-2.5">
                   <button
                     onClick={handlePreviousPoin}
                     disabled={!canNavigatePrevious()}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center ${
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium transition-all text-sm flex-1 justify-center shadow-sm ${
                       canNavigatePrevious()
-                        ? "bg-gray-100 text-[#27548A] hover:bg-gray-200"
-                        : "bg-gray-50 text-gray-400 cursor-not-allowed"
+                        ? "bg-gray-100 text-[#27548A] hover:bg-gray-200 active:scale-95"
+                        : "bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"
+                    }`}
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span className="hidden xs:inline">Sebelumnya</span>
+                    <span className="inline xs:hidden">Prev</span>
+                  </button>
+
+                  {/* Next Button with Tooltip */}
+                  <div className="relative flex-1 group">
+                    <button
+                      onClick={handleNextPoin}
+                      disabled={!canNavigateNext()}
+                      className={`w-full flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium transition-all text-sm justify-center shadow-sm ${
+                        canNavigateNext()
+                          ? "bg-[#578FCA] text-white hover:bg-[#27548A] active:scale-95"
+                          : "bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"
+                      }`}
+                    >
+                      {!canNavigateNext() && navigationBlockReason && (
+                        <Lock className="w-3.5 h-3.5" />
+                      )}
+                      <span className="hidden xs:inline">Selanjutnya</span>
+                      <span className="inline xs:hidden">Next</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+
+                    {/* Tooltip for blocked navigation */}
+                    {!canNavigateNext() && navigationBlockReason && (
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                        <div className="bg-amber-500 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap shadow-xl flex items-center gap-1.5">
+                          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                          <span className="font-medium">
+                            {navigationBlockReason}
+                          </span>
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-amber-500"></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop Layout */}
+              <div className="hidden sm:flex flex-col gap-3">
+                {/* Info message for blocked navigation - Desktop */}
+                {!canNavigateNext() && navigationBlockReason && (
+                  <div className="flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl">
+                    <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <p className="text-sm text-amber-700 font-medium">
+                      {navigationBlockReason}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between gap-4">
+                  <button
+                    onClick={handlePreviousPoin}
+                    disabled={!canNavigatePrevious()}
+                    className={`flex items-center gap-2 px-5 py-2.5 md:px-6 md:py-3 rounded-xl font-medium transition-all text-sm md:text-base shadow-sm ${
+                      canNavigatePrevious()
+                        ? "bg-gray-100 text-[#27548A] hover:bg-gray-200 active:scale-95"
+                        : "bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"
                     }`}
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Sebelumnya
                   </button>
-                  <button
-                    onClick={handleNextPoin}
-                    disabled={!canNavigateNext()}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors text-sm flex-1 justify-center ${
-                      canNavigateNext()
-                        ? "bg-[#578FCA] text-white hover:bg-[#27548A]"
-                        : "bg-gray-50 text-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    Selanjutnya
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
 
-              {/* Desktop Layout */}
-              <div className="hidden sm:flex items-center justify-between">
-                <button
-                  onClick={handlePreviousPoin}
-                  disabled={!canNavigatePrevious()}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors text-base ${
-                    canNavigatePrevious()
-                      ? "bg-gray-100 text-[#27548A] hover:bg-gray-200"
-                      : "bg-gray-50 text-gray-400 cursor-not-allowed"
-                  }`}
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Sebelumnya
-                </button>
-
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-gray-600">
-                    Progress:
-                    <span className="font-bold text-[#578FCA] ml-1">
-                      {selectedPoinIndex + 1}
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-600 whitespace-nowrap">
+                      <span className="hidden md:inline">Progress: </span>
+                      <span className="font-bold text-[#578FCA]">
+                        {selectedPoinIndex + 1}
+                      </span>
+                      {" / "}
+                      <span className="font-medium">
+                        {selectedSubMateri?.poinDetails.length}
+                      </span>
                     </span>
-                    {" / "}
-                    <span className="font-medium">
-                      {selectedSubMateri?.poinDetails.length}
-                    </span>
-                  </span>
-                </div>
+                  </div>
 
-                <button
-                  onClick={handleNextPoin}
-                  disabled={!canNavigateNext()}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors text-base ${
-                    canNavigateNext()
-                      ? "bg-[#578FCA] text-white hover:bg-[#27548A]"
-                      : "bg-gray-50 text-gray-400 cursor-not-allowed"
-                  }`}
-                >
-                  Selanjutnya
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                  {/* Next Button with Tooltip */}
+                  <div className="relative group">
+                    <button
+                      onClick={handleNextPoin}
+                      disabled={!canNavigateNext()}
+                      className={`flex items-center gap-2 px-5 py-2.5 md:px-6 md:py-3 rounded-xl font-medium transition-all text-sm md:text-base shadow-sm ${
+                        canNavigateNext()
+                          ? "bg-[#578FCA] text-white hover:bg-[#27548A] active:scale-95"
+                          : "bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"
+                      }`}
+                    >
+                      {!canNavigateNext() && navigationBlockReason && (
+                        <Lock className="w-4 h-4" />
+                      )}
+                      Selanjutnya
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+
+                    {/* Tooltip for blocked navigation */}
+                    {!canNavigateNext() && navigationBlockReason && (
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                        <div className="bg-amber-500 text-white text-sm px-4 py-2.5 rounded-xl whitespace-nowrap shadow-xl flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                          <span className="font-medium">
+                            {navigationBlockReason}
+                          </span>
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-amber-500"></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </>
           )}

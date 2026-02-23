@@ -60,73 +60,69 @@ export default function QuizResultComponent({
   const remainingCount = answers.length - 5;
 
   return (
-    <div className="min-h-[calc(100vh-73px)] bg-gradient-to-br from-[#578FCA]/5 via-[#27548A]/5 to-slate-50/90">
+    <div className="bg-gradient-to-br from-[#578FCA]/5 via-[#27548A]/5 to-slate-50/90">
       <div className="max-w-7xl mx-auto">
-        {/* Hero Section */}
-        <div className="relative overflow-hidden">
-          <div
-            className={`absolute inset-0 ${
-              passed
-                ? "bg-gradient-to-br from-[#59AC77] via-[#3d8a59] to-[#2d6943]"
-                : "bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700"
-            } opacity-10`}
-          ></div>
-          <div className="relative px-4 sm:px-6 py-8 sm:py-12 text-center">
-            <div className="relative mx-auto mb-6 w-24 h-24 sm:w-32 sm:h-32">
+        {/* Hero Section - Auto Height Background */}
+        <div className="relative bg-gradient-to-br from-[#5B9BD5]/5 via-[#4A7FB8]/5 to-[#27548A]/5">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#5B9BD5] via-[#4A7FB8] to-[#27548A] opacity-[0.08] -z-10"></div>
+          <div className="relative px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8 text-center">
+            <div className="relative mx-auto mb-4 sm:mb-5 md:mb-6 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24">
               <div
-                className={`w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-full ${
+                className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 mx-auto rounded-full ${
                   passed
                     ? "bg-gradient-to-br from-[#59AC77] via-[#3d8a59] to-[#2d6943]"
                     : "bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700"
-                } flex items-center justify-center shadow-[6px_6px_0px_rgba(0,0,0,0.15)] border-4 border-white`}
+                } flex items-center justify-center shadow-[3px_3px_0px_rgba(0,0,0,0.15)] sm:shadow-[4px_4px_0px_rgba(0,0,0,0.15)] md:shadow-[5px_5px_0px_rgba(0,0,0,0.15)] border-3 sm:border-4 border-white`}
               >
                 {passed ? (
-                  <Trophy className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
+                  <Trophy className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-white" />
                 ) : (
-                  <Target className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
+                  <Target className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-white" />
                 )}
               </div>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#27548A] mb-3">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#27548A] mb-2 sm:mb-3">
               {getPerformanceMessage()}
             </h1>
-            <p className="text-sm sm:text-base lg:text-lg text-slate-600 font-medium mb-6 px-4 max-w-2xl mx-auto">
+            <p className="text-xs sm:text-sm md:text-base text-slate-600 font-medium mb-4 sm:mb-5 md:mb-6 px-4 max-w-xl mx-auto">
               {getPerformanceDescription()}
             </p>
 
-            {/* Score Display */}
-            <div className="mb-6">
-              <div className={`text-6xl sm:text-7xl lg:text-8xl font-bold ${getScoreColor()}`}>
+            {/* Score Display - Compact */}
+            <div className="mb-4 sm:mb-5 md:mb-6">
+              <div
+                className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold ${getScoreColor()}`}
+              >
                 {score}%
               </div>
-              <p className="text-sm sm:text-base text-slate-600 font-semibold mt-3">
+              <p className="text-xs sm:text-sm md:text-base text-slate-600 font-semibold mt-2">
                 {correctAnswers} dari {totalQuestions} jawaban benar
               </p>
             </div>
 
-            {/* Status Badge */}
+            {/* Status Badge - Compact */}
             <div className="inline-block">
               <div
                 className={`${
                   passed
                     ? "bg-gradient-to-br from-[#59AC77] via-[#3d8a59] to-[#2d6943]"
                     : "bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700"
-                } rounded-2xl px-8 py-4 border-2 border-white shadow-[4px_4px_0px_rgba(0,0,0,0.1)]`}
+                } rounded-xl sm:rounded-2xl px-4 sm:px-5 md:px-6 py-2.5 sm:py-3 md:py-3.5 border-2 border-white shadow-[2px_2px_0px_rgba(0,0,0,0.1)] sm:shadow-[3px_3px_0px_rgba(0,0,0,0.1)] md:shadow-[4px_4px_0px_rgba(0,0,0,0.1)]`}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md">
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 bg-white rounded-lg flex items-center justify-center shadow-md">
                     {passed ? (
-                      <CheckCircle className="w-6 h-6 text-[#59AC77]" />
+                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 md:w-5 md:h-5 text-[#59AC77]" />
                     ) : (
-                      <XCircle className="w-6 h-6 text-amber-600" />
+                      <XCircle className="w-4 h-4 sm:w-5 sm:h-5 md:w-5 md:h-5 text-amber-600" />
                     )}
                   </div>
                   <div className="text-left">
-                    <h3 className="text-lg sm:text-xl font-bold text-white">
+                    <h3 className="text-sm sm:text-base md:text-lg font-bold text-white">
                       {passed ? "Selamat! Anda Lulus" : "Belum Lulus"}
                     </h3>
-                    <p className="text-sm text-white/90 font-medium">
+                    <p className="text-xs sm:text-xs md:text-sm text-white/90 font-medium">
                       {passed
                         ? "Lanjutkan ke materi berikutnya"
                         : "Nilai minimum 70% untuk lulus"}
@@ -138,15 +134,13 @@ export default function QuizResultComponent({
           </div>
         </div>
 
-        <div className="px-4 sm:px-6 py-6 sm:py-8">
-          <div className="grid lg:grid-cols-2 gap-6">
+        <div className="px-4 sm:px-6 md:px-8 py-6 sm:py-8">
+          <div className="grid lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
             {/* Performance Stats */}
-            <div
-              className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[6px_6px_0px_rgba(148,163,184,0.3)]"
-            >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#578FCA] to-[#27548A] rounded-xl flex items-center justify-center shadow-lg">
-                  <Target className="w-6 h-6 text-white" />
+            <div className="bg-white rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-6 md:p-8 border-2 border-white shadow-[4px_4px_0px_rgba(148,163,184,0.3)] sm:shadow-[6px_6px_0px_rgba(148,163,184,0.3)] md:shadow-[8px_8px_0px_rgba(148,163,184,0.3)]">
+              <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gradient-to-br from-[#578FCA] to-[#27548A] rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg">
+                  <Target className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
                 </div>
                 <h3 className="text-xl sm:text-2xl font-bold text-[#27548A]">
                   Statistik Performa
@@ -243,7 +237,9 @@ export default function QuizResultComponent({
                       <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
                         <RotateCcw className="w-4 h-4 text-[#27548A]" />
                       </div>
-                      <span className="text-white font-bold text-sm">Ulangi Kuis</span>
+                      <span className="text-white font-bold text-sm">
+                        Ulangi Kuis
+                      </span>
                     </div>
                   </button>
                 )}
@@ -283,9 +279,7 @@ export default function QuizResultComponent({
             </div>
 
             {/* Answer Review */}
-            <div
-              className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[6px_6px_0px_rgba(148,163,184,0.3)]"
-            >
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[6px_6px_0px_rgba(148,163,184,0.3)]">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                   <CheckCircle className="w-6 h-6 text-white" />
@@ -298,17 +292,25 @@ export default function QuizResultComponent({
               <div className="space-y-3 mb-4">
                 {displayedAnswers.map((answer, index) => {
                   // ✅ FIX: Find quiz by questionId instead of using index
-                  const quiz = quizzes.find(q => q.id === answer.questionId) || quizzes[index];
-                  
+                  const quiz =
+                    quizzes.find((q) => q.id === answer.questionId) ||
+                    quizzes[index];
+
                   // ✅ FIX: Handle case where quiz is not found
                   if (!quiz) {
-                    console.warn(`[QuizResult] Quiz not found for answer at index ${index}`, answer);
+                    console.warn(
+                      `[QuizResult] Quiz not found for answer at index ${index}`,
+                      answer,
+                    );
                     return null;
                   }
-                  
-                  const isCorrect = answer.isCorrect ?? (quiz.correctAnswer === answer.selectedAnswer);
+
+                  const isCorrect =
+                    answer.isCorrect ??
+                    quiz.correctAnswer === answer.selectedAnswer;
                   const userAnswerIndex = answer.selectedAnswer;
-                  const correctAnswerIndex = answer.correctAnswer ?? quiz.correctAnswer ?? 0;
+                  const correctAnswerIndex =
+                    answer.correctAnswer ?? quiz.correctAnswer ?? 0;
                   const questionText = answer.question ?? quiz.question;
                   const questionOptions = answer.options ?? quiz.options;
 
@@ -324,9 +326,7 @@ export default function QuizResultComponent({
                       <div className="flex items-start gap-3">
                         <div
                           className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md ${
-                            isCorrect
-                              ? "bg-[#59AC77]"
-                              : "bg-red-500"
+                            isCorrect ? "bg-[#59AC77]" : "bg-red-500"
                           }`}
                         >
                           {isCorrect ? (

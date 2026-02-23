@@ -15,7 +15,7 @@ export default function DetailModulPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const modulSlug = params.slug as string;
-  const targetSubMateriId = searchParams.get('subMateriId');
+  const targetSubMateriId = searchParams.get("subMateriId");
 
   const {
     modul,
@@ -50,7 +50,7 @@ export default function DetailModulPage() {
   const currentPoin = getCurrentPoin();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 relative">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50/30 relative">
       <ModulHeader
         modul={modul}
         selectedSubMateri={selectedSubMateri}
@@ -59,7 +59,7 @@ export default function DetailModulPage() {
         sidebarOpen={sidebarOpen}
       />
 
-      <main className="flex flex-1 relative min-h-[calc(100vh-73px)] pb-safe">
+      <main className="flex flex-1 relative h-[calc(100vh-73px)] overflow-hidden pb-safe">
         <ModulContent
           currentPoin={currentPoin}
           selectedSubMateri={selectedSubMateri}

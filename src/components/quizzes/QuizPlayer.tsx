@@ -67,7 +67,7 @@ export default function QuizPlayer({
 
   // ✅ FIX: Prevent double submission
   const hasSubmittedRef = useRef(false);
-  
+
   // ✅ NEW: Reset timer when timeLimit prop changes
   useEffect(() => {
     if (timeLimit) {
@@ -82,13 +82,13 @@ export default function QuizPlayer({
       try {
         console.log(
           "[QuizPlayer] 📋 Fetching quiz questions for quizId:",
-          quizId
+          quizId,
         );
         console.log(
           "[QuizPlayer] 🔍 QuizId type:",
           typeof quizId,
           "Value:",
-          quizId
+          quizId,
         );
 
         if (!quizId) {
@@ -109,7 +109,7 @@ export default function QuizPlayer({
             dataType: typeof response.data,
             dataIsArray: Array.isArray(response.data),
             dataLength: response.data?.length,
-          }
+          },
         );
 
         if (!response.error && response.data) {
@@ -174,13 +174,13 @@ export default function QuizPlayer({
           setActualQuestions(questions);
           setQuestionsLoaded(true);
           console.log(
-            `[QuizPlayer] ✅ Loaded ${questions.length} quiz questions`
+            `[QuizPlayer] ✅ Loaded ${questions.length} quiz questions`,
           );
           console.log("[QuizPlayer] 📋 Questions data:", questions);
         } else {
           console.error(
             "[QuizPlayer] ❌ Failed to fetch questions:",
-            response.message
+            response.message,
           );
           // Fallback to placeholder
           setActualQuestions(quizzes);
@@ -193,7 +193,7 @@ export default function QuizPlayer({
         setQuestionsLoaded(true);
       }
     },
-    [quizzes]
+    [quizzes],
   );
 
   // ✅ FIX: Reset submission flag when quiz changes (allow retake)
@@ -208,11 +208,13 @@ export default function QuizPlayer({
     const loadQuestions = async () => {
       if (quizId) {
         console.log(
-          "[QuizPlayer] 📋 Loading quiz questions (without creating attempt)..."
+          "[QuizPlayer] 📋 Loading quiz questions (without creating attempt)...",
         );
         await fetchQuizQuestions(quizId);
       } else {
-        console.log("[QuizPlayer] ⚠️ No quizId available, using placeholder questions");
+        console.log(
+          "[QuizPlayer] ⚠️ No quizId available, using placeholder questions",
+        );
         setActualQuestions(quizzes);
         setQuestionsLoaded(true);
       }
@@ -262,7 +264,7 @@ export default function QuizPlayer({
         // Submit using main quiz API
         const response = await QuizService.submitQuizAnswers(
           quizId,
-          backendAnswers
+          backendAnswers,
         );
 
         console.log("[QuizPlayer] 📥 Backend submit response:", response);
@@ -270,16 +272,16 @@ export default function QuizPlayer({
         if (response.data) {
           console.log(
             "[QuizPlayer] ✅ Quiz submitted successfully to backend:",
-            response.data
+            response.data,
           );
 
           // ✅ NOW FETCH DETAILED RESULTS FROM BACKEND (includes is_correct from database)
           console.log(
-            "[QuizPlayer] 📊 Fetching detailed results from backend..."
+            "[QuizPlayer] 📊 Fetching detailed results from backend...",
           );
           const resultsResponse = await QuizService.getQuizResults(
             quizId,
-            true
+            true,
           );
 
           console.log("[QuizPlayer] 📥 Results response:", resultsResponse);
@@ -307,11 +309,11 @@ export default function QuizPlayer({
                   selectedAnswer: Number(ans["selected_option_index"] || -1),
                   isCorrect,
                   correctAnswer: Number(
-                    quizQuestionsRecord["correct_answer_index"] || 0
+                    quizQuestionsRecord["correct_answer_index"] || 0,
                   ),
                   explanation: String(quizQuestionsRecord["explanation"] || ""),
                 };
-              }
+              },
             );
 
             const score = resultsResponse.attempt?.score || 0;
@@ -327,12 +329,12 @@ export default function QuizPlayer({
 
             console.log(
               "[QuizPlayer] ✅ Results enriched with backend data:",
-              result
+              result,
             );
           } else {
             // GET /results returned null (404) - use POST response data instead
             console.warn(
-              "[QuizPlayer] ⚠️ GET /results returned 404 (expected in some cases), using POST response data as fallback"
+              "[QuizPlayer] ⚠️ GET /results returned 404 (expected in some cases), using POST response data as fallback",
             );
 
             const postResultData = response.data.results;
@@ -353,11 +355,11 @@ export default function QuizPlayer({
               };
               console.log(
                 "[QuizPlayer] ✅ Results using POST response data:",
-                result
+                result,
               );
             } else {
               console.warn(
-                "[QuizPlayer] ⚠️ No results data in POST response either, using local calculation"
+                "[QuizPlayer] ⚠️ No results data in POST response either, using local calculation",
               );
               // Last resort fallback
               let correctAnswers = 0;
@@ -385,7 +387,7 @@ export default function QuizPlayer({
         } else {
           console.warn(
             "[QuizPlayer] ⚠️ Backend returned no data:",
-            response.message
+            response.message,
           );
           // Fallback to local calculation
           let correctAnswers = 0;
@@ -432,21 +434,21 @@ export default function QuizPlayer({
             code: errorCode,
             status: errorStatus,
             fullError: apiError,
-          }
+          },
         );
 
         // Show more specific error message to user
         if (errorCode === "NO_RESULTS_FOUND" || errorStatus === 404) {
           console.warn(
-            "[QuizPlayer] ⚠️ Results endpoint returned 404 - likely due to timing, will retry or use fallback"
+            "[QuizPlayer] ⚠️ Results endpoint returned 404 - likely due to timing, will retry or use fallback",
           );
         } else if (errorStatus === 401) {
           console.error(
-            "[QuizPlayer] ❌ Unauthorized - user session may have expired"
+            "[QuizPlayer] ❌ Unauthorized - user session may have expired",
           );
         } else if (typeof errorStatus === "number" && errorStatus >= 500) {
           console.error(
-            "[QuizPlayer] ❌ Server error - backend may be unavailable"
+            "[QuizPlayer] ❌ Server error - backend may be unavailable",
           );
         } else {
           console.error("[QuizPlayer] ❌ Unexpected error:", errorMessage);
@@ -475,12 +477,12 @@ export default function QuizPlayer({
         };
 
         console.warn(
-          "[QuizPlayer] ⚠️ Using fallback local calculation due to error"
+          "[QuizPlayer] ⚠️ Using fallback local calculation due to error",
         );
       }
     } else if (user && !quizId) {
       console.warn(
-        "[QuizPlayer] ⚠️ No quizId available, cannot save to backend"
+        "[QuizPlayer] ⚠️ No quizId available, cannot save to backend",
       );
       // Fallback to local calculation
       let correctAnswers = 0;
@@ -505,7 +507,7 @@ export default function QuizPlayer({
       };
     } else {
       console.log(
-        "[QuizPlayer] ⚠️ User not authenticated, skipping backend operations"
+        "[QuizPlayer] ⚠️ User not authenticated, skipping backend operations",
       );
       // Fallback to local calculation
       let correctAnswers = 0;
@@ -627,7 +629,7 @@ export default function QuizPlayer({
 
   if (isSubmitting) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center p-4">
+      <div className="bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex items-center justify-center p-4 min-h-full">
         <div className="text-center p-8 max-w-md">
           <div className="relative mb-8">
             <div className="absolute inset-0 bg-gradient-to-br from-[#578FCA] to-[#27548A] rounded-full blur-xl opacity-50 animate-pulse"></div>
@@ -661,7 +663,7 @@ export default function QuizPlayer({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 pb-safe">
+    <div className="bg-gradient-to-br from-slate-50 via-white to-blue-50/30 pb-safe">
       {/* Header - Enhanced Modern Design */}
       <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-xl border-b border-gray-200/50 shadow-lg">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 sm:px-4 md:px-6 py-3 sm:py-4 gap-3 sm:gap-4">
@@ -737,8 +739,8 @@ export default function QuizPlayer({
                         index === currentQuestionIndex
                           ? "bg-gradient-to-br from-[#578FCA] to-[#27548A] text-white shadow-lg scale-110"
                           : selectedAnswers[index] !== undefined
-                          ? "bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-700 border-2 border-emerald-300 hover:shadow-md"
-                          : "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 border-2 border-gray-200 hover:border-gray-300 hover:shadow-md"
+                            ? "bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-700 border-2 border-emerald-300 hover:shadow-md"
+                            : "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 border-2 border-gray-200 hover:border-gray-300 hover:shadow-md"
                       }`}
                     >
                       <span className="relative z-10">{index + 1}</span>
@@ -817,7 +819,8 @@ export default function QuizPlayer({
                       className="h-full rounded-full bg-gradient-to-r from-[#578FCA] to-[#27548A] transition-all duration-500 ease-out shadow-md relative overflow-hidden"
                       style={{
                         width: `${
-                          ((currentQuestionIndex + 1) / questionsToUse.length) * 100
+                          ((currentQuestionIndex + 1) / questionsToUse.length) *
+                          100
                         }%`,
                       }}
                     >
@@ -830,7 +833,8 @@ export default function QuizPlayer({
                     </span>
                     <span className="text-xs text-[#578FCA] font-bold">
                       {Math.round(
-                        ((currentQuestionIndex + 1) / questionsToUse.length) * 100
+                        ((currentQuestionIndex + 1) / questionsToUse.length) *
+                          100,
                       )}
                       %
                     </span>
@@ -986,8 +990,8 @@ export default function QuizPlayer({
                             isCurrent
                               ? "bg-gradient-to-br from-[#578FCA] to-[#27548A] text-white scale-110 shadow-lg"
                               : isAnswered
-                              ? "bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-700 border-2 border-emerald-300"
-                              : "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 border-2 border-gray-200 active:bg-gray-300"
+                                ? "bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-700 border-2 border-emerald-300"
+                                : "bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 border-2 border-gray-200 active:bg-gray-300"
                           }`}
                         >
                           {index + 1}

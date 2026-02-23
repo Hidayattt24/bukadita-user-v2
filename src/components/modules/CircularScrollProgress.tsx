@@ -5,7 +5,7 @@ import { BookCheck, CheckCircle, ArrowDown } from "lucide-react";
 import { ProgressService } from "@/services/progressService";
 
 interface CircularScrollProgressProps {
-  contentRef: React.RefObject<HTMLDivElement>;
+  contentRef: React.RefObject<HTMLDivElement | null>;
   onProgressComplete?: () => void;
   poinId?: string; // Add poinId to send to backend
 }
@@ -43,14 +43,19 @@ export default function CircularScrollProgress({
       return;
     }
 
-    console.log('[CircularScrollProgress] 🔍 Fetching scroll status for poin:', poinId);
-    
+    console.log(
+      "[CircularScrollProgress] 🔍 Fetching scroll status for poin:",
+      poinId,
+    );
+
     // Add small delay to ensure token is loaded from storage
     const timer = setTimeout(() => {
       ProgressService.getPoinScrollStatus(poinId)
         .then((response: any) => {
           if (!response.error && response.data?.scroll_completed) {
-            console.log('[CircularScrollProgress] ✅ Poin already completed, setting to 100%');
+            console.log(
+              "[CircularScrollProgress] ✅ Poin already completed, setting to 100%",
+            );
             setScrollProgress(100);
             setIsComplete(true);
             setWasAlreadyCompleted(true);
@@ -60,7 +65,10 @@ export default function CircularScrollProgress({
           setIsLoadingStatus(false);
         })
         .catch((error: any) => {
-          console.error('[CircularScrollProgress] ❌ Error fetching scroll status:', error);
+          console.error(
+            "[CircularScrollProgress] ❌ Error fetching scroll status:",
+            error,
+          );
           setIsLoadingStatus(false);
         });
     }, 100);
@@ -69,7 +77,9 @@ export default function CircularScrollProgress({
   }, [poinId, onProgressComplete]);
 
   useEffect(() => {
-    console.log("✅ CircularScrollProgress: Mounted and listening to WINDOW scroll");
+    console.log(
+      "✅ CircularScrollProgress: Mounted and listening to contentRef scroll",
+    );
 
     // Reset completion state on mount (unless already completed from backend)
     if (!wasAlreadyCompleted) {
@@ -81,15 +91,22 @@ export default function CircularScrollProgress({
     const handleScroll = () => {
       // Skip if already completed from backend
       if (wasAlreadyCompleted) return;
-      // Track WINDOW scroll (browser scrollbar)
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      const scrollHeight = document.documentElement.scrollHeight;
-      const clientHeight = window.innerHeight;
+
+      // Make sure contentRef is available
+      if (!contentRef.current) {
+        console.log("⏸️ ContentRef not ready yet");
+        return;
+      }
+
+      // Track contentRef scroll (internal scroll container)
+      const scrollTop = contentRef.current.scrollTop;
+      const scrollHeight = contentRef.current.scrollHeight;
+      const clientHeight = contentRef.current.clientHeight;
 
       // Calculate scroll percentage
       const maxScroll = scrollHeight - clientHeight;
 
-      console.log("📊 Window Scroll Measurement:", {
+      console.log("📊 ContentRef Scroll Measurement:", {
         scrollTop: Math.round(scrollTop),
         scrollHeight,
         clientHeight,
@@ -105,14 +122,20 @@ export default function CircularScrollProgress({
           setIsComplete(true);
           hasCompletedRef.current = true;
           onProgressComplete?.();
-          
+
           // ✅ Send to backend if poinId is provided
           if (poinId) {
-            console.log("📤 Sending scroll completion to backend for poin (no scroll):", poinId);
+            console.log(
+              "📤 Sending scroll completion to backend for poin (no scroll):",
+              poinId,
+            );
             ProgressService.markPoinScrollCompleted(poinId)
               .then((response: any) => {
                 if (!response.error) {
-                  console.log("✅ Scroll completion saved to backend:", response.data);
+                  console.log(
+                    "✅ Scroll completion saved to backend:",
+                    response.data,
+                  );
                 }
               })
               .catch((error: any) => {
@@ -137,16 +160,25 @@ export default function CircularScrollProgress({
         hasCompletedRef.current = true;
         console.log("✅ Reading Complete! (reached 90%)");
         onProgressComplete?.();
-        
+
         // ✅ Send to backend if poinId is provided
         if (poinId) {
-          console.log("📤 Sending scroll completion to backend for poin:", poinId);
+          console.log(
+            "📤 Sending scroll completion to backend for poin:",
+            poinId,
+          );
           ProgressService.markPoinScrollCompleted(poinId)
             .then((response: any) => {
               if (!response.error) {
-                console.log("✅ Scroll completion saved to backend:", response.data);
+                console.log(
+                  "✅ Scroll completion saved to backend:",
+                  response.data,
+                );
               } else {
-                console.error("❌ Failed to save scroll completion:", response.message);
+                console.error(
+                  "❌ Failed to save scroll completion:",
+                  response.message,
+                );
               }
             })
             .catch((error: any) => {
@@ -165,15 +197,20 @@ export default function CircularScrollProgress({
       handleScroll();
     }, 500);
 
-    // Add scroll listener to WINDOW
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    // Add scroll listener to contentRef element
+    const element = contentRef.current;
+    if (element) {
+      element.addEventListener("scroll", handleScroll, { passive: true });
+    }
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      if (element) {
+        element.removeEventListener("scroll", handleScroll);
+      }
       clearTimeout(recheckTimer);
       console.log("🔇 CircularScrollProgress: Unmounted");
     };
-  }, [onProgressComplete, wasAlreadyCompleted]);
+  }, [onProgressComplete, wasAlreadyCompleted, contentRef]);
 
   // Determine button color based on progress
   const getButtonColor = () => {
@@ -188,22 +225,23 @@ export default function CircularScrollProgress({
 
   // Scroll to bottom function
   const scrollToBottom = () => {
-    // Get the maximum scroll position
-    const scrollHeight = Math.max(
-      document.body.scrollHeight,
-      document.documentElement.scrollHeight,
-      document.body.offsetHeight,
-      document.documentElement.offsetHeight,
-      document.body.clientHeight,
-      document.documentElement.clientHeight
+    if (!contentRef.current) {
+      console.log("[CircularScrollProgress] ❌ ContentRef not available");
+      return;
+    }
+
+    // Get the maximum scroll position from contentRef
+    const scrollHeight = contentRef.current.scrollHeight;
+
+    console.log(
+      "[CircularScrollProgress] 📜 Scrolling to bottom:",
+      scrollHeight,
     );
-    
-    console.log('[CircularScrollProgress] 📜 Scrolling to bottom:', scrollHeight);
-    
-    // Scroll to the very bottom
-    window.scrollTo({
+
+    // Scroll contentRef to the very bottom
+    contentRef.current.scrollTo({
       top: scrollHeight,
-      behavior: 'smooth'
+      behavior: "smooth",
     });
   };
 
@@ -215,10 +253,10 @@ export default function CircularScrollProgress({
   return (
     <>
       {/* Floating Action Buttons Container - Positioned on RIGHT side of content, before sidebar */}
-      <div 
+      <div
         className={`fixed bottom-6 z-[9998] flex flex-col gap-4 transition-all duration-300 ${
-          isSidebarOpen 
-            ? "right-4 md:right-[400px] opacity-0 scale-0 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto" 
+          isSidebarOpen
+            ? "right-4 md:right-[400px] opacity-0 scale-0 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto"
             : "right-4"
         }`}
       >
@@ -232,7 +270,7 @@ export default function CircularScrollProgress({
             >
               <ArrowDown className="w-7 h-7 sm:w-8 sm:h-8 animate-bounce" />
             </button>
-            
+
             {/* Tooltip */}
             <div className="absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
               <div className="bg-gray-900/95 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap shadow-xl">
@@ -251,7 +289,11 @@ export default function CircularScrollProgress({
               scrollProgress === 0 && !isComplete ? "animate-pulse" : ""
             }`}
             aria-label="Progress Bacaan"
-            title={isComplete ? "Bacaan Selesai!" : `Progress: ${Math.round(scrollProgress)}%`}
+            title={
+              isComplete
+                ? "Bacaan Selesai!"
+                : `Progress: ${Math.round(scrollProgress)}%`
+            }
           >
             {/* Progress Ring Background */}
             <svg
@@ -323,7 +365,8 @@ export default function CircularScrollProgress({
 
       <style jsx>{`
         @keyframes bounce-once {
-          0%, 100% {
+          0%,
+          100% {
             transform: scale(1);
           }
           50% {

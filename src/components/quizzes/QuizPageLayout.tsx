@@ -1,8 +1,12 @@
-'use client';
+"use client";
 
-import { type DetailModul, type SubMateri, type QuizResult } from '@/types/modul';
-import { QuizManager } from '@/components/quizzes';
-import { ModulSidebar, ModulHeader } from '@/components/modules';
+import {
+  type DetailModul,
+  type SubMateri,
+  type QuizResult,
+} from "@/types/modul";
+import { QuizManager } from "@/components/quizzes";
+import { ModulSidebar, ModulHeader } from "@/components/modules";
 
 interface QuizPageLayoutProps {
   modul: DetailModul;
@@ -34,7 +38,7 @@ export default function QuizPageLayout({
   handleContinueToNext,
 }: QuizPageLayoutProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 relative">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50/30 relative">
       <ModulHeader
         modul={modul}
         selectedSubMateri={selectedSubMateri}
@@ -45,10 +49,10 @@ export default function QuizPageLayout({
         isQuizActive={isQuizActive}
       />
 
-      <main className="flex flex-1 relative min-h-[calc(100vh-73px)] pb-safe">
+      <main className="flex flex-1 relative h-[calc(100vh-73px)] overflow-hidden pb-safe">
         <div
-          className={`flex-1 transition-all duration-300 ${
-            sidebarOpen ? 'md:mr-96' : 'mr-0'
+          className={`flex-1 transition-all duration-300 h-full overflow-y-auto ${
+            sidebarOpen ? "md:mr-96" : "mr-0"
           }`}
         >
           <QuizManager
