@@ -371,8 +371,8 @@ export default function ModulContent({
                     <span className="inline xs:hidden">Prev</span>
                   </button>
 
-                  {/* Next Button with Tooltip */}
-                  <div className="relative flex-1 group">
+                  {/* Next Button */}
+                  <div className="relative flex-1 mb-2">
                     <button
                       onClick={handleNextPoin}
                       disabled={!canNavigateNext()}
@@ -389,19 +389,6 @@ export default function ModulContent({
                       <span className="inline xs:hidden">Next</span>
                       <ChevronRight className="w-4 h-4" />
                     </button>
-
-                    {/* Tooltip for blocked navigation */}
-                    {!canNavigateNext() && navigationBlockReason && (
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-                        <div className="bg-amber-500 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap shadow-xl flex items-center gap-1.5">
-                          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="font-medium">
-                            {navigationBlockReason}
-                          </span>
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-amber-500"></div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -445,8 +432,8 @@ export default function ModulContent({
                     </span>
                   </div>
 
-                  {/* Next Button with Tooltip */}
-                  <div className="relative group">
+                  {/* Next Button */}
+                  <div className="relative mb-2">
                     <button
                       onClick={handleNextPoin}
                       disabled={!canNavigateNext()}
@@ -462,19 +449,6 @@ export default function ModulContent({
                       Selanjutnya
                       <ChevronRight className="w-4 h-4" />
                     </button>
-
-                    {/* Tooltip for blocked navigation */}
-                    {!canNavigateNext() && navigationBlockReason && (
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-                        <div className="bg-amber-500 text-white text-sm px-4 py-2.5 rounded-xl whitespace-nowrap shadow-xl flex items-center gap-2">
-                          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                          <span className="font-medium">
-                            {navigationBlockReason}
-                          </span>
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-transparent border-t-amber-500"></div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
