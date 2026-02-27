@@ -308,7 +308,7 @@ export default function ModulContent({
         </div>
 
         {/* Navigation Footer - Fixed at bottom */}
-        <div className="flex-shrink-0 bg-white border-t border-gray-200 p-3 sm:p-4 md:p-6">
+        <div className="flex-shrink-0 bg-white border-t border-gray-200 p-3 pb-6 sm:p-4 sm:pb-8 md:p-6 md:pb-12 lg:pb-16">
           {/* Show loading skeleton when fetching progress */}
           {isFetchingProgress ? (
             <>
@@ -372,7 +372,7 @@ export default function ModulContent({
                   </button>
 
                   {/* Next Button */}
-                  <div className="relative flex-1 mb-2">
+                  <div className="relative flex-1">
                     <button
                       onClick={handleNextPoin}
                       disabled={!canNavigateNext()}
@@ -433,7 +433,7 @@ export default function ModulContent({
                   </div>
 
                   {/* Next Button */}
-                  <div className="relative mb-2">
+                  <div className="relative">
                     <button
                       onClick={handleNextPoin}
                       disabled={!canNavigateNext()}

@@ -64,7 +64,7 @@ export default function AccessibilityWidget() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"main" | "vision" | "orientation">(
-    "main"
+    "main",
   );
   const [settings, setSettings] =
     useState<AccessibilitySettings>(DEFAULT_SETTINGS);
@@ -72,7 +72,8 @@ export default function AccessibilityWidget() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Check if we're on modul detail page (no bottom navbar)
-  const isModulDetailPage = pathname?.includes("/user/modul/") && pathname !== "/user/modul";
+  const isModulDetailPage =
+    pathname?.includes("/user/modul/") && pathname !== "/user/modul";
 
   // Load settings from localStorage
   useEffect(() => {
@@ -159,7 +160,7 @@ export default function AccessibilityWidget() {
       root.style.cursor = `crosshair`;
       root.style.setProperty(
         "--cursor-size",
-        cursorSizes[newSettings.cursorSize]
+        cursorSizes[newSettings.cursorSize],
       );
     } else {
       root.style.cursor = "";
@@ -189,7 +190,7 @@ export default function AccessibilityWidget() {
 
   const updateSetting = <K extends keyof AccessibilitySettings>(
     key: K,
-    value: AccessibilitySettings[K]
+    value: AccessibilitySettings[K],
   ) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
@@ -202,7 +203,7 @@ export default function AccessibilityWidget() {
     key: keyof AccessibilitySettings,
     delta: number,
     min: number,
-    max: number
+    max: number,
   ) => {
     setSettings((prev) => ({
       ...prev,
@@ -216,10 +217,14 @@ export default function AccessibilityWidget() {
       <button
         data-accessibility-widget
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed left-4 sm:left-6 z-[9999] w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#27548A] to-[#1e3d6b] text-white rounded-full shadow-2xl hover:scale-110 flex items-center justify-center group border-white transition-all duration-300 ${
-          isModulDetailPage ? "bottom-[100px] sm:bottom-28 sm:border-4" : "bottom-[192px] sm:bottom-28 border-4"
+        className={`fixed left-4 sm:left-6 z-[9999] w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#27548A] to-[#1e3d6b] text-white rounded-full shadow-2xl hover:scale-110 flex items-center justify-center group border-4 border-white transition-all duration-300 ${
+          isModulDetailPage
+            ? "bottom-40 sm:bottom-44"
+            : "bottom-[192px] sm:bottom-28"
         } ${
-          isSidebarOpen && isModulDetailPage ? "opacity-0 scale-0 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto" : "opacity-100 scale-100"
+          isSidebarOpen && isModulDetailPage
+            ? "opacity-0 scale-0 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto"
+            : "opacity-100 scale-100"
         }`}
         aria-label="Menu Aksesibilitas"
         title="Buka Menu Aksesibilitas"

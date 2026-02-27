@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { BookCheck, CheckCircle, ArrowDown } from "lucide-react";
 import { ProgressService } from "@/services/progressService";
 
@@ -15,12 +16,18 @@ export default function CircularScrollProgress({
   onProgressComplete,
   poinId,
 }: CircularScrollProgressProps) {
+  const pathname = usePathname();
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const hasCompletedRef = useRef(false);
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
   const [wasAlreadyCompleted, setWasAlreadyCompleted] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Check if we're on modul detail or quiz page (no bottom navbar)
+  const isModulOrQuizPage =
+    (pathname?.includes("/user/modul/") && pathname !== "/user/modul") ||
+    pathname?.includes("/kuis");
 
   // ✅ Listen to sidebar toggle (for responsive positioning and hiding on mobile)
   useEffect(() => {
@@ -254,7 +261,9 @@ export default function CircularScrollProgress({
     <>
       {/* Floating Action Buttons Container - Positioned on RIGHT side of content, before sidebar */}
       <div
-        className={`fixed bottom-6 z-[9998] flex flex-col gap-4 transition-all duration-300 ${
+        className={`fixed z-[9998] flex flex-col gap-4 transition-all duration-300 ${
+          isModulOrQuizPage ? "bottom-20 sm:bottom-24" : "bottom-6"
+        } ${
           isSidebarOpen
             ? "right-4 md:right-[400px] opacity-0 scale-0 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto"
             : "right-4"

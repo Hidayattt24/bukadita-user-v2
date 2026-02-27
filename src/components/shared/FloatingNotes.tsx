@@ -493,8 +493,8 @@ const FloatingNotes: React.FC = () => {
       {/* Floating Icon - Positioned on LEFT */}
       <div
         className={`fixed left-4 z-50 transition-all duration-300 ${
-          isModulDetailPage ? "bottom-6" : "bottom-28"
-        } sm:left-6 sm:bottom-6 ${
+          isModulDetailPage ? "bottom-20 sm:bottom-24" : "bottom-28 sm:bottom-6"
+        } sm:left-6 ${
           isSidebarOpen && isModulDetailPage
             ? "opacity-0 scale-0 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto"
             : "opacity-100 scale-100"
