@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import {
   Clock,
   Video,
@@ -48,6 +48,7 @@ export default function ModulContent({
 }: ModulContentProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [isScrollComplete, setIsScrollComplete] = useState(false);
+  const previousPoinIdRef = useRef<string | null>(null); // ✅ Track previous poin ID
 
   // Check why next button is disabled
   const getNavigationBlockReason = () => {
@@ -66,29 +67,43 @@ export default function ModulContent({
 
   const navigationBlockReason = getNavigationBlockReason();
 
-  const handleScrollComplete = () => {
+  // ✅ FIX: Memoize handleScrollComplete to prevent unnecessary re-renders
+  // This prevents CircularScrollProgress's useEffect from re-running and resetting state
+  const handleScrollComplete = useCallback(() => {
     console.log("✅ ModulContent: handleScrollComplete called!");
     setIsScrollComplete(true);
     console.log("📖 User has completed reading this content");
-  };
+  }, []); // No dependencies - function never changes
 
   // Debug: Log when component renders
   console.log("🔍 ModulContent render:", {
     hasCurrentPoin: !!currentPoin,
+    currentPoinId: currentPoin?.id,
     isScrollComplete,
     contentRefReady: !!contentRef.current,
   });
 
-  // Reset scroll completion when poin changes
+  // ✅ FIX: Reset scroll state ONLY when poin ID actually changes (not on every render)
   React.useEffect(() => {
-    console.log("🔄 ModulContent: Resetting scroll state (poin changed)");
-    setIsScrollComplete(false);
-    // Reset scroll position to top
-    if (contentRef.current) {
-      contentRef.current.scrollTop = 0;
-      console.log("⬆️ Scroll position reset to top");
+    const currentPoinId = currentPoin?.id || null;
+    
+    // Check if poin actually changed
+    if (currentPoinId !== previousPoinIdRef.current) {
+      console.log("🔄 ModulContent: Poin changed from", previousPoinIdRef.current, "to", currentPoinId);
+      
+      // Reset scroll completion state for new poin
+      setIsScrollComplete(false);
+      
+      // Reset scroll position to top only if moving to a different poin
+      if (contentRef.current && previousPoinIdRef.current !== null) {
+        contentRef.current.scrollTop = 0;
+        console.log("⬆️ Scroll position reset to top");
+      }
+      
+      // Update the ref to current poin ID
+      previousPoinIdRef.current = currentPoinId;
     }
-  }, [selectedPoinIndex, selectedSubMateri?.id]);
+  }, [currentPoin?.id]); // ✅ Only depend on poin ID, not the whole object
 
   const getContentTypeIcon = (type: string) => {
     switch (type) {

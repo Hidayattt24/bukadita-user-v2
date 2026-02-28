@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { BookCheck, CheckCircle, ArrowDown } from "lucide-react";
+import { BookCheck, CheckCircle } from "lucide-react";
 import { ProgressService } from "@/services/progressService";
 
 interface CircularScrollProgressProps {
@@ -83,17 +83,22 @@ export default function CircularScrollProgress({
     return () => clearTimeout(timer);
   }, [poinId, onProgressComplete]);
 
+  // ✅ FIX: Reset scroll state only when poinId changes (not on every render)
   useEffect(() => {
-    console.log(
-      "✅ CircularScrollProgress: Mounted and listening to contentRef scroll",
-    );
-
-    // Reset completion state on mount (unless already completed from backend)
+    // Reset completion state when poin changes (unless already completed from backend)
     if (!wasAlreadyCompleted) {
+      console.log("🔄 CircularScrollProgress: Resetting state for new poin:", poinId);
       hasCompletedRef.current = false;
       setIsComplete(false);
       setScrollProgress(0);
     }
+  }, [poinId, wasAlreadyCompleted]);
+
+  // ✅ FIX: Separate useEffect for scroll handling - only reset when poinId changes
+  useEffect(() => {
+    console.log(
+      "✅ CircularScrollProgress: Mounted and listening to contentRef scroll",
+    );
 
     const handleScroll = () => {
       // Skip if already completed from backend
@@ -217,176 +222,87 @@ export default function CircularScrollProgress({
       clearTimeout(recheckTimer);
       console.log("🔇 CircularScrollProgress: Unmounted");
     };
-  }, [onProgressComplete, wasAlreadyCompleted, contentRef]);
+  }, [poinId, wasAlreadyCompleted]); // ✅ FIX: Only depend on poinId and wasAlreadyCompleted, removed contentRef
 
-  // Determine button color based on progress
-  const getButtonColor = () => {
-    if (isComplete) {
-      return "from-green-500 to-green-600";
-    } else if (scrollProgress >= 50) {
-      return "from-[#578FCA] to-[#27548A]";
-    } else {
-      return "from-gray-400 to-gray-500";
-    }
-  };
-
-  // Scroll to bottom function
-  const scrollToBottom = () => {
-    if (!contentRef.current) {
-      console.log("[CircularScrollProgress] ❌ ContentRef not available");
-      return;
-    }
-
-    // Get the maximum scroll position from contentRef
-    const scrollHeight = contentRef.current.scrollHeight;
-
-    console.log(
-      "[CircularScrollProgress] 📜 Scrolling to bottom:",
-      scrollHeight,
-    );
-
-    // Scroll contentRef to the very bottom
-    contentRef.current.scrollTo({
-      top: scrollHeight,
-      behavior: "smooth",
-    });
-  };
-
-  // Don't show anything while loading status
-  if (isLoadingStatus) {
-    return null;
-  }
+  // ✅ Render progress indicator (without scroll-to-bottom button)
+  // Calculate position based on sidebar state and page type
+  const circleSize = 56;
+  const strokeWidth = 3;
+  const radius = (circleSize - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (scrollProgress / 100) * circumference;
 
   return (
-    <>
-      {/* Floating Action Buttons Container - Positioned on RIGHT side of content, before sidebar */}
-      <div
-        className={`fixed z-[9998] flex flex-col gap-4 transition-all duration-300 ${
-          isModulOrQuizPage ? "bottom-20 sm:bottom-24" : "bottom-6"
-        } ${
-          isSidebarOpen
-            ? "right-4 md:right-[400px] opacity-0 scale-0 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto"
-            : "right-4"
-        }`}
-      >
-        {/* Scroll to Bottom Button - Only show if already completed */}
-        {wasAlreadyCompleted && (
-          <div className="relative group">
-            <button
-              onClick={scrollToBottom}
-              className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#578FCA] to-[#27548A] text-white rounded-full shadow-2xl hover:scale-110 flex items-center justify-center border-4 border-white transition-all duration-300"
-              aria-label="Scroll ke Bawah"
-            >
-              <ArrowDown className="w-7 h-7 sm:w-8 sm:h-8 animate-bounce" />
-            </button>
-
-            {/* Tooltip */}
-            <div className="absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-              <div className="bg-gray-900/95 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap shadow-xl">
-                Scroll ke Bawah
-                <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900/95"></div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Progress Circle */}
-        <div className="relative group">
-          {/* Floating Button */}
-          <button
-            className={`w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br ${getButtonColor()} text-white rounded-full shadow-2xl hover:scale-110 flex items-center justify-center relative overflow-hidden border-4 border-white transition-all duration-300 ${
-              scrollProgress === 0 && !isComplete ? "animate-pulse" : ""
-            }`}
-            aria-label="Progress Bacaan"
-            title={
-              isComplete
-                ? "Bacaan Selesai!"
-                : `Progress: ${Math.round(scrollProgress)}%`
-            }
-          >
-            {/* Progress Ring Background */}
-            <svg
-              className="absolute inset-0 w-full h-full transform -rotate-90"
-              viewBox="0 0 64 64"
-            >
+    <div
+      className={`fixed z-50 transition-all duration-300 ${
+        isModulOrQuizPage
+          ? isSidebarOpen
+            ? "bottom-6 right-6 md:bottom-8 md:right-8"
+            : "bottom-6 right-6 md:bottom-8 md:right-8"
+          : isSidebarOpen
+            ? "bottom-20 right-6 md:bottom-8 md:right-8"
+            : "bottom-20 right-6 md:bottom-8 md:right-8"
+      }`}
+    >
+      {/* Progress Circle */}
+      <div className="relative group">
+        <div
+          className={`relative flex items-center justify-center rounded-full shadow-lg transition-all duration-300 ${
+            isComplete
+              ? "bg-gradient-to-br from-green-500 to-green-600 scale-110"
+              : "bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700"
+          }`}
+          style={{ width: circleSize, height: circleSize }}
+        >
+          {!isComplete && (
+            <svg className="absolute inset-0 -rotate-90" width={circleSize} height={circleSize}>
+              {/* Background circle */}
               <circle
-                cx="32"
-                cy="32"
-                r="28"
-                stroke="rgba(255, 255, 255, 0.2)"
-                strokeWidth="3"
+                cx={circleSize / 2}
+                cy={circleSize / 2}
+                r={radius}
                 fill="none"
+                stroke="currentColor"
+                strokeWidth={strokeWidth}
+                className="text-gray-200 dark:text-gray-700"
               />
+              {/* Progress circle */}
               <circle
-                cx="32"
-                cy="32"
-                r="28"
-                stroke="white"
-                strokeWidth="3"
+                cx={circleSize / 2}
+                cy={circleSize / 2}
+                r={radius}
                 fill="none"
-                strokeDasharray={`${2 * Math.PI * 28}`}
-                strokeDashoffset={`${2 * Math.PI * 28 * (1 - scrollProgress / 100)}`}
+                stroke="currentColor"
+                strokeWidth={strokeWidth}
+                strokeDasharray={circumference}
+                strokeDashoffset={offset}
                 strokeLinecap="round"
-                className="transition-all duration-300 ease-out"
+                className="text-blue-500 transition-all duration-300"
               />
             </svg>
+          )}
 
-            {/* Icon */}
-            <div className="relative z-10">
-              {isComplete ? (
-                <CheckCircle className="w-7 h-7 sm:w-8 sm:h-8 animate-bounce-once" />
-              ) : (
-                <BookCheck className="w-7 h-7 sm:w-8 sm:h-8" />
-              )}
-            </div>
+          {/* Icon */}
+          {isComplete ? (
+            <CheckCircle className="w-7 h-7 text-white animate-scale-in" />
+          ) : (
+            <BookCheck className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+          )}
+        </div>
 
-            {/* Percentage Badge */}
-            {!isComplete && scrollProgress > 0 && (
-              <div className="absolute -top-1 -right-1 bg-white text-[#27548A] text-xs sm:text-sm font-bold rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center shadow-md border border-blue-100">
-                {Math.round(scrollProgress)}
-              </div>
-            )}
-
-            {/* Completion celebration effect */}
-            {isComplete && (
-              <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute inset-0 bg-green-400 rounded-full opacity-30 animate-ping"></div>
-              </div>
-            )}
-          </button>
-
-          {/* Tooltip on hover */}
-          <div className="absolute bottom-full right-0 mb-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-            <div className="bg-gray-900/95 backdrop-blur-sm text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap shadow-xl">
-              {isComplete ? (
-                <span className="flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" />
-                  Bacaan Selesai!
-                </span>
-              ) : (
-                <span>Progress: {Math.round(scrollProgress)}%</span>
-              )}
-              <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900/95"></div>
-            </div>
-          </div>
+        {/* Tooltip */}
+        <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg">
+          {isComplete ? (
+            <span className="flex items-center gap-1.5">
+              <CheckCircle className="w-3.5 h-3.5" />
+              Bacaan selesai!
+            </span>
+          ) : (
+            <span>Progress: {Math.round(scrollProgress)}%</span>
+          )}
+          <div className="absolute top-full right-4 w-2 h-2 bg-gray-900 dark:bg-gray-700 transform rotate-45 -mt-1" />
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes bounce-once {
-          0%,
-          100% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.2);
-          }
-        }
-
-        .animate-bounce-once {
-          animation: bounce-once 0.6s ease-out;
-        }
-      `}</style>
-    </>
+    </div>
   );
 }
