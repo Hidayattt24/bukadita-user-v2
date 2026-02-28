@@ -23,6 +23,12 @@ export default function CircularScrollProgress({
   const [isLoadingStatus, setIsLoadingStatus] = useState(true);
   const [wasAlreadyCompleted, setWasAlreadyCompleted] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const poinIdRef = useRef(poinId); // ✅ Track current poinId for scroll handler
+
+  // ✅ Update poinIdRef when poinId changes
+  useEffect(() => {
+    poinIdRef.current = poinId;
+  }, [poinId]);
 
   // Check if we're on modul detail or quiz page (no bottom navbar)
   const isModulOrQuizPage =
@@ -43,18 +49,30 @@ export default function CircularScrollProgress({
     };
   }, []);
 
-  // ✅ Fetch scroll status on mount (with delay to ensure token is loaded)
+  // ✅ FIX: Reset state first, then fetch scroll status when poinId changes
   useEffect(() => {
     if (!poinId) {
       setIsLoadingStatus(false);
       return;
     }
 
+    // 🔥 STEP 1: Reset all state first when poinId changes
+    console.log(
+      "🔄 CircularScrollProgress: Resetting state for new poin:",
+      poinId,
+    );
+    hasCompletedRef.current = false;
+    setIsComplete(false);
+    setScrollProgress(0);
+    setWasAlreadyCompleted(false);
+    setIsLoadingStatus(true);
+
     console.log(
       "[CircularScrollProgress] 🔍 Fetching scroll status for poin:",
       poinId,
     );
 
+    // 🔥 STEP 2: Fetch status from backend after reset
     // Add small delay to ensure token is loaded from storage
     const timer = setTimeout(() => {
       ProgressService.getPoinScrollStatus(poinId)
@@ -68,6 +86,10 @@ export default function CircularScrollProgress({
             setWasAlreadyCompleted(true);
             hasCompletedRef.current = true;
             onProgressComplete?.();
+          } else {
+            console.log(
+              "[CircularScrollProgress] ⏳ Poin not completed yet, tracking scroll...",
+            );
           }
           setIsLoadingStatus(false);
         })
@@ -83,26 +105,21 @@ export default function CircularScrollProgress({
     return () => clearTimeout(timer);
   }, [poinId, onProgressComplete]);
 
-  // ✅ FIX: Reset scroll state only when poinId changes (not on every render)
-  useEffect(() => {
-    // Reset completion state when poin changes (unless already completed from backend)
-    if (!wasAlreadyCompleted) {
-      console.log("🔄 CircularScrollProgress: Resetting state for new poin:", poinId);
-      hasCompletedRef.current = false;
-      setIsComplete(false);
-      setScrollProgress(0);
-    }
-  }, [poinId, wasAlreadyCompleted]);
-
-  // ✅ FIX: Separate useEffect for scroll handling - only reset when poinId changes
+  // ✅ FIX: Separate useEffect for scroll handling - re-attach when poinId changes
   useEffect(() => {
     console.log(
-      "✅ CircularScrollProgress: Mounted and listening to contentRef scroll",
+      "✅ CircularScrollProgress: Mounted and listening to contentRef scroll for poin:",
+      poinId,
     );
 
     const handleScroll = () => {
       // Skip if already completed from backend
-      if (wasAlreadyCompleted) return;
+      if (wasAlreadyCompleted) {
+        console.log(
+          "⏸️ Already completed from backend, skipping scroll tracking",
+        );
+        return;
+      }
 
       // Make sure contentRef is available
       if (!contentRef.current) {
@@ -136,17 +153,24 @@ export default function CircularScrollProgress({
           onProgressComplete?.();
 
           // ✅ Send to backend if poinId is provided
-          if (poinId) {
+          const currentPoinId = poinIdRef.current;
+          if (currentPoinId) {
             console.log(
               "📤 Sending scroll completion to backend for poin (no scroll):",
-              poinId,
+              currentPoinId,
             );
-            ProgressService.markPoinScrollCompleted(poinId)
+            ProgressService.markPoinScrollCompleted(currentPoinId)
               .then((response: any) => {
                 if (!response.error) {
                   console.log(
                     "✅ Scroll completion saved to backend:",
                     response.data,
+                  );
+                  // 🔥 Emit event to notify sidebar to update progress
+                  window.dispatchEvent(
+                    new CustomEvent("poinScrollCompleted", {
+                      detail: { poinId: currentPoinId },
+                    }),
                   );
                 }
               })
@@ -174,17 +198,24 @@ export default function CircularScrollProgress({
         onProgressComplete?.();
 
         // ✅ Send to backend if poinId is provided
-        if (poinId) {
+        const currentPoinId = poinIdRef.current;
+        if (currentPoinId) {
           console.log(
             "📤 Sending scroll completion to backend for poin:",
-            poinId,
+            currentPoinId,
           );
-          ProgressService.markPoinScrollCompleted(poinId)
+          ProgressService.markPoinScrollCompleted(currentPoinId)
             .then((response: any) => {
               if (!response.error) {
                 console.log(
                   "✅ Scroll completion saved to backend:",
                   response.data,
+                );
+                // 🔥 Emit event to notify sidebar to update progress
+                window.dispatchEvent(
+                  new CustomEvent("poinScrollCompleted", {
+                    detail: { poinId: currentPoinId },
+                  }),
                 );
               } else {
                 console.error(
@@ -200,14 +231,21 @@ export default function CircularScrollProgress({
       }
     };
 
-    // Initial check
-    handleScroll();
+    // Initial check - wait a bit for loading to finish
+    const initialCheckTimer = setTimeout(() => {
+      if (!isLoadingStatus) {
+        console.log("🔄 Initial scroll check...");
+        handleScroll();
+      }
+    }, 200);
 
-    // Re-check after delay
+    // Re-check after delay for dynamic content
     const recheckTimer = setTimeout(() => {
-      console.log("🔄 Re-checking after 500ms...");
-      handleScroll();
-    }, 500);
+      if (!isLoadingStatus) {
+        console.log("🔄 Re-checking after 500ms...");
+        handleScroll();
+      }
+    }, 600);
 
     // Add scroll listener to contentRef element
     const element = contentRef.current;
@@ -219,10 +257,14 @@ export default function CircularScrollProgress({
       if (element) {
         element.removeEventListener("scroll", handleScroll);
       }
+      clearTimeout(initialCheckTimer);
       clearTimeout(recheckTimer);
-      console.log("🔇 CircularScrollProgress: Unmounted");
+      console.log(
+        "🔇 CircularScrollProgress: Unmounted scroll listener for poin:",
+        poinId,
+      );
     };
-  }, [poinId, wasAlreadyCompleted]); // ✅ FIX: Only depend on poinId and wasAlreadyCompleted, removed contentRef
+  }, [poinId, isLoadingStatus, wasAlreadyCompleted, onProgressComplete]); // ✅ Re-attach when poin changes or loading finishes
 
   // ✅ Render progress indicator (without scroll-to-bottom button)
   // Calculate position based on sidebar state and page type
@@ -237,11 +279,11 @@ export default function CircularScrollProgress({
       className={`fixed z-50 transition-all duration-300 ${
         isModulOrQuizPage
           ? isSidebarOpen
-            ? "bottom-6 right-6 md:bottom-8 md:right-8"
-            : "bottom-6 right-6 md:bottom-8 md:right-8"
+            ? "bottom-20 right-6 md:bottom-8 md:right-8 opacity-70"
+            : "bottom-20 right-6 md:bottom-8 md:right-8 opacity-70"
           : isSidebarOpen
-            ? "bottom-20 right-6 md:bottom-8 md:right-8"
-            : "bottom-20 right-6 md:bottom-8 md:right-8"
+            ? "bottom-20 right-6 md:bottom-8 md:right-8 opacity-70"
+            : "bottom-20 right-6 md:bottom-8 md:right-8 opacity-70"
       }`}
     >
       {/* Progress Circle */}
@@ -255,7 +297,11 @@ export default function CircularScrollProgress({
           style={{ width: circleSize, height: circleSize }}
         >
           {!isComplete && (
-            <svg className="absolute inset-0 -rotate-90" width={circleSize} height={circleSize}>
+            <svg
+              className="absolute inset-0 -rotate-90"
+              width={circleSize}
+              height={circleSize}
+            >
               {/* Background circle */}
               <circle
                 cx={circleSize / 2}

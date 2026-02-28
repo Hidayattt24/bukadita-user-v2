@@ -75,6 +75,11 @@ export default function AccessibilityWidget() {
   const isModulDetailPage =
     pathname?.includes("/user/modul/") && pathname !== "/user/modul";
 
+  // Check if we're on modul detail or quiz page (for opacity adjustment)
+  const isModulOrQuizPage =
+    (pathname?.includes("/user/modul/") && pathname !== "/user/modul") ||
+    pathname?.includes("/kuis");
+
   // Load settings from localStorage
   useEffect(() => {
     const savedSettings = localStorage.getItem("accessibility-settings-v2");
@@ -219,12 +224,20 @@ export default function AccessibilityWidget() {
         onClick={() => setIsOpen(!isOpen)}
         className={`fixed left-4 sm:left-6 z-[9999] w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-[#27548A] to-[#1e3d6b] text-white rounded-full shadow-2xl hover:scale-110 flex items-center justify-center group border-4 border-white transition-all duration-300 ${
           isModulDetailPage
-            ? "bottom-40 sm:bottom-44"
-            : "bottom-[192px] sm:bottom-28"
+            ? isModulOrQuizPage
+              ? "bottom-40 sm:bottom-44 opacity-70"
+              : "bottom-40 sm:bottom-44 opacity-100"
+            : isModulOrQuizPage
+              ? "bottom-[192px] sm:bottom-28 opacity-70"
+              : "bottom-[192px] sm:bottom-28 opacity-100"
         } ${
           isSidebarOpen && isModulDetailPage
-            ? "opacity-0 scale-0 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto"
-            : "opacity-100 scale-100"
+            ? isModulOrQuizPage
+              ? "opacity-0 scale-0 pointer-events-none md:opacity-70 md:scale-100 md:pointer-events-auto"
+              : "opacity-0 scale-0 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto"
+            : isModulOrQuizPage
+              ? "opacity-70 scale-100"
+              : "opacity-100 scale-100"
         }`}
         aria-label="Menu Aksesibilitas"
         title="Buka Menu Aksesibilitas"

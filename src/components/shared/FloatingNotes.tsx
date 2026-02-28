@@ -38,6 +38,11 @@ const FloatingNotes: React.FC = () => {
   // Check if we're on modul detail page (no bottom navbar)
   const isModulDetailPage =
     pathname?.includes("/user/modul/") && pathname !== "/user/modul";
+
+  // Check if we're on modul detail or quiz page (for opacity adjustment)
+  const isModulOrQuizPage =
+    (pathname?.includes("/user/modul/") && pathname !== "/user/modul") ||
+    pathname?.includes("/kuis");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -493,11 +498,21 @@ const FloatingNotes: React.FC = () => {
       {/* Floating Icon - Positioned on LEFT */}
       <div
         className={`fixed left-4 z-50 transition-all duration-300 ${
-          isModulDetailPage ? "bottom-20 sm:bottom-24" : "bottom-28 sm:bottom-6"
+          isModulDetailPage
+            ? isModulOrQuizPage
+              ? "bottom-20 sm:bottom-24 opacity-70"
+              : "bottom-20 sm:bottom-24 opacity-100"
+            : isModulOrQuizPage
+              ? "bottom-28 sm:bottom-6 opacity-70"
+              : "bottom-28 sm:bottom-6 opacity-100"
         } sm:left-6 ${
           isSidebarOpen && isModulDetailPage
-            ? "opacity-0 scale-0 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto"
-            : "opacity-100 scale-100"
+            ? isModulOrQuizPage
+              ? "opacity-0 scale-0 pointer-events-none md:opacity-70 md:scale-100 md:pointer-events-auto"
+              : "opacity-0 scale-0 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto"
+            : isModulOrQuizPage
+              ? "opacity-70 scale-100"
+              : "opacity-100 scale-100"
         }`}
       >
         <div className="relative">

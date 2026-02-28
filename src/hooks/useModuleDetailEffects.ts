@@ -116,10 +116,15 @@ export function useModuleDetailEffects(props: UseModuleDetailEffectsProps) {
               subMateriProgressResponse.data
             ) {
               const subMateriData = subMateriProgressResponse.data as {
-                poin_details?: Array<{ id: string; is_completed: boolean }>;
+                poin_details?: Array<{
+                  id: string;
+                  is_completed: boolean;
+                  scroll_completed?: boolean; // 🔥 ADD: Include scroll completion
+                }>;
               };
+              // 🔥 FIX: Use scroll_completed to determine poin completion for display
               completedPoinIds = (subMateriData.poin_details || [])
-                .filter((p) => p.is_completed)
+                .filter((p) => p.scroll_completed || p.is_completed) // Consider both scroll and general completion
                 .map((p) => p.id);
             }
 
@@ -263,10 +268,15 @@ export function useModuleDetailEffects(props: UseModuleDetailEffectsProps) {
                 subMateriProgressResponse.data
               ) {
                 const subMateriData = subMateriProgressResponse.data as {
-                  poin_details?: Array<{ id: string; is_completed: boolean }>;
+                  poin_details?: Array<{
+                    id: string;
+                    is_completed: boolean;
+                    scroll_completed?: boolean; // 🔥 ADD: Include scroll completion
+                  }>;
                 };
+                // 🔥 FIX: Use scroll_completed to determine poin completion for display
                 completedPoinIds = (subMateriData.poin_details || [])
-                  .filter((p) => p.is_completed)
+                  .filter((p) => p.scroll_completed || p.is_completed) // Consider both scroll and general completion
                   .map((p) => p.id);
               }
 
@@ -406,49 +416,61 @@ export function useModuleDetailEffects(props: UseModuleDetailEffectsProps) {
     loadModuleWithProgress();
   }, [modulFromDB, user, loadingFromDB, targetSubMateriId]);
 
-  // Listen to progress updates
+  // 🔥 REMOVED: progressUpdated listener to prevent double fetch and data loss
+  // Initial load already fetches complete data with scroll_completed
+  // poinScrollCompleted event handles real-time scroll updates
+  // Visibility change listener handles refresh when user returns to tab
+
+  // 🔥 Listen to poin scroll completion events for real-time update
   useEffect(() => {
-    const handleProgressUpdated = async () => {
-      if (!modul || !modul.moduleId) return;
+    const handlePoinScrollCompleted = (e: Event) => {
+      const customEvent = e as CustomEvent<{ poinId: string }>;
+      const { poinId } = customEvent.detail;
 
-      try {
-        const progressResponse = await ProgressService.getModuleProgress(
-          modul.moduleId,
-        );
-        if (!progressResponse.error && progressResponse.data) {
-          const backendData = progressResponse.data as {
-            sub_materis?: Array<{
-              id: string;
-              is_completed: boolean;
-              is_unlocked: boolean;
-            }>;
+      console.log("[Effects] 📖 Poin scroll completed event received:", poinId);
+
+      if (!modul) return;
+
+      // Update local state immediately without re-fetching
+      const updatedSubMateris = modul.subMateris.map((sub) => {
+        const poinIndex = sub.poinDetails.findIndex((p) => p.id === poinId);
+        if (poinIndex !== -1) {
+          console.log(
+            `[Effects] ✅ Updating poin "${sub.poinDetails[poinIndex].title}" as completed`,
+          );
+          const updatedPoinDetails = [...sub.poinDetails];
+          updatedPoinDetails[poinIndex] = {
+            ...updatedPoinDetails[poinIndex],
+            isCompleted: true,
           };
-
-          const updatedSubMateris = modul.subMateris.map((sub) => {
-            const backendProgress = backendData.sub_materis?.find(
-              (bp) => bp.id === sub.id,
-            );
-            if (backendProgress) {
-              return {
-                ...sub,
-                isUnlocked: backendProgress.is_unlocked,
-                isCompleted: backendProgress.is_completed,
-              };
-            }
-            return sub;
-          });
-
-          setModul({ ...modul, subMateris: updatedSubMateris });
+          return {
+            ...sub,
+            poinDetails: updatedPoinDetails,
+          };
         }
-      } catch (error) {
-        console.error("[Effects] Error reloading progress:", error);
+        return sub;
+      });
+
+      setModul({ ...modul, subMateris: updatedSubMateris });
+
+      // Also update selectedSubMateri if it's the one being viewed
+      if (props.selectedSubMateri) {
+        const updatedSelectedSubMateri = updatedSubMateris.find(
+          (s) => s.id === props.selectedSubMateri!.id,
+        );
+        if (updatedSelectedSubMateri) {
+          setSelectedSubMateri(updatedSelectedSubMateri);
+        }
       }
     };
 
-    window.addEventListener("progressUpdated", handleProgressUpdated);
+    window.addEventListener("poinScrollCompleted", handlePoinScrollCompleted);
     return () =>
-      window.removeEventListener("progressUpdated", handleProgressUpdated);
-  }, [modul?.moduleId]);
+      window.removeEventListener(
+        "poinScrollCompleted",
+        handlePoinScrollCompleted,
+      );
+  }, [modul, props.selectedSubMateri]);
 
   // Sidebar toggle event
   useEffect(() => {
