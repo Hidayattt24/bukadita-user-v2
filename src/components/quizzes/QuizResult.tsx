@@ -18,6 +18,7 @@ import { type QuizResult, type Quiz } from "@/types/modul";
 interface QuizResultProps {
   result: QuizResult;
   quizzes: Quiz[];
+  isLastSubMateri?: boolean;
   onRetakeQuiz: () => void;
   onContinue: () => void;
   onBackToInstruction: () => void;
@@ -26,6 +27,7 @@ interface QuizResultProps {
 export default function QuizResultComponent({
   result,
   quizzes,
+  isLastSubMateri = false,
   onRetakeQuiz,
   onContinue,
   onBackToInstruction,
@@ -63,11 +65,24 @@ export default function QuizResultComponent({
   };
 
   const getPerformanceDescription = () => {
-    if (score >= 90)
+    if (score >= 90) {
+      if (isLastSubMateri && passed) {
+        return "🎉 Luar Biasa! Anda telah menyelesaikan seluruh modul ini dengan sempurna!";
+      }
       return "Pemahaman Anda sangat mendalam tentang materi ini!";
-    if (score >= 80)
+    }
+    if (score >= 80) {
+      if (isLastSubMateri && passed) {
+        return "🎊 Selamat! Anda telah berhasil menyelesaikan seluruh modul ini!";
+      }
       return "Anda memiliki pemahaman yang baik tentang materi ini.";
-    if (score >= 70) return "Pemahaman Anda cukup baik, terus tingkatkan!";
+    }
+    if (score >= 70) {
+      if (isLastSubMateri && passed) {
+        return "✅ Selamat! Anda telah menyelesaikan semua materi dalam modul ini!";
+      }
+      return "Pemahaman Anda cukup baik, terus tingkatkan!";
+    }
     if (score >= 50) return "Anda telah lulus, namun masih bisa ditingkatkan.";
     return "Silakan pelajari kembali materi dan coba lagi.";
   };
@@ -105,6 +120,19 @@ export default function QuizResultComponent({
               {getPerformanceDescription()}
             </p>
 
+            {/* 🎉 Special Badge for Module Completion */}
+            {isLastSubMateri && passed && (
+              <div className="mb-4 sm:mb-5 md:mb-6 flex justify-center">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 rounded-full shadow-lg border-2 border-white animate-bounce">
+                  <Award className="w-5 h-5 text-white" />
+                  <span className="text-sm font-bold text-white">
+                    🎉 Modul Selesai 100%
+                  </span>
+                  <Award className="w-5 h-5 text-white" />
+                </div>
+              </div>
+            )}
+
             {/* Score Display - Compact */}
             <div className="mb-4 sm:mb-5 md:mb-6">
               <div
@@ -140,7 +168,9 @@ export default function QuizResultComponent({
                     </h3>
                     <p className="text-xs sm:text-xs md:text-sm text-white/90 font-medium">
                       {passed
-                        ? "Lanjutkan ke materi berikutnya"
+                        ? isLastSubMateri
+                          ? "🎉 Anda telah menyelesaikan seluruh modul!"
+                          : "Lanjutkan ke materi berikutnya"
                         : "Nilai minimum 70% untuk lulus"}
                     </p>
                   </div>
@@ -285,7 +315,9 @@ export default function QuizResultComponent({
                           <ArrowRight className="w-4 h-4 text-[#59AC77]" />
                         </div>
                         <span className="text-white font-bold text-sm">
-                          Lanjut ke Materi Berikutnya
+                          {isLastSubMateri
+                            ? "🎉 Modul Selesai - Kembali ke Materi"
+                            : "Lanjut ke Materi Berikutnya"}
                         </span>
                       </div>
                     </button>

@@ -364,6 +364,17 @@ export function useQuizPageState({
     }
   }, [modulSlug, router, modul, selectedSubMateri]);
 
+  // Helper function to check if current sub-materi is the last one
+  const isLastSubMateri = useCallback(() => {
+    if (!modul || !selectedSubMateri) return false;
+
+    const currentIndex = modul.subMateris.findIndex(
+      (sub) => sub.id === selectedSubMateri.id,
+    );
+
+    return currentIndex === modul.subMateris.length - 1;
+  }, [modul, selectedSubMateri]);
+
   return {
     modul,
     selectedSubMateri,
@@ -372,6 +383,7 @@ export function useQuizPageState({
     isFetchingProgress,
     isQuizActive,
     loadingModule,
+    isLastSubMateri: isLastSubMateri(),
     handleSubMateriSelect,
     handlePoinSelect,
     toggleSidebar,

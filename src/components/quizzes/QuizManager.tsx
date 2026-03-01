@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 interface QuizManagerProps {
   subMateri: SubMateri;
   moduleId: number | string; // ✅ Accept both for compatibility (should be UUID string for API)
+  isLastSubMateri?: boolean;
   onQuizComplete: (result: QuizResult) => void;
   onContinueToNext: () => void;
 }
@@ -24,6 +25,7 @@ type QuizState = "instruction" | "playing" | "result";
 export default function QuizManager({
   subMateri,
   moduleId,
+  isLastSubMateri = false,
   onQuizComplete,
   onContinueToNext,
 }: QuizManagerProps) {
@@ -715,6 +717,7 @@ export default function QuizManager({
             <QuizResultComponent
               result={latestResult}
               quizzes={quizQuestions}
+              isLastSubMateri={isLastSubMateri}
               onRetakeQuiz={handleRetakeQuiz}
               onContinue={handleContinue}
               onBackToInstruction={handleBackToInstruction}

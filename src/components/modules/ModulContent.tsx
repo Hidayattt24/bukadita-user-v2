@@ -13,6 +13,7 @@ import {
   Play,
   Lock,
   AlertCircle,
+  CheckCircle,
 } from "lucide-react";
 import { PoinDetail, SubMateri } from "@/types/modul";
 import ContentRenderer from "./ContentRenderer";
@@ -53,6 +54,11 @@ export default function ModulContent({
   // Check why next button is disabled
   const getNavigationBlockReason = () => {
     if (!selectedSubMateri) return null;
+
+    // ✅ Check scroll completion first (applies to all poins)
+    if (!isScrollComplete) {
+      return "Selesaikan membaca materi terlebih dahulu";
+    }
 
     const isLastPoin =
       selectedPoinIndex === selectedSubMateri.poinDetails.length - 1;
@@ -356,7 +362,7 @@ export default function ModulContent({
             <>
               {/* Mobile Layout - Progress di atas, tombol di bawah */}
               <div className="flex flex-col gap-2.5 sm:hidden">
-                <div className="flex justify-center">
+                <div className="flex items-center justify-center gap-2">
                   <span className="text-xs text-gray-600 bg-gray-50 px-2.5 py-1 rounded-full font-medium">
                     <span className="font-bold text-[#578FCA]">
                       {selectedPoinIndex + 1}
@@ -366,6 +372,18 @@ export default function ModulContent({
                       {selectedSubMateri?.poinDetails.length}
                     </span>
                   </span>
+                  {/* Scroll Completion Indicator */}
+                  {isScrollComplete ? (
+                    <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2.5 py-1 rounded-full font-medium">
+                      <CheckCircle className="w-3 h-3" />
+                      <span className="hidden xs:inline">Selesai</span>
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full font-medium animate-pulse">
+                      <BookOpen className="w-3 h-3" />
+                      <span className="hidden xs:inline">Baca</span>
+                    </span>
+                  )}
                 </div>
 
                 {/* Info message for blocked navigation - Mobile */}
@@ -397,16 +415,17 @@ export default function ModulContent({
                   <div className="relative flex-1">
                     <button
                       onClick={handleNextPoin}
-                      disabled={!canNavigateNext()}
+                      disabled={!canNavigateNext() || !isScrollComplete}
                       className={`w-full flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium transition-all text-sm justify-center shadow-sm ${
-                        canNavigateNext()
+                        canNavigateNext() && isScrollComplete
                           ? "bg-[#578FCA] text-white hover:bg-[#27548A] active:scale-95"
                           : "bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"
                       }`}
                     >
-                      {!canNavigateNext() && navigationBlockReason && (
-                        <Lock className="w-3.5 h-3.5" />
-                      )}
+                      {(!canNavigateNext() || !isScrollComplete) &&
+                        navigationBlockReason && (
+                          <Lock className="w-3.5 h-3.5" />
+                        )}
                       <span className="hidden xs:inline">Selanjutnya</span>
                       <span className="inline xs:hidden">Next</span>
                       <ChevronRight className="w-4 h-4" />
@@ -452,22 +471,33 @@ export default function ModulContent({
                         {selectedSubMateri?.poinDetails.length}
                       </span>
                     </span>
+                    {/* Scroll Completion Indicator - Desktop */}
+                    {isScrollComplete ? (
+                      <span className="flex items-center gap-1.5 text-xs text-green-600 bg-green-50 px-3 py-1.5 rounded-full font-medium border border-green-200">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        <span>Bacaan Selesai</span>
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full font-medium border border-amber-200 animate-pulse">
+                        <BookOpen className="w-3.5 h-3.5" />
+                        <span>Sedang Membaca...</span>
+                      </span>
+                    )}
                   </div>
 
                   {/* Next Button */}
                   <div className="relative">
                     <button
                       onClick={handleNextPoin}
-                      disabled={!canNavigateNext()}
+                      disabled={!canNavigateNext() || !isScrollComplete}
                       className={`flex items-center gap-2 px-5 py-2.5 md:px-6 md:py-3 rounded-xl font-medium transition-all text-sm md:text-base shadow-sm ${
-                        canNavigateNext()
+                        canNavigateNext() && isScrollComplete
                           ? "bg-[#578FCA] text-white hover:bg-[#27548A] active:scale-95"
                           : "bg-gray-50 text-gray-400 cursor-not-allowed opacity-60"
                       }`}
                     >
-                      {!canNavigateNext() && navigationBlockReason && (
-                        <Lock className="w-4 h-4" />
-                      )}
+                      {(!canNavigateNext() || !isScrollComplete) &&
+                        navigationBlockReason && <Lock className="w-4 h-4" />}
                       Selanjutnya
                       <ChevronRight className="w-4 h-4" />
                     </button>

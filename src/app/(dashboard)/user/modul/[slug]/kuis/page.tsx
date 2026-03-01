@@ -20,6 +20,7 @@ function KuisPageContent() {
     isFetchingProgress,
     isQuizActive,
     loadingModule,
+    isLastSubMateri,
     handleSubMateriSelect,
     handlePoinSelect,
     toggleSidebar,
@@ -46,6 +47,7 @@ function KuisPageContent() {
       expandedSubMateris={expandedSubMateris}
       isFetchingProgress={isFetchingProgress}
       isQuizActive={isQuizActive}
+      isLastSubMateri={isLastSubMateri}
       toggleSidebar={toggleSidebar}
       handleSubMateriSelect={handleSubMateriSelect}
       handlePoinSelect={handlePoinSelect}

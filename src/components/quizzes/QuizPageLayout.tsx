@@ -15,6 +15,7 @@ interface QuizPageLayoutProps {
   expandedSubMateris: string[];
   isFetchingProgress: boolean;
   isQuizActive?: boolean;
+  isLastSubMateri?: boolean;
   toggleSidebar: () => void;
   handleSubMateriSelect: (subMateri: SubMateri) => void;
   handlePoinSelect: () => void;
@@ -30,6 +31,7 @@ export default function QuizPageLayout({
   expandedSubMateris,
   isFetchingProgress,
   isQuizActive = false,
+  isLastSubMateri = false,
   toggleSidebar,
   handleSubMateriSelect,
   handlePoinSelect,
@@ -58,6 +60,7 @@ export default function QuizPageLayout({
           <QuizManager
             subMateri={selectedSubMateri}
             moduleId={modul.moduleId || modul.id.toString()}
+            isLastSubMateri={isLastSubMateri}
             onQuizComplete={handleQuizComplete}
             onContinueToNext={handleContinueToNext}
           />
