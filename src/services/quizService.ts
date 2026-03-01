@@ -10,6 +10,7 @@ export interface Quiz {
   description?: string;
   time_limit_seconds?: number; // default 600
   passing_score?: number; // default 70, range 0-100
+  questions_to_show?: number; // ✅ Number of questions to show (null = show all)
   published?: boolean;
   created_at?: string;
   updated_at?: string;
@@ -140,18 +141,15 @@ export class QuizService {
    * Backend endpoint: GET /api/v1/quizzes/:id (includes questions)
    */
   static async getQuestions(
-    quizId: string
+    quizId: string,
   ): Promise<ApiResponse<QuizQuestion[]>> {
     try {
       console.log("[QUIZ_SERVICE] 🔍 Getting questions for quizId:", quizId);
-      const response = await apiClient.get<any>(
-        `/quizzes/${quizId}`,
-        {
-          auth: true, // Requires authentication
-        }
-      );
+      const response = await apiClient.get<any>(`/quizzes/${quizId}`, {
+        auth: true, // Requires authentication
+      });
       console.log("[QUIZ_SERVICE] ✅ Quiz response:", response);
-      
+
       // Extract questions from quiz response
       const questions = response.data?.questions || [];
       return {
@@ -173,7 +171,7 @@ export class QuizService {
       return await apiClient.post<QuizAttempt>(
         `/quizzes/start`,
         { quiz_id: quizId },
-        { auth: true }
+        { auth: true },
       );
     } catch (err) {
       throw err;
@@ -186,7 +184,7 @@ export class QuizService {
    */
   static async submitAnswers(
     quizId: string,
-    answers: QuizAnswer[]
+    answers: QuizAnswer[],
   ): Promise<ApiResponse<QuizResult>> {
     try {
       const submission: QuizSubmission = {
@@ -195,11 +193,9 @@ export class QuizService {
         submitted_at: new Date().toISOString(),
       };
 
-      return await apiClient.post<QuizResult>(
-        `/quizzes/submit`,
-        submission,
-        { auth: true }
-      );
+      return await apiClient.post<QuizResult>(`/quizzes/submit`, submission, {
+        auth: true,
+      });
     } catch (err) {
       throw err;
     }
@@ -265,7 +261,7 @@ export class QuizService {
       return await apiClient.post(
         `/quizzes/start`,
         { quiz_id: quizId },
-        { auth: true }
+        { auth: true },
       );
     } catch (err) {
       const error = err as ApiError;
@@ -293,7 +289,7 @@ export class QuizService {
       const response = await apiClient.get(`/quizzes/${quizId}`, {
         auth: true,
       });
-      
+
       // Backend returns quiz with questions nested
       // Transform to expected format
       const quizData = response.data as any;
@@ -321,7 +317,7 @@ export class QuizService {
    */
   static async submitQuizAnswers(
     quizId: string,
-    answers: QuizAnswer[]
+    answers: QuizAnswer[],
   ): Promise<
     ApiResponse<{
       attempt: QuizAttempt;
@@ -337,11 +333,11 @@ export class QuizService {
     try {
       return await apiClient.post(
         `/quizzes/submit`,
-        { 
+        {
           quiz_id: quizId,
-          answers 
+          answers,
         },
-        { auth: true }
+        { auth: true },
       );
     } catch (err) {
       const error = err as ApiError;
@@ -356,13 +352,13 @@ export class QuizService {
   /**
    * Get quiz results (requires auth)
    * Backend endpoint: GET /api/v1/quizzes/attempts/me?quizId=...
-   * 
+   *
    * Returns null if no results found (404) - this is expected immediately after submission
    * Throws for other errors
    */
   static async getQuizResults(
     quizId: string,
-    includeAnswers: boolean = false
+    includeAnswers: boolean = false,
   ): Promise<{
     quiz: Quiz;
     attempt: QuizAttempt;
@@ -374,7 +370,7 @@ export class QuizService {
         `/quizzes/attempts/me?quizId=${quizId}`,
         {
           auth: true,
-        }
+        },
       );
 
       console.log("[QUIZ_SERVICE] ✅ Quiz attempts fetched:", {
@@ -387,24 +383,29 @@ export class QuizService {
       if (attempts.length === 0) {
         return null;
       }
-      
+
       const latestAttempt = attempts[0]; // Already ordered by created_at desc
 
       // If includeAnswers, get quiz details with questions
       let quizDetails: Quiz | null = null;
       if (includeAnswers) {
-        const quizResponse = await apiClient.get<Quiz>(`/quizzes/${quizId}?includeAnswers=true`, {
-          auth: true,
-        });
+        const quizResponse = await apiClient.get<Quiz>(
+          `/quizzes/${quizId}?includeAnswers=true`,
+          {
+            auth: true,
+          },
+        );
         quizDetails = quizResponse.data || null;
       }
 
       return {
         quiz: quizDetails || ({ id: quizId } as Quiz),
         attempt: latestAttempt,
-        answer_details: latestAttempt.answers ? 
-          (Array.isArray(latestAttempt.answers) ? latestAttempt.answers : []) : 
-          undefined,
+        answer_details: latestAttempt.answers
+          ? Array.isArray(latestAttempt.answers)
+            ? latestAttempt.answers
+            : []
+          : undefined,
       };
     } catch (err) {
       const error = err as ApiError;
@@ -417,7 +418,7 @@ export class QuizService {
             quizId,
             code: error.code,
             message: error.message,
-          }
+          },
         );
         return null;
       }
@@ -480,20 +481,20 @@ export class QuizService {
    * Uses the main quiz system: GET /api/v1/quizzes/attempts/my?module_id=UUID
    */
   static async getQuizHistoryByModule(
-    moduleId: number | string
+    moduleId: number | string,
   ): Promise<
     ApiResponse<{ attempts: Array<Record<string, unknown>>; total: number }>
   > {
     try {
       console.log(
         "[QUIZ_SERVICE] 🔍 Getting quiz history for module:",
-        moduleId
+        moduleId,
       );
 
       // Request fresh data (avoid stale cached 304 responses)
       const response = await apiClient.get(
         `/quizzes/attempts/my?module_id=${moduleId}`,
-        { auth: true, cache: "no-store" }
+        { auth: true, cache: "no-store" },
       );
 
       if (response.error) {
@@ -516,7 +517,7 @@ export class QuizService {
         : [];
 
       const attempts = attemptsArray.filter(
-        (a) => typeof a === "object"
+        (a) => typeof a === "object",
       ) as Array<Record<string, unknown>>;
 
       const total =
@@ -565,12 +566,12 @@ export class QuizService {
    * Uses the endpoint: GET /api/v1/materials/:subMateriId/quiz
    */
   static async getQuizBySubMateri(
-    subMateriId: string
+    subMateriId: string,
   ): Promise<ApiResponse<{ quiz: Quiz | null }>> {
     try {
       return await apiClient.get<{ quiz: Quiz | null }>(
         `/materials/${subMateriId}/quiz`,
-        { auth: false } // Public endpoint
+        { auth: false }, // Public endpoint
       );
     } catch (err) {
       const error = err as ApiError;
@@ -606,17 +607,17 @@ export class QuizService {
     try {
       console.log(
         "[QUIZ_SERVICE] 📋 Fetching quiz questions for sub-materi:",
-        subMateriId
+        subMateriId,
       );
 
       const response = await apiClient.get<unknown>(
         `/materials/${subMateriId}/quiz`,
-        { auth: false, cache: "no-store" } // Public endpoint, fresh data
+        { auth: false, cache: "no-store" }, // Public endpoint, fresh data
       );
 
       console.log(
         "[QUIZ_SERVICE] 📥 Raw response for questions:",
-        response.data
+        response.data,
       );
 
       if (response.error || !response.data) {
@@ -679,7 +680,7 @@ export class QuizService {
               string,
               unknown
             >
-          )["questions"]
+          )["questions"],
         )
       ) {
         questionsArray = (
@@ -692,7 +693,7 @@ export class QuizService {
 
       console.log(
         "[QUIZ_SERVICE] 📋 Extracted questions array length:",
-        questionsArray.length
+        questionsArray.length,
       );
 
       // Parse questions safely with type checks
@@ -782,7 +783,7 @@ export class QuizService {
 
       console.log(
         `[QUIZ_SERVICE] ✅ Successfully parsed ${questions.length} questions`,
-        { quiz_id, quiz_title }
+        { quiz_id, quiz_title },
       );
 
       return {

@@ -297,21 +297,33 @@ export default function QuizPlayer({
                 const isCorrect = Boolean(ans["is_correct"]);
                 if (isCorrect) correctAnswersFromBackend++;
 
-                const quizQuestionsObj = ans["materis_quiz_questions"];
-                const quizQuestionsRecord =
-                  typeof quizQuestionsObj === "object" &&
-                  quizQuestionsObj !== null
-                    ? (quizQuestionsObj as Record<string, unknown>)
-                    : {};
+                // ✅ FIX: Get question data from saved answer JSONB (not from JOIN)
+                // This ensures correct question mapping even if quiz is randomized differently
+                const questionText = String(ans["question_text"] || "");
+                const optionsRaw = ans["options"];
+                const options = Array.isArray(optionsRaw)
+                  ? optionsRaw.map((opt) => {
+                      if (typeof opt === "object" && opt !== null) {
+                        const o = opt as Record<string, unknown>;
+                        return String(o["text"] || opt);
+                      }
+                      return String(opt);
+                    })
+                  : [];
+                const correctAnswerIndex = Number(
+                  ans["correct_answer_index"] || 0,
+                );
+                const explanation = String(ans["explanation"] || "");
 
                 return {
                   questionId: String(ans["question_id"] || ""),
                   selectedAnswer: Number(ans["selected_option_index"] || -1),
                   isCorrect,
-                  correctAnswer: Number(
-                    quizQuestionsRecord["correct_answer_index"] || 0,
-                  ),
-                  explanation: String(quizQuestionsRecord["explanation"] || ""),
+                  correctAnswer: correctAnswerIndex,
+                  explanation,
+                  // ✅ NEW: Include question text and options for review
+                  question: questionText,
+                  options,
                 };
               },
             );

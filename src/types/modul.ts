@@ -43,6 +43,7 @@ export interface Quiz {
   time_limit_seconds?: number;
   passing_score?: number;
   title?: string;
+  questions_to_show?: number; // ✅ Actual number of questions in quiz
 }
 
 export interface QuizResult {
@@ -126,7 +127,7 @@ export class ModuleDataConverter {
    */
   static apiSubMateriToUI(
     apiSubMateri: ApiSubMateriSummary,
-    progress?: UserProgress
+    progress?: UserProgress,
   ): SubMateri {
     return {
       id: apiSubMateri.id.toString(),
@@ -157,7 +158,7 @@ export class ModuleDataConverter {
    */
   static apiPoinDetailToUI(
     apiPoin: ApiPoinDetail,
-    progress?: UserProgress
+    progress?: UserProgress,
   ): PoinDetail {
     return {
       id: apiPoin.id.toString(),
@@ -182,15 +183,15 @@ export class ModuleDataConverter {
   static createMockModul(
     moduleId: string,
     apiSubMateris: ApiSubMateriSummary[] = [],
-    progressData?: ProgressData
+    progressData?: ProgressData,
   ): DetailModul {
     const subMateris = apiSubMateris
       .sort((a, b) => (a.order_index || 0) - (b.order_index || 0))
       .map((apiSub, index) =>
         this.apiSubMateriToUI(
           apiSub,
-          progressData?.[apiSub.id] || { is_unlocked: index === 0 } // First unlocked
-        )
+          progressData?.[apiSub.id] || { is_unlocked: index === 0 }, // First unlocked
+        ),
       );
 
     return {
@@ -226,7 +227,7 @@ export class ModuleDataConverter {
   }
 
   private static calculateModuleStatus(
-    subMateris: SubMateri[]
+    subMateris: SubMateri[],
   ): "not-started" | "in-progress" | "completed" {
     if (subMateris.length === 0) return "not-started";
     const completedCount = subMateris.filter((sub) => sub.isCompleted).length;

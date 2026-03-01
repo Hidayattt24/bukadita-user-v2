@@ -34,17 +34,17 @@ export default function QuizManager({
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [quizHistory, setQuizHistory] = useState<QuizResult[]>([]);
   const [latestResult, setLatestResult] = useState<QuizResult | null>(
-    subMateri.quizResult || null
+    subMateri.quizResult || null,
   );
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<SubMateri["quiz"]>(
-    subMateri.quiz || []
+    subMateri.quiz || [],
   );
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
 
   // ✅ CRITICAL FIX: Store actual quiz ID from backend (not question ID)
   const [quizId, setQuizId] = useState<string | undefined>();
-  
+
   // ✅ NEW: Store quiz metadata (time_limit, passing_score, title)
   const [quizMetadata, setQuizMetadata] = useState<{
     time_limit_seconds?: number;
@@ -60,13 +60,13 @@ export default function QuizManager({
     const fetchQuizQuestions = async () => {
       console.log(
         "[QuizManager] 📋 Fetching quiz questions for sub-materi:",
-        subMateri.id
+        subMateri.id,
       );
 
       setIsLoadingQuestions(true);
       try {
         const response = await QuizService.getQuestionsForSubMateri(
-          subMateri.id
+          subMateri.id,
         );
 
         console.log("[QuizManager] 📥 Questions response:", response);
@@ -80,7 +80,7 @@ export default function QuizManager({
           const actualQuizId = response.data.quiz_id;
           console.log(
             "[QuizManager] ✅ Extracted quiz_id from response:",
-            actualQuizId
+            actualQuizId,
           );
           setQuizId(actualQuizId);
 
@@ -89,7 +89,10 @@ export default function QuizManager({
             try {
               const quizResponse = await QuizService.getById(actualQuizId);
               if (!quizResponse.error && quizResponse.data) {
-                console.log("[QuizManager] ✅ Quiz metadata fetched:", quizResponse.data);
+                console.log(
+                  "[QuizManager] ✅ Quiz metadata fetched:",
+                  quizResponse.data,
+                );
                 setQuizMetadata({
                   time_limit_seconds: quizResponse.data.time_limit_seconds,
                   passing_score: quizResponse.data.passing_score,
@@ -97,7 +100,10 @@ export default function QuizManager({
                 });
               }
             } catch (error) {
-              console.error("[QuizManager] ⚠️ Failed to fetch quiz metadata:", error);
+              console.error(
+                "[QuizManager] ⚠️ Failed to fetch quiz metadata:",
+                error,
+              );
             }
           }
 
@@ -114,12 +120,12 @@ export default function QuizManager({
             "[QuizManager] ✅ Loaded",
             frontendQuestions.length,
             "quiz questions:",
-            frontendQuestions
+            frontendQuestions,
           );
           setQuizQuestions(frontendQuestions);
         } else {
           console.log(
-            "[QuizManager] ⚠️ No questions found, using placeholder questions"
+            "[QuizManager] ⚠️ No questions found, using placeholder questions",
           );
           setQuizQuestions(subMateri.quiz || []);
           setQuizId(undefined);
@@ -174,7 +180,7 @@ export default function QuizManager({
 
         if (subMateriAttempts.length > 0) {
           console.log(
-            `[QuizManager] ✅ Found ${subMateriAttempts.length} attempts for this sub-materi`
+            `[QuizManager] ✅ Found ${subMateriAttempts.length} attempts for this sub-materi`,
           );
 
           // Convert all attempts to QuizResult format
@@ -186,17 +192,57 @@ export default function QuizManager({
                 : Number(attemptRecord["score"] || 0);
             const attemptPassed = Boolean(attemptRecord["passed"]);
             const totalQuestions = Number(
-              attemptRecord["total_questions"] || 0
+              attemptRecord["total_questions"] || 0,
             );
             const correctAnswers = Number(
-              attemptRecord["correct_answers"] || 0
+              attemptRecord["correct_answers"] || 0,
             );
+
+            // ✅ FIX: Parse answers JSONB array to get full answer details
+            const answersRaw = attemptRecord["answers"];
+            const answersArray: Array<{
+              questionId: string;
+              selectedAnswer: number;
+              isCorrect: boolean;
+              correctAnswer?: number;
+              question?: string;
+              options?: string[];
+              explanation?: string;
+            }> = [];
+
+            if (Array.isArray(answersRaw)) {
+              answersArray.push(
+                ...answersRaw.map((ans: Record<string, unknown>) => {
+                  // Extract options from JSONB format
+                  const optionsRaw = ans["options"];
+                  const options = Array.isArray(optionsRaw)
+                    ? optionsRaw.map((opt) => {
+                        if (typeof opt === "object" && opt !== null) {
+                          const o = opt as Record<string, unknown>;
+                          return String(o["text"] || opt);
+                        }
+                        return String(opt);
+                      })
+                    : [];
+
+                  return {
+                    questionId: String(ans["question_id"] || ""),
+                    selectedAnswer: Number(ans["selected_option_index"] || -1),
+                    isCorrect: Boolean(ans["is_correct"]),
+                    correctAnswer: Number(ans["correct_answer_index"] || 0),
+                    question: String(ans["question_text"] || ""),
+                    options,
+                    explanation: String(ans["explanation"] || ""),
+                  };
+                }),
+              );
+            }
 
             return {
               score: Math.round(attemptScore),
               totalQuestions,
               correctAnswers,
-              answers: [], // Not needed for history display
+              answers: answersArray, // ✅ FIX: Include full answer data for review
               passed: attemptPassed,
               completedAt: attemptRecord["completed_at"]
                 ? String(attemptRecord["completed_at"])
@@ -209,14 +255,17 @@ export default function QuizManager({
           const sortedByDate = [...allResults].sort((a, b) => {
             if (!a.completedAt) return 1;
             if (!b.completedAt) return -1;
-            return new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime();
+            return (
+              new Date(b.completedAt).getTime() -
+              new Date(a.completedAt).getTime()
+            );
           });
 
           const latestAttempt = sortedByDate[0];
 
           // Sort by score descending to get best attempt (for unlock logic)
           const sortedByScore = [...allResults].sort(
-            (a, b) => b.score - a.score
+            (a, b) => b.score - a.score,
           );
           const bestAttempt = sortedByScore[0];
 
@@ -234,7 +283,7 @@ export default function QuizManager({
           setLatestResult(latestAttempt);
           setQuizHistory(sortedByDate); // Use sorted array
 
-          console.log('[QuizManager] 📊 State updated:', {
+          console.log("[QuizManager] 📊 State updated:", {
             latestResult: latestAttempt,
             quizHistoryLength: allResults.length,
           });
@@ -243,7 +292,7 @@ export default function QuizManager({
           // User can see history and choose to retake or review
         } else {
           console.log(
-            "[QuizManager] ℹ️ No quiz history found for this sub-materi"
+            "[QuizManager] ℹ️ No quiz history found for this sub-materi",
           );
         }
       } else {
@@ -276,7 +325,7 @@ export default function QuizManager({
     window.dispatchEvent(
       new CustomEvent("quizStateChanged", {
         detail: { isActive: currentState === "playing" },
-      })
+      }),
     );
   }, [currentState]);
 
@@ -286,17 +335,20 @@ export default function QuizManager({
       // Block browser back button
       const handlePopState = (e: PopStateEvent) => {
         e.preventDefault();
-        toast.error("Anda sedang dalam mode kuis. Silakan selesaikan kuis terlebih dahulu.", {
-          duration: 3000,
-          position: "top-center",
-          style: {
-            background: "#ef4444",
-            color: "#fff",
-            fontWeight: "600",
-            borderRadius: "12px",
-            padding: "16px",
+        toast.error(
+          "Anda sedang dalam mode kuis. Silakan selesaikan kuis terlebih dahulu.",
+          {
+            duration: 3000,
+            position: "top-center",
+            style: {
+              background: "#ef4444",
+              color: "#fff",
+              fontWeight: "600",
+              borderRadius: "12px",
+              padding: "16px",
+            },
           },
-        });
+        );
         // Push state back to prevent navigation
         window.history.pushState(null, "", window.location.href);
       };
@@ -372,7 +424,7 @@ export default function QuizManager({
         const detailedResults = await QuizService.getQuizResults(quizId);
         console.log(
           "[QuizManager] 📦 Detailed results from backend:",
-          detailedResults
+          detailedResults,
         );
 
         // ✅ Handle null return (expected on 404)
@@ -431,7 +483,7 @@ export default function QuizManager({
         } else {
           // Fallback to original result if backend returns null (404)
           console.warn(
-            "[QuizManager] ⚠️ No detailed results from backend (404), using local calculation"
+            "[QuizManager] ⚠️ No detailed results from backend (404), using local calculation",
           );
           setLatestResult(result);
           setQuizHistory((prev) => [result, ...prev]); // ✅ FIX: Prepend (add to start)
@@ -441,7 +493,7 @@ export default function QuizManager({
       } catch (error) {
         console.error(
           "[QuizManager] ❌ Error fetching detailed results:",
-          error
+          error,
         );
         // Fallback to original result
         setLatestResult(result);
@@ -468,7 +520,9 @@ export default function QuizManager({
     // ✅ FIX: Don't refetch history immediately after submission
     // We already have the result data and added it to local state above
     // Refetching causes "Memuat kuis" loading screen to appear and lose review answers
-    console.log("[QuizManager] ✅ Quiz result added to history (no need to refetch)");
+    console.log(
+      "[QuizManager] ✅ Quiz result added to history (no need to refetch)",
+    );
   };
 
   const handleContinue = () => {
@@ -480,7 +534,7 @@ export default function QuizManager({
   };
 
   // 🔍 DEBUG: Log state before rendering
-  console.log('[QuizManager] 🎬 Rendering state:', {
+  console.log("[QuizManager] 🎬 Rendering state:", {
     currentState,
     latestResult,
     quizHistoryLength: quizHistory.length,
@@ -504,178 +558,184 @@ export default function QuizManager({
       {(() => {
         // Show skeleton loading state while fetching quiz history or questions
         if (isLoadingHistory || isLoadingQuestions) {
-    return (
-      <div className="min-h-[calc(100vh-73px)] bg-gradient-to-br from-[#578FCA]/5 via-[#27548A]/5 to-slate-50/90">
-        <div className="max-w-7xl mx-auto">
-          {/* Hero Skeleton */}
-          <div className="px-4 sm:px-6 py-8 sm:py-12 animate-pulse">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl shadow-[4px_4px_0px_#27548A]"></div>
-              <div className="flex-1">
-                <div className="h-8 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg w-3/4 mb-2"></div>
-                <div className="h-5 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg w-1/2"></div>
-              </div>
-            </div>
-
-            {/* Stats Skeleton */}
-            <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-6">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border-2 border-white"
-                  style={{ boxShadow: '3px 3px 0px rgba(148, 163, 184, 0.2)' }}
-                >
-                  <div className="h-8 bg-gradient-to-r from-slate-200 to-slate-300 rounded mb-1"></div>
-                  <div className="h-4 bg-gradient-to-r from-slate-200 to-slate-300 rounded w-20"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="px-4 sm:px-6 py-6 sm:py-8">
-            <div className="grid lg:grid-cols-3 gap-6">
-              {/* Left Section Skeleton */}
-              <div className="lg:col-span-2 space-y-6 animate-pulse">
-                {/* Main Card Skeleton */}
-                <div
-                  className="bg-gradient-to-br from-[#5B9BD5] via-[#4A7FB8] to-[#27548A] rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[6px_6px_0px_#27548A]"
-                >
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 bg-white/30 rounded-xl"></div>
-                    <div className="h-6 bg-white/30 rounded-lg w-1/3"></div>
-                  </div>
-                  <div className="grid sm:grid-cols-2 gap-4 mb-6">
-                    {[1, 2].map((i) => (
-                      <div key={i} className="bg-white rounded-xl p-4 border-2 border-white shadow-[3px_3px_0px_rgba(0,0,0,0.1)]">
-                        <div className="h-20 bg-gradient-to-r from-slate-100 to-slate-200 rounded"></div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="bg-white/10 rounded-xl p-4 sm:p-6 border-2 border-white/20">
-                    <div className="space-y-3">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-5 bg-white/20 rounded"></div>
-                      ))}
+          return (
+            <div className="min-h-[calc(100vh-73px)] bg-gradient-to-br from-[#578FCA]/5 via-[#27548A]/5 to-slate-50/90">
+              <div className="max-w-7xl mx-auto">
+                {/* Hero Skeleton */}
+                <div className="px-4 sm:px-6 py-8 sm:py-12 animate-pulse">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl shadow-[4px_4px_0px_#27548A]"></div>
+                    <div className="flex-1">
+                      <div className="h-8 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg w-3/4 mb-2"></div>
+                      <div className="h-5 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg w-1/2"></div>
                     </div>
                   </div>
-                </div>
 
-                {/* Button Skeleton */}
-                <div className="bg-gradient-to-br from-slate-200 to-slate-300 rounded-2xl sm:rounded-3xl p-5 sm:p-6 border-2 border-white shadow-[6px_6px_0px_rgba(148,163,184,0.3)] h-24"></div>
-              </div>
-
-              {/* Right Section Skeleton */}
-              <div className="lg:col-span-1 animate-pulse">
-                <div className="bg-white rounded-2xl sm:rounded-3xl p-6 border-2 border-white shadow-[6px_6px_0px_rgba(148,163,184,0.3)]">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-200 to-purple-300 rounded-xl"></div>
-                    <div className="h-6 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg w-2/3"></div>
-                  </div>
-                  <div className="space-y-3">
+                  {/* Stats Skeleton */}
+                  <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-6">
                     {[1, 2, 3].map((i) => (
                       <div
                         key={i}
-                        className="h-24 bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 rounded-xl border-2 border-slate-100"
-                      ></div>
+                        className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border-2 border-white"
+                        style={{
+                          boxShadow: "3px 3px 0px rgba(148, 163, 184, 0.2)",
+                        }}
+                      >
+                        <div className="h-8 bg-gradient-to-r from-slate-200 to-slate-300 rounded mb-1"></div>
+                        <div className="h-4 bg-gradient-to-r from-slate-200 to-slate-300 rounded w-20"></div>
+                      </div>
                     ))}
+                  </div>
+                </div>
+
+                <div className="px-4 sm:px-6 py-6 sm:py-8">
+                  <div className="grid lg:grid-cols-3 gap-6">
+                    {/* Left Section Skeleton */}
+                    <div className="lg:col-span-2 space-y-6 animate-pulse">
+                      {/* Main Card Skeleton */}
+                      <div className="bg-gradient-to-br from-[#5B9BD5] via-[#4A7FB8] to-[#27548A] rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[6px_6px_0px_#27548A]">
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-12 h-12 bg-white/30 rounded-xl"></div>
+                          <div className="h-6 bg-white/30 rounded-lg w-1/3"></div>
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-4 mb-6">
+                          {[1, 2].map((i) => (
+                            <div
+                              key={i}
+                              className="bg-white rounded-xl p-4 border-2 border-white shadow-[3px_3px_0px_rgba(0,0,0,0.1)]"
+                            >
+                              <div className="h-20 bg-gradient-to-r from-slate-100 to-slate-200 rounded"></div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="bg-white/10 rounded-xl p-4 sm:p-6 border-2 border-white/20">
+                          <div className="space-y-3">
+                            {[1, 2, 3].map((i) => (
+                              <div
+                                key={i}
+                                className="h-5 bg-white/20 rounded"
+                              ></div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Button Skeleton */}
+                      <div className="bg-gradient-to-br from-slate-200 to-slate-300 rounded-2xl sm:rounded-3xl p-5 sm:p-6 border-2 border-white shadow-[6px_6px_0px_rgba(148,163,184,0.3)] h-24"></div>
+                    </div>
+
+                    {/* Right Section Skeleton */}
+                    <div className="lg:col-span-1 animate-pulse">
+                      <div className="bg-white rounded-2xl sm:rounded-3xl p-6 border-2 border-white shadow-[6px_6px_0px_rgba(148,163,184,0.3)]">
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-12 h-12 bg-gradient-to-br from-purple-200 to-purple-300 rounded-xl"></div>
+                          <div className="h-6 bg-gradient-to-r from-slate-200 to-slate-300 rounded-lg w-2/3"></div>
+                        </div>
+                        <div className="space-y-3">
+                          {[1, 2, 3].map((i) => (
+                            <div
+                              key={i}
+                              className="h-24 bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 rounded-xl border-2 border-slate-100"
+                            ></div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Loading Indicator */}
+                  <div className="flex justify-center gap-2 pt-8">
+                    <div
+                      className="w-2.5 h-2.5 bg-[#578FCA] rounded-full animate-bounce"
+                      style={{ animationDelay: "0s" }}
+                    ></div>
+                    <div
+                      className="w-2.5 h-2.5 bg-[#578FCA] rounded-full animate-bounce"
+                      style={{ animationDelay: "0.2s" }}
+                    ></div>
+                    <div
+                      className="w-2.5 h-2.5 bg-[#578FCA] rounded-full animate-bounce"
+                      style={{ animationDelay: "0.4s" }}
+                    ></div>
                   </div>
                 </div>
               </div>
             </div>
+          );
+        }
 
-            {/* Loading Indicator */}
-            <div className="flex justify-center gap-2 pt-8">
-              <div
-                className="w-2.5 h-2.5 bg-[#578FCA] rounded-full animate-bounce"
-                style={{ animationDelay: "0s" }}
-              ></div>
-              <div
-                className="w-2.5 h-2.5 bg-[#578FCA] rounded-full animate-bounce"
-                style={{ animationDelay: "0.2s" }}
-              ></div>
-              <div
-                className="w-2.5 h-2.5 bg-[#578FCA] rounded-full animate-bounce"
-                style={{ animationDelay: "0.4s" }}
-              ></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+        // 🔥 NEW: Show offline blocker if user tries to access quiz while offline
+        if (
+          !isOnline &&
+          (currentState === "playing" || currentState === "instruction")
+        ) {
+          return (
+            <OfflineBlocker
+              message="Kuis memerlukan koneksi internet untuk menyimpan jawaban Anda"
+              onRetry={() => {
+                // Will automatically switch state when online
+                window.location.reload();
+              }}
+            />
+          );
+        }
 
-  // 🔥 NEW: Show offline blocker if user tries to access quiz while offline
-  if (
-    !isOnline &&
-    (currentState === "playing" || currentState === "instruction")
-  ) {
-    return (
-      <OfflineBlocker
-        message="Kuis memerlukan koneksi internet untuk menyimpan jawaban Anda"
-        onRetry={() => {
-          // Will automatically switch state when online
-          window.location.reload();
-        }}
-      />
-    );
-  }
+        if (currentState === "playing") {
+          // ✅ CRITICAL FIX: Use actual quiz ID from state (not question ID from questions[0].id)
+          console.log("[QuizManager] 🎮 Starting quiz with:", {
+            questionsCount: quizQuestions.length,
+            quizId, // ✅ Now using correct quiz ID
+            moduleId,
+            subMateriId: subMateri.id,
+          });
 
-  if (currentState === "playing") {
-    // ✅ CRITICAL FIX: Use actual quiz ID from state (not question ID from questions[0].id)
-    console.log("[QuizManager] 🎮 Starting quiz with:", {
-      questionsCount: quizQuestions.length,
-      quizId, // ✅ Now using correct quiz ID
-      moduleId,
-      subMateriId: subMateri.id,
-    });
+          // Show warning if no questions loaded
+          if (quizQuestions.length === 0) {
+            console.warn(
+              "[QuizManager] ⚠️ No quiz questions loaded!",
+              "\nTo fix: Ensure quiz questions are fetched from backend endpoint: /api/v1/materials/:subMateriId/quiz",
+            );
+          }
 
-    // Show warning if no questions loaded
-    if (quizQuestions.length === 0) {
-      console.warn(
-        "[QuizManager] ⚠️ No quiz questions loaded!",
-        "\nTo fix: Ensure quiz questions are fetched from backend endpoint: /api/v1/materials/:subMateriId/quiz"
-      );
-    }
+          return (
+            <QuizPlayer
+              quizzes={quizQuestions}
+              quizId={quizId}
+              moduleId={moduleId}
+              subMateriId={subMateri.id}
+              timeLimit={quizMetadata.time_limit_seconds}
+              onQuizComplete={handleQuizComplete}
+              onBack={handleBackFromQuiz}
+            />
+          );
+        }
 
-    return (
-      <QuizPlayer
-        quizzes={quizQuestions}
-        quizId={quizId}
-        moduleId={moduleId}
-        subMateriId={subMateri.id}
-        timeLimit={quizMetadata.time_limit_seconds}
-        onQuizComplete={handleQuizComplete}
-        onBack={handleBackFromQuiz}
-      />
-    );
-  }
+        if (currentState === "result" && latestResult) {
+          return (
+            <QuizResultComponent
+              result={latestResult}
+              quizzes={quizQuestions}
+              onRetakeQuiz={handleRetakeQuiz}
+              onContinue={handleContinue}
+              onBackToInstruction={handleBackToInstruction}
+            />
+          );
+        }
 
-  if (currentState === "result" && latestResult) {
-    return (
-      <QuizResultComponent
-        result={latestResult}
-        quizzes={quizQuestions}
-        onRetakeQuiz={handleRetakeQuiz}
-        onContinue={handleContinue}
-        onBackToInstruction={handleBackToInstruction}
-      />
-    );
-  }
-
-  return (
-    <QuizInstruction
-      subMateri={{
-        ...subMateri,
-        quiz: quizQuestions,
-        quizResult: latestResult || subMateri.quizResult, // ✅ Use latestResult from history
-      }}
-      quizMetadata={quizMetadata}
-      onStartQuiz={handleStartQuiz}
-      onRetakeQuiz={handleRetakeQuiz}
-      onBackToContent={onContinueToNext}
-      quizHistory={quizHistory}
-    />
-  );
+        return (
+          <QuizInstruction
+            subMateri={{
+              ...subMateri,
+              quiz: quizQuestions,
+              quizResult: latestResult || subMateri.quizResult, // ✅ Use latestResult from history
+            }}
+            quizMetadata={quizMetadata}
+            onStartQuiz={handleStartQuiz}
+            onRetakeQuiz={handleRetakeQuiz}
+            onBackToContent={onContinueToNext}
+            quizHistory={quizHistory}
+          />
+        );
       })()}
     </>
   );

@@ -11,6 +11,7 @@ import {
   ArrowLeft,
   ChevronDown,
   ChevronUp,
+  AlertCircle,
 } from "lucide-react";
 import { type QuizResult, type Quiz } from "@/types/modul";
 
@@ -30,7 +31,22 @@ export default function QuizResultComponent({
   onBackToInstruction,
 }: QuizResultProps) {
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [expandedExplanations, setExpandedExplanations] = useState<Set<number>>(
+    new Set(),
+  );
   const { score, correctAnswers, totalQuestions, passed, answers } = result;
+
+  const toggleExplanation = (index: number) => {
+    setExpandedExplanations((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
 
   const getScoreColor = () => {
     if (score >= 80) return "text-[#59AC77]";
@@ -281,7 +297,7 @@ export default function QuizResultComponent({
             {/* Answer Review */}
             <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[6px_6px_0px_rgba(148,163,184,0.3)]">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#5B9BD5] via-[#4A7FB8] to-[#27548A] rounded-xl flex items-center justify-center shadow-lg">
                   <CheckCircle className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-xl sm:text-2xl font-bold text-[#27548A]">
@@ -313,86 +329,158 @@ export default function QuizResultComponent({
                     answer.correctAnswer ?? quiz.correctAnswer ?? 0;
                   const questionText = answer.question ?? quiz.question;
                   const questionOptions = answer.options ?? quiz.options;
+                  const hasExplanation = !!(
+                    answer.explanation ?? quiz.explanation
+                  );
+                  const isExpanded = expandedExplanations.has(index);
 
                   return (
                     <div
                       key={index}
-                      className={`rounded-xl border-2 p-4 transition-all duration-300 hover:shadow-md ${
-                        isCorrect
-                          ? "bg-gradient-to-br from-[#59AC77]/10 to-[#3d8a59]/10 border-[#59AC77]/20"
-                          : "bg-gradient-to-br from-red-500/10 to-red-600/10 border-red-500/20"
-                      }`}
+                      className="relative bg-white rounded-xl border-2 border-white transition-all duration-300 hover:-translate-y-0.5 shadow-[3px_3px_0px_rgba(148,163,184,0.3)] hover:shadow-[4px_4px_0px_rgba(148,163,184,0.3)] overflow-hidden"
                     >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md ${
-                            isCorrect ? "bg-[#59AC77]" : "bg-red-500"
-                          }`}
-                        >
-                          {isCorrect ? (
-                            <CheckCircle className="w-5 h-5 text-white" />
-                          ) : (
-                            <XCircle className="w-5 h-5 text-white" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-slate-800 text-sm mb-2">
-                            <span className="text-[#578FCA]">
-                              Soal {index + 1}:
-                            </span>{" "}
-                            {questionText.length > 60
-                              ? `${questionText.substring(0, 60)}...`
-                              : questionText}
-                          </p>
-                          <div className="space-y-2 text-xs sm:text-sm">
-                            {/* User Answer */}
-                            <div
-                              className={`p-2.5 rounded-lg ${
-                                isCorrect
-                                  ? "bg-white/70 border border-[#59AC77]/30"
-                                  : "bg-white/70 border border-red-500/30"
-                              }`}
-                            >
-                              <p className="font-semibold text-slate-600 mb-1">
-                                Jawaban Anda:
-                              </p>
-                              <p
-                                className={`font-bold ${
-                                  isCorrect ? "text-[#59AC77]" : "text-red-600"
+                      {/* Status Bar */}
+                      <div
+                        className={`h-1.5 ${
+                          isCorrect
+                            ? "bg-gradient-to-r from-[#59AC77] to-[#3d8a59]"
+                            : "bg-gradient-to-r from-red-500 to-red-600"
+                        }`}
+                      ></div>
+
+                      <div className="p-4">
+                        {/* Question Header */}
+                        <div className="flex items-start gap-3 mb-3">
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md ${
+                              isCorrect
+                                ? "bg-gradient-to-br from-[#59AC77] to-[#3d8a59]"
+                                : "bg-gradient-to-br from-red-500 to-red-600"
+                            }`}
+                          >
+                            {isCorrect ? (
+                              <CheckCircle className="w-5 h-5 text-white" />
+                            ) : (
+                              <XCircle className="w-5 h-5 text-white" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-gradient-to-br from-[#5B9BD5]/10 to-[#27548A]/10 text-[#27548A] border border-[#5B9BD5]/20">
+                                Soal {index + 1}
+                              </span>
+                              <span
+                                className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
+                                  isCorrect
+                                    ? "bg-[#59AC77]/10 text-[#59AC77] border border-[#59AC77]/20"
+                                    : "bg-red-500/10 text-red-600 border border-red-500/20"
                                 }`}
                               >
-                                {userAnswerIndex !== undefined &&
-                                userAnswerIndex >= 0
-                                  ? questionOptions[userAnswerIndex]
-                                  : "Tidak dijawab"}
-                              </p>
+                                {isCorrect ? "Benar" : "Salah"}
+                              </span>
                             </div>
+                            <p className="text-sm font-semibold text-slate-800 leading-relaxed">
+                              {questionText}
+                            </p>
+                          </div>
+                        </div>
 
-                            {/* Correct Answer */}
-                            {!isCorrect && (
-                              <div className="p-2.5 rounded-lg bg-[#59AC77]/20 border border-[#59AC77]/40">
-                                <p className="font-semibold text-slate-600 mb-1">
-                                  Jawaban Benar:
-                                </p>
-                                <p className="font-bold text-[#59AC77]">
-                                  {questionOptions[correctAnswerIndex]}
-                                </p>
+                        {/* Answer Options */}
+                        <div className="space-y-2 ml-13">
+                          {questionOptions.map((option, optIndex) => {
+                            const isUserAnswer = optIndex === userAnswerIndex;
+                            const isCorrectAnswer =
+                              optIndex === correctAnswerIndex;
+
+                            // Determine styling
+                            let optionClass =
+                              "bg-slate-50 border-slate-200 text-slate-700";
+                            let iconElement = null;
+
+                            if (isCorrectAnswer) {
+                              // Correct answer - always green
+                              optionClass =
+                                "bg-gradient-to-br from-[#59AC77]/20 to-[#3d8a59]/20 border-[#59AC77] text-[#59AC77] font-semibold shadow-[2px_2px_0px_rgba(89,172,119,0.2)]";
+                              iconElement = (
+                                <div className="w-6 h-6 rounded-lg bg-[#59AC77] flex items-center justify-center">
+                                  <CheckCircle className="w-4 h-4 text-white" />
+                                </div>
+                              );
+                            } else if (isUserAnswer && !isCorrect) {
+                              // User's wrong answer - red with highlight
+                              optionClass =
+                                "bg-gradient-to-br from-red-500/20 to-red-600/20 border-red-500 text-red-700 font-semibold shadow-[2px_2px_0px_rgba(239,68,68,0.2)]";
+                              iconElement = (
+                                <div className="w-6 h-6 rounded-lg bg-red-500 flex items-center justify-center">
+                                  <XCircle className="w-4 h-4 text-white" />
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <div
+                                key={optIndex}
+                                className={`flex items-center gap-2.5 p-3 rounded-lg border-2 transition-all duration-200 ${optionClass}`}
+                              >
+                                {iconElement ? (
+                                  iconElement
+                                ) : (
+                                  <div className="w-6 h-6 rounded-lg border-2 border-slate-300 bg-white flex items-center justify-center">
+                                    <span className="text-xs font-bold text-slate-400">
+                                      {String.fromCharCode(65 + optIndex)}
+                                    </span>
+                                  </div>
+                                )}
+                                <span className="text-xs sm:text-sm flex-1">
+                                  {option}
+                                </span>
+                                {isUserAnswer && !isCorrectAnswer && (
+                                  <span className="text-xs font-bold px-2 py-0.5 rounded bg-red-500 text-white">
+                                    Jawaban Anda
+                                  </span>
+                                )}
+                                {isCorrectAnswer && (
+                                  <span className="text-xs font-bold px-2 py-0.5 rounded bg-[#59AC77] text-white">
+                                    Benar
+                                  </span>
+                                )}
                               </div>
-                            )}
+                            );
+                          })}
+                        </div>
 
-                            {/* Explanation */}
-                            {(answer.explanation ?? quiz.explanation) && (
-                              <div className="p-2.5 rounded-lg bg-blue-50 border border-blue-200">
-                                <p className="font-semibold text-slate-600 mb-1">
-                                  Penjelasan:
-                                </p>
-                                <p className="text-slate-700 font-medium leading-relaxed">
+                        {/* Explanation Dropdown */}
+                        {hasExplanation && (
+                          <div className="mt-3 ml-13">
+                            <button
+                              onClick={() => toggleExplanation(index)}
+                              className="w-full flex items-center justify-between p-3 rounded-lg bg-gradient-to-br from-[#5B9BD5]/10 to-[#27548A]/10 border-2 border-[#5B9BD5]/20 hover:border-[#5B9BD5]/40 transition-all duration-200 group"
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#5B9BD5] to-[#27548A] flex items-center justify-center">
+                                  <AlertCircle className="w-4 h-4 text-white" />
+                                </div>
+                                <span className="text-sm font-bold text-[#27548A]">
+                                  {isExpanded ? "Sembunyikan" : "Lihat"}{" "}
+                                  Penjelasan
+                                </span>
+                              </div>
+                              <ChevronDown
+                                className={`w-4 h-4 text-[#27548A] transition-transform duration-200 ${
+                                  isExpanded ? "rotate-180" : ""
+                                }`}
+                              />
+                            </button>
+
+                            {isExpanded && (
+                              <div className="mt-2 p-4 rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-200 shadow-[2px_2px_0px_rgba(148,163,184,0.2)]">
+                                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
                                   {answer.explanation ?? quiz.explanation}
                                 </p>
                               </div>
                             )}
                           </div>
-                        </div>
+                        )}
                       </div>
                     </div>
                   );

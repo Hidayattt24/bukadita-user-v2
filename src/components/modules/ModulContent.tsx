@@ -86,20 +86,25 @@ export default function ModulContent({
   // ✅ FIX: Reset scroll state ONLY when poin ID actually changes (not on every render)
   React.useEffect(() => {
     const currentPoinId = currentPoin?.id || null;
-    
+
     // Check if poin actually changed
     if (currentPoinId !== previousPoinIdRef.current) {
-      console.log("🔄 ModulContent: Poin changed from", previousPoinIdRef.current, "to", currentPoinId);
-      
+      console.log(
+        "🔄 ModulContent: Poin changed from",
+        previousPoinIdRef.current,
+        "to",
+        currentPoinId,
+      );
+
       // Reset scroll completion state for new poin
       setIsScrollComplete(false);
-      
+
       // Reset scroll position to top only if moving to a different poin
       if (contentRef.current && previousPoinIdRef.current !== null) {
         contentRef.current.scrollTop = 0;
         console.log("⬆️ Scroll position reset to top");
       }
-      
+
       // Update the ref to current poin ID
       previousPoinIdRef.current = currentPoinId;
     }
@@ -273,7 +278,9 @@ export default function ModulContent({
                       <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-amber-200/50">
                         <ClipboardList className="w-4 h-4 text-amber-600" />
                         <span className="text-sm font-semibold text-amber-800">
-                          {selectedSubMateri.quiz.length} Soal
+                          {selectedSubMateri.quiz[0]?.questions_to_show ||
+                            selectedSubMateri.quiz.length}{" "}
+                          Soal
                         </span>
                       </div>
                       <div className="flex items-center gap-2 bg-white/60 backdrop-blur-sm px-3 py-2 rounded-lg border border-amber-200/50">
