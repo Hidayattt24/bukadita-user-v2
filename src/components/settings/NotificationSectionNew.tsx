@@ -13,6 +13,7 @@ export default function NotificationSection({}: NotificationSectionProps) {
     useState<NotificationPermission>("default");
   const [reminderTime, setReminderTime] = useState("09:00");
   const [lastNotification, setLastNotification] = useState<string | null>(null);
+  const [nextNotificationInfo, setNextNotificationInfo] = useState<string>("");
 
   // Check notification permission on mount
   useEffect(() => {
@@ -64,16 +65,123 @@ export default function NotificationSection({}: NotificationSectionProps) {
             enabled: true,
             time: reminderTime,
             lastSent: today,
-          })
+          }),
         );
       }
     };
 
-    // Check every minute
+    const scheduleNotification = () => {
+      const now = new Date();
+      const [hours, minutes] = reminderTime.split(":").map(Number);
+      const today = now.toDateString();
+
+      // Calculate time until next notification
+      const scheduledTime = new Date();
+      scheduledTime.setHours(hours, minutes, 0, 0);
+
+      // If the scheduled time has passed today, skip to tomorrow
+      if (scheduledTime <= now) {
+        // Check if we already sent today
+        if (lastNotification !== today) {
+          console.log(
+            "⏰ Waktu pengingat sudah lewat hari ini, tapi belum dikirim",
+          );
+          // Don't send immediately, wait for tomorrow
+        }
+        scheduledTime.setDate(scheduledTime.getDate() + 1);
+      }
+
+      const timeUntilNotification = scheduledTime.getTime() - now.getTime();
+      console.log(
+        `⏱️ Notifikasi akan dikirim dalam ${Math.round(timeUntilNotification / 1000 / 60)} menit`,
+      );
+
+      // Set timeout for the exact time
+      const timeout = setTimeout(() => {
+        const today = new Date().toDateString();
+        if (lastNotification !== today) {
+          sendLearningReminder();
+          setLastNotification(today);
+          localStorage.setItem(
+            "learningReminder",
+            JSON.stringify({
+              enabled: true,
+              time: reminderTime,
+              lastSent: today,
+            }),
+          );
+        }
+        // After sending, schedule the next one for tomorrow
+        scheduleNotification();
+      }, timeUntilNotification);
+
+      return timeout;
+    };
+
+    // Schedule the notification
+    const timeout = scheduleNotification();
+
+    // Also keep the interval check as a backup (every minute)
     const interval = setInterval(checkAndSendNotification, 60000);
 
-    // Check immediately on load
-    checkAndSendNotification();
+    return () => {
+      clearTimeout(timeout);
+      clearInterval(interval);
+    };
+  }, [notificationEnabled, permission, reminderTime, lastNotification]);
+
+  // Update next notification info display
+  useEffect(() => {
+    if (!notificationEnabled || permission !== "granted") {
+      setNextNotificationInfo("");
+      return;
+    }
+
+    const updateNextNotificationInfo = () => {
+      const now = new Date();
+      const [hours, minutes] = reminderTime.split(":").map(Number);
+      const today = now.toDateString();
+
+      // Calculate next notification time
+      const nextTime = new Date();
+      nextTime.setHours(hours, minutes, 0, 0);
+
+      // If time has passed today and not sent yet
+      if (nextTime <= now) {
+        if (lastNotification !== today) {
+          setNextNotificationInfo("Menunggu untuk besok");
+        } else {
+          nextTime.setDate(nextTime.getDate() + 1);
+          const hoursUntil = Math.floor(
+            (nextTime.getTime() - now.getTime()) / (1000 * 60 * 60),
+          );
+          setNextNotificationInfo(`Besok dalam ${hoursUntil} jam`);
+        }
+      } else {
+        // Time hasn't passed yet today
+        const minutesUntil = Math.floor(
+          (nextTime.getTime() - now.getTime()) / (1000 * 60),
+        );
+        const hoursUntil = Math.floor(minutesUntil / 60);
+        const remainingMinutes = minutesUntil % 60;
+
+        if (hoursUntil > 0) {
+          setNextNotificationInfo(
+            `Dalam ${hoursUntil} jam ${remainingMinutes} menit`,
+          );
+        } else if (minutesUntil > 0) {
+          setNextNotificationInfo(`Dalam ${minutesUntil} menit`);
+        } else {
+          setNextNotificationInfo("Segera...");
+        }
+      }
+    };
+
+    // Update immediately
+    updateNextNotificationInfo();
+
+    // Update every 30 seconds
+    const interval = setInterval(updateNextNotificationInfo, 30000);
 
     return () => clearInterval(interval);
   }, [notificationEnabled, permission, reminderTime, lastNotification]);
@@ -96,7 +204,7 @@ export default function NotificationSection({}: NotificationSectionProps) {
             enabled: true,
             time: reminderTime,
             lastSent: null,
-          })
+          }),
         );
 
         toast.success("Notifikasi berhasil diaktifkan! ✅");
@@ -105,7 +213,7 @@ export default function NotificationSection({}: NotificationSectionProps) {
         sendLearningReminder();
       } else if (result === "denied") {
         toast.error(
-          "Izin notifikasi ditolak. Aktifkan di pengaturan browser Anda."
+          "Izin notifikasi ditolak. Aktifkan di pengaturan browser Anda.",
         );
       } else {
         toast.warning("Izin notifikasi dibatalkan");
@@ -139,7 +247,7 @@ export default function NotificationSection({}: NotificationSectionProps) {
 
       notification.onerror = () => {
         toast.error(
-          "Gagal mengirim notifikasi. Periksa pengaturan browser Anda."
+          "Gagal mengirim notifikasi. Periksa pengaturan browser Anda.",
         );
       };
 
@@ -147,7 +255,7 @@ export default function NotificationSection({}: NotificationSectionProps) {
     } catch (error) {
       console.error("Error sending notification:", error);
       toast.error(
-        "Gagal mengirim notifikasi. Browser mungkin memblokir notifikasi."
+        "Gagal mengirim notifikasi. Browser mungkin memblokir notifikasi.",
       );
     }
   };
@@ -166,7 +274,7 @@ export default function NotificationSection({}: NotificationSectionProps) {
               enabled: true,
               time: reminderTime,
               lastSent: lastNotification,
-            })
+            }),
           );
           toast.success("Pengingat belajar diaktifkan ✅");
         }
@@ -179,7 +287,7 @@ export default function NotificationSection({}: NotificationSectionProps) {
             enabled: false,
             time: reminderTime,
             lastSent: lastNotification,
-          })
+          }),
         );
         toast.info("Pengingat belajar dinonaktifkan");
       }
@@ -191,16 +299,60 @@ export default function NotificationSection({}: NotificationSectionProps) {
 
   const handleTimeChange = (newTime: string) => {
     try {
+      const now = new Date();
+      const [hours, minutes] = newTime.split(":").map(Number);
+      const today = now.toDateString();
+
+      // Reset lastNotification if setting a time that hasn't passed yet today
+      const scheduledTime = new Date();
+      scheduledTime.setHours(hours, minutes, 0, 0);
+
+      let newLastNotification = lastNotification;
+
+      // If the new time hasn't passed yet today, reset last notification
+      if (scheduledTime > now && lastNotification === today) {
+        newLastNotification = null;
+        console.log("🔄 Reset lastNotification karena waktu baru belum lewat");
+      }
+
       setReminderTime(newTime);
+      setLastNotification(newLastNotification);
+
       localStorage.setItem(
         "learningReminder",
         JSON.stringify({
           enabled: notificationEnabled,
           time: newTime,
-          lastSent: lastNotification,
-        })
+          lastSent: newLastNotification,
+        }),
       );
-      toast.success(`Waktu pengingat diubah ke ${newTime} ⏰`);
+
+      // Calculate when notification will be sent
+      const nextNotificationTime = new Date();
+      nextNotificationTime.setHours(hours, minutes, 0, 0);
+      if (nextNotificationTime <= now) {
+        nextNotificationTime.setDate(nextNotificationTime.getDate() + 1);
+      }
+
+      const hoursUntil = Math.floor(
+        (nextNotificationTime.getTime() - now.getTime()) / (1000 * 60 * 60),
+      );
+      const minutesUntil = Math.floor(
+        ((nextNotificationTime.getTime() - now.getTime()) % (1000 * 60 * 60)) /
+          (1000 * 60),
+      );
+
+      if (hoursUntil > 0) {
+        toast.success(
+          `⏰ Waktu pengingat diubah ke ${newTime}. Notifikasi berikutnya dalam ${hoursUntil} jam ${minutesUntil} menit`,
+        );
+      } else if (minutesUntil > 0) {
+        toast.success(
+          `⏰ Waktu pengingat diubah ke ${newTime}. Notifikasi berikutnya dalam ${minutesUntil} menit`,
+        );
+      } else {
+        toast.success(`⏰ Waktu pengingat diubah ke ${newTime}`);
+      }
     } catch (error) {
       console.error("Error changing reminder time:", error);
       toast.error("Gagal mengubah waktu pengingat");
@@ -249,8 +401,8 @@ export default function NotificationSection({}: NotificationSectionProps) {
               {permission === "granted"
                 ? "✅ Diizinkan"
                 : permission === "denied"
-                ? "❌ Ditolak"
-                : "⚠️ Belum diatur"}
+                  ? "❌ Ditolak"
+                  : "⚠️ Belum diatur"}
             </p>
           </div>
           <button
@@ -283,6 +435,13 @@ export default function NotificationSection({}: NotificationSectionProps) {
             <p className="text-xs text-gray-500 mt-2">
               Pengingat akan dikirim setiap hari pada waktu yang dipilih
             </p>
+            {nextNotificationInfo && (
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800 font-medium">
+                  ⏰ Notifikasi berikutnya: {nextNotificationInfo}
+                </p>
+              </div>
+            )}
           </div>
         )}
 

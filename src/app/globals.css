@@ -72,13 +72,13 @@ body {
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }
-  
+
   body {
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     position: relative !important;
   }
-  
+
   /* Ensure main containers are scrollable */
   main {
     overflow-y: auto;
@@ -97,6 +97,16 @@ body {
 
 .animation-delay-500 {
   animation-delay: 500ms;
+}
+
+/* Hide scrollbar while maintaining scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 /* Custom focus styles for better accessibility */
@@ -429,30 +439,31 @@ body {
 
 /* Mobile Scroll Fix - Ensure all pages are scrollable */
 @media (max-width: 768px) {
-  html, body {
+  html,
+  body {
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     position: relative !important;
   }
-  
+
   /* Fix for pages that might have overflow issues */
   .min-h-screen {
     min-height: 100vh;
     min-height: -webkit-fill-available;
   }
-  
+
   /* Ensure main content areas are scrollable */
   main {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   /* Fix for auth pages - remove extra space at bottom */
   body {
     min-height: 100vh;
     min-height: -webkit-fill-available;
   }
-  
+
   /* Prevent double scrollbar on mobile */
   html {
     height: 100%;
@@ -527,7 +538,8 @@ body {
 }
 
 .floating-notes-panel {
-  box-shadow: -10px 0 25px -5px rgba(0, 0, 0, 0.1),
+  box-shadow:
+    -10px 0 25px -5px rgba(0, 0, 0, 0.1),
     -20px 0 25px -5px rgba(0, 0, 0, 0.04);
 }
 
@@ -578,11 +590,13 @@ body {
 @keyframes subtle-glow {
   0%,
   100% {
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    box-shadow:
+      0 10px 25px -5px rgba(0, 0, 0, 0.1),
       0 0 0 0 rgba(87, 143, 202, 0.3);
   }
   50% {
-    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.15),
+    box-shadow:
+      0 15px 35px -5px rgba(0, 0, 0, 0.15),
       0 0 0 4px rgba(87, 143, 202, 0);
   }
 }
@@ -633,7 +647,8 @@ body {
 
 /* Leaflet Map Animations */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -686,5 +701,5 @@ body {
 
 .custom-popup .leaflet-popup-close-button:hover {
   background-color: #f1f5f9 !important;
-  color: #27548A !important;
+  color: #27548a !important;
 }

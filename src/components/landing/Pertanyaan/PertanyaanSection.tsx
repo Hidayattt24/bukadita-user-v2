@@ -8,7 +8,12 @@ import {
   Award,
   Users,
   Sparkles,
-  ChevronDown
+  ChevronDown,
+  CheckSquare,
+  Smartphone,
+  Activity,
+  Eye,
+  Lock,
 } from "lucide-react";
 
 export default function PertanyaanSection() {
@@ -17,38 +22,38 @@ export default function PertanyaanSection() {
   const faqs = [
     {
       id: 1,
-      question: "Pembelajaran yang Disesuaikan",
+      question: "Alur Belajar Terstruktur (Locked Learning Flow)",
       answer:
-        "Materi pembelajaran Bukadita dirancang khusus untuk kader posyandu dengan pendekatan yang mudah dipahami dan dapat diterapkan langsung di lapangan.",
-      icon: BookOpen,
+        "Kami memastikan kualitas pemahaman Anda melalui sistem yang mengharuskan materi dibaca secara tuntas dan linear sebelum kuis evaluasi dapat diakses.",
+      icon: Lock, // Menekankan integritas pembelajaran
     },
     {
       id: 2,
-      question: "Sistem Tracking Progress yang Komprehensif",
+      question: "Akses Fleksibel Tanpa Batas Internet",
       answer:
-        "Bukadita menyediakan sistem pelacakan pembelajaran yang detail, memungkinkan kader untuk memantau perkembangan dan pencapaian mereka secara real-time.",
-      icon: TrendingUp,
+        "Dengan teknologi PWA, Anda tetap dapat mempelajari materi edukasi secara luring (offline) dan menerima notifikasi pengingat belajar harian di perangkat Anda.",
+      icon: Smartphone, // Menekankan keunggulan PWA & Offline
     },
     {
       id: 3,
-      question: "Sertifikasi Digital Terakreditasi",
+      question: "Evaluasi Objektif dengan Bank Soal Acak",
       answer:
-        "Setiap penyelesaian modul akan mendapatkan sertifikat digital yang diakui dan dapat digunakan untuk pengembangan karir sebagai kader posyandu.",
-      icon: Award,
+        "Sistem kuis kami menggunakan mekanisme pengacakan soal otomatis untuk memastikan hasil evaluasi mencerminkan kompetensi individu Anda secara murni.",
+      icon: CheckSquare, // Menekankan objektivitas kuis
     },
     {
       id: 4,
-      question: "Komunitas dan Dukungan Expert",
+      question: "Pemantauan Progres Secara Real-Time",
       answer:
-        "Platform menyediakan akses ke komunitas kader dan konsultasi langsung dengan para ahli kesehatan untuk mendapatkan panduan terbaik.",
-      icon: Users,
+        "Progres belajar Anda tersinkronisasi langsung dengan Pembina dan Ketua Posyandu, memungkinkan dukungan dan pendampingan yang lebih tepat sasaran.",
+      icon: Activity, // Menekankan sinkronisasi dengan admin
     },
     {
       id: 5,
-      question: "Interface yang User-Friendly",
+      question: "Antarmuka Inklusif & Aksesibilitas",
       answer:
-        "Bukadita dirancang dengan antarmuka yang intuitif dan mudah digunakan, bahkan untuk pengguna yang belum terbiasa dengan teknologi digital.",
-      icon: Sparkles,
+        "Dirancang dengan fitur aksesibilitas khusus untuk mendukung berbagai kebutuhan visual, memastikan setiap kader dapat belajar dengan nyaman tanpa hambatan.",
+      icon: Eye, // Menekankan fitur inklusivitas visual
     },
   ];
 
@@ -81,7 +86,9 @@ export default function PertanyaanSection() {
         <div className="mb-12 sm:mb-16 lg:mb-20 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#578FCA]/10 to-[#27548A]/10 rounded-full border border-[#578FCA]/20 mb-6">
             <Sparkles className="w-4 h-4 text-[#578FCA]" />
-            <span className="text-[#27548A] font-medium text-sm">Keunggulan Kami</span>
+            <span className="text-[#27548A] font-medium text-sm">
+              Keunggulan Kami
+            </span>
           </div>
 
           <h2 className="mb-4">
@@ -97,7 +104,8 @@ export default function PertanyaanSection() {
             </span>
           </h2>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto mt-4">
-            Temukan fitur-fitur unggulan yang membuat pembelajaran Anda lebih efektif
+            Temukan fitur-fitur unggulan yang membuat pembelajaran Anda lebih
+            efektif
           </p>
         </div>
 
@@ -129,25 +137,35 @@ export default function PertanyaanSection() {
                 >
                   <div className="flex items-start sm:items-center gap-4">
                     {/* Icon with Gradient */}
-                    <div className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#578FCA] to-[#27548A] p-3 shadow-lg transform transition-transform duration-300 ${
-                      isOpen ? "scale-110 rotate-3" : "group-hover:scale-105"
-                    }`}>
+                    <div
+                      className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#578FCA] to-[#27548A] p-3 shadow-lg transform transition-transform duration-300 ${
+                        isOpen ? "scale-110 rotate-3" : "group-hover:scale-105"
+                      }`}
+                    >
                       <Icon className="w-full h-full text-white" />
                     </div>
 
                     {/* Question */}
                     <div className="flex-1 min-w-0">
-                      <h3 className={`font-bold font-poppins text-base sm:text-lg lg:text-xl leading-tight transition-colors ${
-                        isOpen ? "text-[#578FCA]" : "text-[#27548A] group-hover:text-[#578FCA]"
-                      }`}>
+                      <h3
+                        className={`font-bold font-poppins text-base sm:text-lg lg:text-xl leading-tight transition-colors ${
+                          isOpen
+                            ? "text-[#578FCA]"
+                            : "text-[#27548A] group-hover:text-[#578FCA]"
+                        }`}
+                      >
                         {faq.question}
                       </h3>
                     </div>
 
                     {/* Chevron */}
-                    <div className={`flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br ${
-                      isOpen ? "from-[#578FCA] to-[#27548A]" : "from-gray-100 to-gray-200"
-                    } flex items-center justify-center transition-all duration-300`}>
+                    <div
+                      className={`flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br ${
+                        isOpen
+                          ? "from-[#578FCA] to-[#27548A]"
+                          : "from-gray-100 to-gray-200"
+                      } flex items-center justify-center transition-all duration-300`}
+                    >
                       <ChevronDown
                         className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 ${
                           isOpen ? "rotate-180 text-white" : "text-gray-600"
