@@ -89,10 +89,15 @@ export default function NotificationSection({}: NotificationSectionProps) {
 
       try {
         let notificationSent = false;
-        // Create unique tag for test notifications to prevent deduplication
+        // Create unique tag to prevent browser deduplication
+        // Format: daily-learning-YYYYMMDD-HHMM (untuk scheduled) atau test-timestamp (untuk test)
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}${String(today.getDate()).padStart(2, "0")}`;
+        const timeStr = `${String(today.getHours()).padStart(2, "0")}${String(today.getMinutes()).padStart(2, "0")}`;
+
         const notificationTag = isTest
           ? `test-notification-${Date.now()}`
-          : "daily-learning-reminder";
+          : `daily-learning-${dateStr}-${timeStr}`;
         const notificationTitle = isTest
           ? "🧪 Test Notifikasi"
           : "🔔 Waktunya Belajar!";
@@ -205,7 +210,8 @@ export default function NotificationSection({}: NotificationSectionProps) {
           setSavedDays(data.days || [1, 2, 3, 4, 5]);
         }
       } else {
-        toast.warning("Browser Anda tidak mendukung notifikasi web");
+        // Browser doesn't support notifications - show info message
+        console.warn("Browser doesn't support Notification API");
       }
     } catch (error) {
       console.error("Error loading notification settings:", error);
@@ -556,8 +562,11 @@ export default function NotificationSection({}: NotificationSectionProps) {
 
   const requestPermission = async () => {
     if (!("Notification" in window)) {
-      toast.error("Browser Anda tidak mendukung notifikasi web");
-      return;
+      toast.error(
+        "Mohon maaf, saat ini di browser Anda belum mendukung notifikasi. Coba install aplikasi ini terlebih dahulu untuk pengalaman terbaik.",
+        { duration: 5000 },
+      );
+      return false;
     }
 
     try {
@@ -577,25 +586,42 @@ export default function NotificationSection({}: NotificationSectionProps) {
 
         // Send test notification
         sendLearningReminder(true);
+        return true;
       } else if (result === "denied") {
         toast.error(
           "Izin notifikasi ditolak. Aktifkan di pengaturan browser Anda.",
         );
+        return false;
       } else {
         toast.warning("Izin notifikasi dibatalkan");
+        return false;
       }
     } catch (error) {
       console.error("Error requesting notification permission:", error);
-      toast.error("Gagal meminta izin notifikasi. Silakan coba lagi.");
+      toast.error(
+        "Mohon maaf, saat ini di browser Anda belum bisa mengaktifkan notifikasi. Coba install aplikasi ini terlebih dahulu.",
+        { duration: 5000 },
+      );
+      return false;
     }
   };
 
-  const toggleNotification = () => {
+  const toggleNotification = async () => {
     try {
+      // Check if browser supports notifications
+      if (!("Notification" in window)) {
+        toast.error(
+          "Mohon maaf, saat ini di browser Anda belum mendukung notifikasi. Coba install aplikasi ini terlebih dahulu untuk pengalaman terbaik.",
+          { duration: 5000 },
+        );
+        setNotificationEnabled(false);
+        return;
+      }
+
       if (!notificationEnabled) {
         // Enable notification
         if (permission !== "granted") {
-          requestPermission();
+          await requestPermission();
         } else {
           setNotificationEnabled(true);
           saveSettings({
@@ -619,7 +645,11 @@ export default function NotificationSection({}: NotificationSectionProps) {
       }
     } catch (error) {
       console.error("Error toggling notification:", error);
-      toast.error("Gagal mengubah pengaturan notifikasi");
+      toast.error(
+        "Mohon maaf, saat ini di browser Anda belum bisa mengaktifkan notifikasi. Coba install aplikasi ini terlebih dahulu.",
+        { duration: 5000 },
+      );
+      setNotificationEnabled(false);
     }
   };
 
@@ -654,6 +684,7 @@ export default function NotificationSection({}: NotificationSectionProps) {
 
       console.log("Current time:", now.toLocaleTimeString());
       console.log("Reminder time:", reminderTime);
+      console.log("Saved time:", savedTime);
       console.log(
         "Selected days:",
         selectedDays
@@ -667,12 +698,23 @@ export default function NotificationSection({}: NotificationSectionProps) {
 
       let newLastNotification = lastNotification;
 
-      // If today is selected AND the new time hasn't passed yet, reset last notification
-      // This allows the notification to be sent today
-      if (selectedDays.includes(currentDay) && scheduledTime > now) {
+      // Reset if:
+      // 1. Today is selected
+      // 2. New time is different from saved time (user changed it) OR scheduled time hasn't passed
+      // 3. Last notification was today (meaning it might be stale)
+      const timeChanged = reminderTime !== savedTime;
+      const shouldResetForToday =
+        selectedDays.includes(currentDay) &&
+        scheduledTime > now &&
+        (timeChanged ||
+          lastNotification === today ||
+          lastNotification === null);
+
+      if (shouldResetForToday) {
         newLastNotification = null;
         console.log(
-          "✅ Reset lastNotification karena hari ini dipilih dan waktu belum lewat",
+          "✅ Reset lastNotification - Hari ini dipilih, waktu belum lewat" +
+            (timeChanged ? ", waktu diubah" : ""),
         );
       }
 
@@ -724,48 +766,6 @@ export default function NotificationSection({}: NotificationSectionProps) {
     console.log("===== END TEST NOTIFICATION =====\n");
   };
 
-  // Force simple notification test (bypassing SW) for debugging
-  const testSimpleNotification = useCallback(() => {
-    console.log("\n🧪 ===== SIMPLE NOTIFICATION TEST =====");
-
-    if (!("Notification" in window)) {
-      alert("Browser tidak mendukung notifikasi");
-      return;
-    }
-
-    if (Notification.permission !== "granted") {
-      alert(
-        "Permission: " +
-          Notification.permission +
-          ". Silakan izinkan notifikasi terlebih dahulu.",
-      );
-      return;
-    }
-
-    try {
-      console.log("Creating simple notification...");
-      // Use unique tag with timestamp to prevent deduplication
-      const n = new Notification("Test Sederhana #" + Date.now(), {
-        body: "Jika Anda melihat ini, notifikasi browser bekerja!",
-        icon: "/icons/icon-192x192.png",
-        tag: `simple-test-${Date.now()}`,
-      });
-
-      n.onshow = () => console.log("✅ Notification shown!");
-      n.onerror = (e) => console.error("❌ Notification error:", e);
-
-      console.log("Notification created:", n);
-      toast.success(
-        "Notifikasi test sederhana dibuat - cek taskbar/notification center!",
-      );
-    } catch (e) {
-      console.error("❌ Failed to create notification:", e);
-      alert("Error: " + e);
-    }
-
-    console.log("===== END SIMPLE TEST =====\n");
-  }, [toast]);
-
   return (
     <div className="bg-gradient-to-br from-white to-slate-50/50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-white shadow-[3px_3px_0px_rgba(87,143,202,0.2)] hover:shadow-[4px_4px_0px_rgba(87,143,202,0.25)] transition-all duration-300">
       <h2 className="text-xl sm:text-2xl font-bold text-[#27548A] mb-6 flex items-center gap-3">
@@ -816,9 +816,10 @@ export default function NotificationSection({}: NotificationSectionProps) {
           </div>
           <button
             onClick={toggleNotification}
+            disabled={!("Notification" in window)}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
               notificationEnabled ? "bg-[#578FCA]" : "bg-gray-300"
-            }`}
+            } ${!("Notification" in window) ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -827,6 +828,27 @@ export default function NotificationSection({}: NotificationSectionProps) {
             />
           </button>
         </div>
+
+        {/* Browser Not Supported Warning */}
+        {!("Notification" in window) && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm text-amber-900 font-semibold mb-1">
+                  Browser Belum Mendukung Notifikasi
+                </p>
+                <p className="text-xs text-amber-800 leading-relaxed">
+                  Mohon maaf, saat ini di browser Anda belum mendukung
+                  notifikasi. Untuk pengalaman terbaik, silakan{" "}
+                  <strong>install aplikasi ini</strong> ke Home Screen perangkat
+                  Anda. Dengan menginstall aplikasi, Anda akan mendapatkan akses
+                  penuh ke fitur notifikasi pengingat belajar.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Day Selector */}
         {notificationEnabled && (
@@ -847,7 +869,7 @@ export default function NotificationSection({}: NotificationSectionProps) {
             </div>
 
             {/* Horizontal Day Boxes - Full Width */}
-            <div className="flex items-center justify-between gap-1.5">
+            <div className="flex items-center justify-between gap-1 sm:gap-1.5">
               {DAYS_OF_WEEK.map((day) => {
                 const isToday = day.id === currentDay;
                 const isSelected = selectedDays.includes(day.id);
@@ -856,20 +878,21 @@ export default function NotificationSection({}: NotificationSectionProps) {
                     key={day.id}
                     onClick={() => toggleDay(day.id)}
                     className={`
-                      relative flex-1 px-2 py-2.5 rounded-lg
+                      relative flex-1 px-1.5 sm:px-2 py-2 sm:py-2.5 rounded-md sm:rounded-lg
                       transition-all duration-200 ease-in-out
+                      min-w-0 touch-manipulation
                       ${
                         isSelected
                           ? "bg-[#578FCA] text-white shadow-sm shadow-[#578FCA]/30"
                           : "bg-gray-50 text-gray-600 hover:bg-gray-100 border border-gray-200"
                       }
-                      ${isToday && !isSelected ? "ring-2 ring-[#578FCA]/40" : ""}
-                      hover:scale-105 active:scale-95
+                      ${isToday && !isSelected ? "ring-1 sm:ring-2 ring-[#578FCA]/40" : ""}
+                      active:scale-95
                     `}
                   >
                     <div className="flex flex-col items-center gap-0.5">
                       <span
-                        className={`text-xs font-semibold ${
+                        className={`text-[10px] sm:text-xs font-semibold ${
                           isSelected ? "text-white" : "text-gray-700"
                         }`}
                       >
@@ -931,88 +954,29 @@ export default function NotificationSection({}: NotificationSectionProps) {
 
         {/* Action Buttons */}
         {notificationEnabled && permission === "granted" && (
-          <>
-            <div className="flex flex-col sm:flex-row gap-3">
-              {/* Save Settings Button */}
-              <button
-                onClick={saveConfirm}
-                disabled={!hasUnsavedChanges}
-                className={`flex-1 px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
-                  hasUnsavedChanges
-                    ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
-                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                }`}
-              >
-                <Save className="w-4 h-4" />
-                {hasUnsavedChanges ? "Simpan Pengaturan" : "Tersimpan"}
-              </button>
-
-              {/* Test Notification Button */}
-              <button
-                onClick={testNotification}
-                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white rounded-lg font-medium text-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <Bell className="w-4 h-4" />
-                Test Notifikasi
-              </button>
-            </div>
-
-            {/* Simple Test Button for Debugging */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Save Settings Button */}
             <button
-              onClick={testSimpleNotification}
-              className="w-full px-3 py-2 bg-purple-100 text-purple-700 rounded-lg font-medium text-xs hover:bg-purple-200 transition-all duration-200 flex items-center justify-center gap-2 border border-purple-300"
+              onClick={saveConfirm}
+              disabled={!hasUnsavedChanges}
+              className={`flex-1 px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
+                hasUnsavedChanges
+                  ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              }`}
             >
-              <AlertCircle className="w-3.5 h-3.5" />
-              🔧 Test Notifikasi Sederhana (Debug)
+              <Save className="w-4 h-4" />
+              {hasUnsavedChanges ? "Simpan Pengaturan" : "Tersimpan"}
             </button>
-          </>
-        )}
 
-        {/* Notification Status Debug Info (only when enabled) */}
-        {notificationEnabled && permission === "granted" && (
-          <div className="bg-purple-50/50 border border-purple-200/50 rounded-lg p-3.5">
-            <div className="flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
-              <div className="text-xs text-purple-800 space-y-2">
-                <p className="font-semibold text-purple-900">
-                  🔍 Status Notifikasi:
-                </p>
-                <div className="space-y-1 leading-relaxed bg-white/50 p-2 rounded border border-purple-100">
-                  <p>
-                    ✅ Permission: <strong>{permission}</strong>
-                  </p>
-                  <p>
-                    ✅ Browser support:{" "}
-                    <strong>
-                      {typeof Notification !== "undefined" ? "Ya" : "Tidak"}
-                    </strong>
-                  </p>
-                  <p>
-                    ✅ Service Worker:{" "}
-                    <strong>
-                      {"serviceWorker" in navigator ? "Aktif" : "Tidak aktif"}
-                    </strong>
-                  </p>
-                  <p>
-                    ✅ PWA Mode:{" "}
-                    <strong>
-                      {window.matchMedia("(display-mode: standalone)").matches
-                        ? "Ya"
-                        : "Tidak"}
-                    </strong>
-                  </p>
-                </div>
-                <p className="text-purple-700 italic">
-                  💡 Jika notifikasi tidak muncul saat test, coba:
-                  <br />
-                  1. Check pengaturan notifikasi browser/sistem
-                  <br />
-                  2. Reload halaman (Ctrl+R)
-                  <br />
-                  3. Buka console (F12) untuk detail error
-                </p>
-              </div>
-            </div>
+            {/* Test Notification Button */}
+            <button
+              onClick={testNotification}
+              className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#578FCA] to-[#27548A] text-white rounded-lg font-medium text-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Bell className="w-4 h-4" />
+              Test Notifikasi
+            </button>
           </div>
         )}
 
@@ -1029,8 +993,8 @@ export default function NotificationSection({}: NotificationSectionProps) {
                 lalu buka aplikasi dari Home Screen
                 <br />• <strong>iPhone:</strong> Tambahkan ke Home Screen
                 terlebih dahulu, baru izinkan notifikasi
-                <br />• Notifikasi akan muncul meski aplikasi tidak sedang
-                dibuka
+                <br />• <strong>Penting:</strong> Aplikasi harus tetap terbuka
+                di background agar notifikasi dapat dikirim
               </p>
             </div>
           </div>
