@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import Image from "next/image";
 import { ArrowLeft, Send, CheckCircle } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 
 export default function ResetPasswordPage() {
   const [formData, setFormData] = useState({
@@ -13,6 +14,7 @@ export default function ResetPasswordPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const { error: showError } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,9 +65,12 @@ export default function ResetPasswordPage() {
       setIsSuccess(true);
     } catch (error: any) {
       console.error("Reset password error:", error);
-      setErrors({
-        general: error.message || "Terjadi kesalahan saat mengirim kode verifikasi",
-      });
+      let errorMsg = error.message || "Terjadi kesalahan saat mengirim kode verifikasi";
+      if (errorMsg.toLowerCase().includes("user not found") || errorMsg.toLowerCase().includes("tidak terdaftar")) {
+        errorMsg = "Nomor telepon tidak terdaftar.";
+      }
+      
+      showError(errorMsg, { title: "Gagal Mengirim Kode" });
     } finally {
       setIsLoading(false);
     }
@@ -202,18 +207,6 @@ export default function ResetPasswordPage() {
           </p>
         </div>
       </div>
-
-      {/* Error Message */}
-      {errors.general && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">!</span>
-            </div>
-            <p className="text-red-700 text-sm font-medium">{errors.general}</p>
-          </div>
-        </div>
-      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">

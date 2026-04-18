@@ -8,11 +8,12 @@ import { Eye, EyeOff, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { validators } from "@/services/authService";
 import { showSuccessToast } from "@/utils/sweetalert";
-import { showErrorToast, showWarningToast } from "@/utils/modernToast";
+import { useToast } from "@/components/ui/toast";
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const { error: showError, success: showSuccess, warning: showWarning } = useToast();
 
   const [formData, setFormData] = useState({
     identifier: "",
@@ -63,7 +64,7 @@ export default function LoginPage() {
 
       if (result.success) {
         // Show simple success notification
-        showSuccessToast('Berhasil login!');
+        showSuccess('Berhasil login!');
 
         // Redirect
         if (result.pendingProfile) {
@@ -73,38 +74,43 @@ export default function LoginPage() {
         }
       } else {
         // Check if error is about admin/superadmin trying to login
-        const errorMessage = result.error || "Login gagal";
+        let errorMessage = result.error || "Login gagal";
+        
+        if (errorMessage.toLowerCase().includes("invalid credentials")) {
+          errorMessage = "Nomor telepon atau password yang Anda masukkan salah.";
+        }
         
         if (errorMessage.includes("ADMIN_LOGIN_REQUIRED") || 
             errorMessage.toLowerCase().includes("admin") ||
             errorMessage.toLowerCase().includes("superadmin")) {
-          showWarningToast(
-            "Akses Ditolak",
+          showWarning(
             "Akun Anda adalah akun Ketua/Pembina Posyandu. Silakan gunakan portal admin untuk login.",
-            7000
+            { title: "Akses Ditolak", duration: 7000 }
           );
         } else {
-          setErrors({ general: errorMessage });
+          showError(errorMessage, { title: "Login Gagal" });
         }
       }
-    } catch (error: any) {
-      console.error("Login error:", error);
+    } catch (err: any) {
+      console.error("Login error:", err);
       
       // Check if error has code property
-      if (error?.code === "ADMIN_LOGIN_REQUIRED") {
-        showWarningToast(
-          "Akses Ditolak",
+      if (err?.code === "ADMIN_LOGIN_REQUIRED") {
+        showWarning(
           "Akun Anda adalah akun Ketua/Pembina Posyandu. Silakan gunakan portal admin untuk login.",
-          7000
+          { title: "Akses Ditolak", duration: 7000 }
         );
-      } else if (error?.message?.includes("ADMIN_LOGIN_REQUIRED")) {
-        showWarningToast(
-          "Akses Ditolak", 
+      } else if (err?.message?.includes("ADMIN_LOGIN_REQUIRED")) {
+        showWarning(
           "Akun Anda adalah akun Ketua/Pembina Posyandu. Silakan gunakan portal admin untuk login.",
-          7000
+          { title: "Akses Ditolak", duration: 7000 }
         );
       } else {
-        setErrors({ general: error?.message || "Terjadi kesalahan saat login" });
+        let errorMsg = err?.message || "Terjadi kesalahan saat login";
+        if (errorMsg.toLowerCase().includes("invalid credentials")) {
+          errorMsg = "Nomor telepon atau password yang Anda masukkan salah.";
+        }
+        showError(errorMsg, { title: "Login Gagal" });
       }
     } finally {
       setIsLoading(false);
@@ -154,18 +160,6 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
-
-      {/* Error Message */}
-      {errors.general && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">!</span>
-            </div>
-            <p className="text-red-700 text-sm font-medium">{errors.general}</p>
-          </div>
-        </div>
-      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">

@@ -5,10 +5,12 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Lock, Eye, EyeOff, ArrowLeft, CheckCircle, AlertCircle, Check, X } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 
 function KonfirmasiPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { error: showError, success: showSuccess } = useToast();
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [formData, setFormData] = useState({
@@ -144,6 +146,7 @@ function KonfirmasiPasswordContent() {
 
       // Show success state
       setIsSuccess(true);
+      showSuccess("Password berhasil direset!");
 
       // Redirect to login after 3 seconds
       setTimeout(() => {
@@ -151,9 +154,14 @@ function KonfirmasiPasswordContent() {
       }, 3000);
     } catch (error: any) {
       console.error("Reset password error:", error);
-      setErrors({
-        general: error.message || "Terjadi kesalahan saat mereset password",
-      });
+      let errorMsg = error.message || "Terjadi kesalahan saat mereset password";
+      if (errorMsg.toLowerCase().includes("invalid otp")) {
+        errorMsg = "Kode OTP tidak valid atau sudah kadaluarsa.";
+      } else if (errorMsg.toLowerCase().includes("invalid credentials")) {
+         errorMsg = "Sesi Anda tidak valid atau telah berakhir.";
+      }
+      
+      showError(errorMsg, { title: "Gagal Mereset Password" });
     } finally {
       setIsLoading(false);
     }
@@ -365,18 +373,6 @@ function KonfirmasiPasswordContent() {
           </p>
         </div>
       </div>
-
-      {/* Error Message */}
-      {errors.general && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg animate-shake">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">!</span>
-            </div>
-            <p className="text-red-700 text-sm font-medium">{errors.general}</p>
-          </div>
-        </div>
-      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-5">
