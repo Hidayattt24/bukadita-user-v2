@@ -651,11 +651,11 @@ export default function ContentRenderer({
           >
             <X className="w-6 h-6" />
           </button>
-          <div className="max-w-5xl max-h-[90vh] w-full">
+          <div className="flex items-center justify-center max-w-7xl max-h-[90vh] w-full h-full">
             <img
               src={selectedImage}
               alt="Gambar Diperbesar"
-              className="w-full h-full object-contain rounded-lg"
+              className="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             />
           </div>

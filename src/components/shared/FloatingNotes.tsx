@@ -517,7 +517,7 @@ const FloatingNotes: React.FC = () => {
       >
         <div className="relative">
           {/* Greeting Message */}
-          <AnimatePresence>
+          {/* <AnimatePresence>
             {showGreeting && (
               <motion.div
                 initial={{ opacity: 0, x: -20, scale: 0.8 }}
@@ -541,7 +541,7 @@ const FloatingNotes: React.FC = () => {
                 <div className="absolute -bottom-2 left-6 sm:left-4 w-0 h-0 border-l-[8px] border-r-[8px] border-t-[8px] border-l-transparent border-r-transparent border-t-white"></div>
               </motion.div>
             )}
-          </AnimatePresence>
+          </AnimatePresence> */}
 
           {/* Main Icon */}
           <button

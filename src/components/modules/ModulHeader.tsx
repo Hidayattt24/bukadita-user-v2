@@ -46,8 +46,8 @@ export default function ModulHeader({
     if (isQuizPage && selectedSubMateri) {
       router.push(`/user/modul/${modul.slug}?subMateriId=${selectedSubMateri.id}`);
     } else {
-      // Navigate back to modul list page
-      router.push('/user/modul');
+      // Use browser back to return to previous page instead of default to modul list
+      router.back();
     }
   };
 
