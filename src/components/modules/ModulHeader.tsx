@@ -42,11 +42,12 @@ export default function ModulHeader({
       return;
     }
     
-    // If on quiz page (instruction or result), go back to modul content
+    // If on quiz page (instruction or result), go back to modul content using replace
+    // This prevents adding to history stack
     if (isQuizPage && selectedSubMateri) {
-      router.push(`/user/modul/${modul.slug}?subMateriId=${selectedSubMateri.id}`);
+      router.replace(`/user/modul/${modul.slug}?subMateriId=${selectedSubMateri.id}`);
     } else {
-      // Use browser back to return to previous page instead of default to modul list
+      // Use browser back to return to previous page
       router.back();
     }
   };
