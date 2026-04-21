@@ -30,8 +30,9 @@ self.addEventListener("install", (event) => {
     }),
   );
 
-  // Force the waiting service worker to become the active service worker
-  self.skipWaiting();
+  // DON'T auto-skip waiting - let the user decide when to update
+  // This prevents sudden updates while user is using the app
+  console.log("[SW] New service worker installed, waiting for activation");
 });
 
 // Activate event - clean up old caches
@@ -420,6 +421,16 @@ self.addEventListener("notificationclick", (event) => {
         }
       }),
   );
+});
+
+// Listen for SKIP_WAITING message from client
+self.addEventListener("message", (event) => {
+  console.log("[SW] Message received:", event.data);
+
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    console.log("[SW] SKIP_WAITING requested - activating new service worker");
+    self.skipWaiting();
+  }
 });
 
 console.log("[SW] Service Worker loaded");

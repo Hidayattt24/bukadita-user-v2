@@ -13,7 +13,15 @@ import ServiceWorkerProvider from "@/providers/ServiceWorkerProvider";
 import InstallPrompt from "@/components/shared/InstallPrompt";
 import FloatingNotes from "@/components/shared/FloatingNotes";
 import AccessibilityWidget from "@/components/shared/AccessibilityWidget";
+import PWAUpdateWrapper from "@/components/shared/PWAUpdateWrapper";
 import { Agentation } from "agentation";
+
+// Enable PWA debug mode in development
+if (process.env.NODE_ENV === "development") {
+  import("@/utils/pwaDebug").then(({ enablePWADebugMode }) => {
+    enablePWADebugMode();
+  });
+}
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -141,6 +149,7 @@ export default function RootLayout({
                   <InstallPrompt />
                   <FloatingNotes />
                   <AccessibilityWidget />
+                  <PWAUpdateWrapper />
                   {process.env.NODE_ENV === "development" && <Agentation />}
                 </ServiceWorkerProvider>
               </ToastProvider>

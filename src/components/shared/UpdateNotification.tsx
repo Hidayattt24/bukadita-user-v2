@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RefreshCw, X, Sparkles } from "lucide-react";
 
@@ -17,18 +17,18 @@ export default function UpdateNotification({
 }: UpdateNotificationProps) {
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     setIsUpdating(true);
     console.log("[UpdateNotification] Starting update...");
     
-    // Call onUpdate immediately
-    onUpdate();
-    
-    // Fallback: If reload doesn't happen in 3 seconds, force reload
-    setTimeout(() => {
-      console.log("[UpdateNotification] Forcing reload...");
+    try {
+      // Call the update function from parent (usePWAUpdate hook)
+      await onUpdate();
+    } catch (error) {
+      console.error("[UpdateNotification] Update failed:", error);
+      // Force reload as fallback
       window.location.reload();
-    }, 3000);
+    }
   };
 
   return (

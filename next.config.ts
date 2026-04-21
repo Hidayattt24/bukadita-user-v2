@@ -4,11 +4,15 @@ const withPWA = require("next-pwa")({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
   register: true,
-  skipWaiting: true,
+  skipWaiting: false, // ❌ CHANGED: Don't auto-skip, let user control update
   // Fallback to offline page when offline
   fallbacks: {
     document: "/offline.html",
   },
+  // 🔥 IMPORTANT: Build ID for cache busting
+  buildId: `build-${Date.now()}`,
+  // Disable default service worker to use custom sw.js
+  swSrc: "public/sw.js",
   runtimeCaching: [
     // Static assets - Cache First (optimal for offline)
     {
@@ -202,6 +206,45 @@ const nextConfig: NextConfig = {
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
+          },
+          // 🔥 Cache control for HTML pages - always revalidate
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
+      {
+        // Static assets can be cached longer
+        source: "/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        // Images with cache busting
+        source: "/_next/image/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        // Service worker - never cache
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+          {
+            key: "Service-Worker-Allowed",
+            value: "/",
           },
         ],
       },
