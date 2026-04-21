@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { ZoomIn, X } from "lucide-react";
 
 interface MediaItem {
@@ -27,6 +28,12 @@ export default function ContentRenderer({
   className = "",
 }: ContentRendererProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Ensure component is mounted (for portal)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const processedContent = useMemo(() => {
     let processed = htmlContent || "";
@@ -202,6 +209,8 @@ export default function ContentRenderer({
         const imageUrl = button.getAttribute("data-zoom-button");
         if (imageUrl) {
           setSelectedImage(imageUrl);
+          // Prevent body scroll when modal is open
+          document.body.style.overflow = 'hidden';
         }
       }
     };
@@ -214,6 +223,8 @@ export default function ContentRenderer({
         const imageUrl = img.getAttribute("data-zoomable-image");
         if (imageUrl) {
           setSelectedImage(imageUrl);
+          // Prevent body scroll when modal is open
+          document.body.style.overflow = 'hidden';
         }
       }
     };
@@ -224,8 +235,29 @@ export default function ContentRenderer({
     return () => {
       document.removeEventListener("click", handleZoomClick);
       document.removeEventListener("click", handleImageClick);
+      // Restore body scroll
+      document.body.style.overflow = '';
     };
   }, []);
+
+  // Close modal handler
+  const closeModal = () => {
+    setSelectedImage(null);
+    // Restore body scroll
+    document.body.style.overflow = '';
+  };
+
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedImage) {
+        closeModal();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [selectedImage]);
 
   return (
     <>
@@ -638,28 +670,54 @@ export default function ContentRenderer({
         <div dangerouslySetInnerHTML={{ __html: processedContent }} />
       </div>
 
-      {/* Image Modal */}
-      {selectedImage && (
+      {/* Image Modal - Rendered via Portal with highest z-index */}
+      {mounted && selectedImage && createPortal(
         <div
-          className="fixed inset-0 bg-black/90 z-[10050] flex items-center justify-center p-4 animate-fade-in"
-          onClick={() => setSelectedImage(null)}
+          className="fixed inset-0 bg-black/95 flex items-center justify-center p-4 animate-fade-in"
+          style={{ 
+            zIndex: 999999,
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
+          onClick={closeModal}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Gambar Diperbesar"
         >
+          {/* Close Button */}
           <button
-            onClick={() => setSelectedImage(null)}
-            className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-all hover:scale-110 z-[10051]"
-            aria-label="Tutup"
+            onClick={closeModal}
+            className="absolute top-4 right-4 w-12 h-12 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center transition-all hover:scale-110 backdrop-blur-sm"
+            style={{ zIndex: 1000000 }}
+            aria-label="Tutup gambar"
+            title="Tutup (ESC)"
           >
             <X className="w-6 h-6" />
           </button>
-          <div className="flex items-center justify-center max-w-7xl max-h-[90vh] w-full h-full">
+
+          {/* Image Container */}
+          <div className="flex items-center justify-center max-w-[95vw] max-h-[95vh] w-full h-full">
             <img
               src={selectedImage}
               alt="Gambar Diperbesar"
-              className="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
+              className="max-w-full max-h-[95vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
               onClick={(e) => e.stopPropagation()}
+              style={{
+                maxWidth: '95vw',
+                maxHeight: '95vh',
+              }}
             />
           </div>
-        </div>
+
+          {/* Hint Text */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/80 text-sm bg-black/50 px-4 py-2 rounded-full backdrop-blur-sm">
+            Klik di luar gambar atau tekan ESC untuk menutup
+          </div>
+        </div>,
+        document.body
       )}
     </>
   );

@@ -92,13 +92,15 @@ export default function BerandaSection() {
             Masuk
             <ArrowRight className="w-4 h-4" />
           </Link>
-          <Link
-            href="#kontak"
+          <a
+            href="https://wa.me/6282148861806?text=Halo%2C%20saya%20ingin%20bertanya%20tentang%20Bukadita"
+            target="_blank"
+            rel="noopener noreferrer"
             className="w-full sm:w-auto px-6 sm:px-8 py-3 text-white font-medium transition-all duration-300 hover:opacity-80 hover:transform hover:scale-105 flex items-center justify-center gap-2 rounded-[20px] bg-[#578FCA] min-w-[140px]"
           >
             Hubungi Kami
             <PhoneCall className="w-4 h-4" />
-          </Link>
+          </a>
         </div>
 
         {/* Video Section */}
