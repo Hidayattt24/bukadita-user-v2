@@ -1,9 +1,11 @@
 /**
  * Custom hook untuk mendeteksi dan menangani PWA updates
  * Mengintegrasikan Service Worker lifecycle dengan React state
+ * Dengan dukungan khusus untuk iOS Safari
  */
 
 import { useEffect, useState, useCallback } from "react";
+import { isIOSDevice, performReload, logDeviceInfo } from "@/utils/deviceDetection";
 
 interface PWAUpdateHook {
   isUpdateAvailable: boolean;
@@ -18,6 +20,11 @@ export function usePWAUpdate(): PWAUpdateHook {
     null
   );
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Log device info on mount
+  useEffect(() => {
+    logDeviceInfo();
+  }, []);
 
   // Fungsi untuk mendeteksi service worker update
   const detectUpdate = useCallback(() => {
@@ -60,7 +67,7 @@ export function usePWAUpdate(): PWAUpdateHook {
       // Only reload if we're in the middle of an update
       if (isUpdating) {
         console.log("[PWA] Reloading page to use new service worker");
-        window.location.reload();
+        performReload();
       }
     });
 
@@ -71,6 +78,17 @@ export function usePWAUpdate(): PWAUpdateHook {
       if (event.data && event.data.type === "SW_UPDATED") {
         console.log("[PWA] SW_UPDATED message received");
         setIsUpdateAvailable(true);
+      }
+      
+      // iOS: Listen untuk SW_ACTIVATED message
+      if (event.data && event.data.type === "SW_ACTIVATED") {
+        console.log("[PWA] SW_ACTIVATED message received - reloading");
+        
+        if (isIOSDevice() && isUpdating) {
+          // iOS: Immediate reload
+          console.log("[PWA] iOS: Reloading after activation");
+          performReload();
+        }
       }
     });
   }, [isUpdating]);
@@ -103,19 +121,34 @@ export function usePWAUpdate(): PWAUpdateHook {
     console.log("[PWA] Triggering update...");
 
     try {
+      const isIOS = isIOSDevice();
+      console.log("[PWA] Device detection - iOS:", isIOS);
+
       // Send SKIP_WAITING message to the waiting service worker
       waitingWorker.postMessage({ type: "SKIP_WAITING" });
 
-      // The controllerchange event will trigger the reload
-      // If it doesn't happen in 3 seconds, force reload
-      setTimeout(() => {
-        console.log("[PWA] Force reloading after timeout");
-        window.location.reload();
-      }, 3000);
+      if (isIOS) {
+        // iOS Safari: controllerchange tidak reliable
+        // Langsung reload setelah delay singkat untuk memberi waktu SW activate
+        console.log("[PWA] iOS detected - using direct reload strategy");
+        
+        setTimeout(() => {
+          console.log("[PWA] iOS: Reloading now...");
+          performReload();
+        }, 1500);
+      } else {
+        // Android/Desktop: tunggu controllerchange atau timeout
+        console.log("[PWA] Android/Desktop - waiting for controllerchange");
+        
+        setTimeout(() => {
+          console.log("[PWA] Force reloading after timeout");
+          performReload();
+        }, 3000);
+      }
     } catch (error) {
       console.error("[PWA] Error during update:", error);
       // Force reload as fallback
-      window.location.reload();
+      performReload();
     }
   }, [waitingWorker]);
 

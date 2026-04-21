@@ -75,6 +75,35 @@ const imageUrl = addCacheBusting("/images/banner.jpg");
 
 ## 🐛 Troubleshooting Commands
 
+### iOS-Specific Issues
+
+#### Update tidak bekerja di iOS
+```javascript
+// 1. Check device type
+pwaDebug.getStatus()
+
+// 2. Force update
+pwaDebug.forceUpdate()
+
+// 3. If still not working, complete reset
+pwaDebug.reset()
+
+// 4. Close app completely (swipe up from app switcher)
+// 5. Reopen app
+```
+
+#### Versi lama masih muncul di iOS
+```javascript
+// 1. Clear all caches
+pwaDebug.clearAll()
+
+// 2. Hard reload
+window.location.href = window.location.href
+
+// 3. If still not working:
+// iOS Settings > Safari > Clear History and Website Data
+```
+
 ### Clear All Caches (Console)
 ```javascript
 caches.keys().then(keys => {
@@ -122,6 +151,36 @@ navigator.serviceWorker.ready.then(reg => {
 2. Connect device ke Mac
 3. Safari > Develop > [Device] > [Page]
 4. Check Storage > Service Workers
+
+---
+
+## 🍎 iOS Safari Notes
+
+### Known Issues:
+- `controllerchange` event tidak reliable di iOS
+- Perlu hard reload untuk memastikan fresh content
+- Update check hanya saat app dibuka (tidak di background)
+
+### Solutions Implemented:
+✅ Hard reload strategy untuk iOS (`window.location.href`)
+✅ `SW_ACTIVATED` message sebagai fallback
+✅ Shorter timeout (1.5s vs 3s)
+✅ Explicit `clients.claim()` di Service Worker
+
+### Testing di iOS:
+```bash
+# 1. Deploy ke server
+npm run build && deploy
+
+# 2. Open di Safari iOS
+https://your-app.com
+
+# 3. Add to Home Screen
+# 4. Open installed PWA
+# 5. Deploy new version
+# 6. Close and reopen PWA
+# 7. Update notification should appear
+```
 
 ---
 
