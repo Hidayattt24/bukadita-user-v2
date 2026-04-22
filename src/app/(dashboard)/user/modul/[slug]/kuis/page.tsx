@@ -48,6 +48,7 @@ function KuisPageContent() {
       isFetchingProgress={isFetchingProgress}
       isQuizActive={isQuizActive}
       isLastSubMateri={isLastSubMateri}
+      modulSlug={modulSlug} // 🔥 ADD: Pass modulSlug
       toggleSidebar={toggleSidebar}
       handleSubMateriSelect={handleSubMateriSelect}
       handlePoinSelect={handlePoinSelect}

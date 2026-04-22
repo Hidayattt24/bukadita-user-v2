@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   type DetailModul,
@@ -34,6 +34,7 @@ export function useQuizPageState({
   const [isMobile, setIsMobile] = useState(true);
   const [isFetchingProgress, setIsFetchingProgress] = useState(false);
   const [isQuizActive, setIsQuizActive] = useState(false);
+  const loadedModuleIdRef = useRef<string | null>(null); // 🔥 NEW: Track loaded module ID
 
   const { initializeModuleProgress } = useProgress();
   const { syncModuleProgress } = useProgressSync(modul?.moduleId || null);
@@ -59,6 +60,8 @@ export function useQuizPageState({
   // Update modul state when modulFromDB changes
   useEffect(() => {
     if (modulFromDB) {
+      console.log("[useQuizPageState] 📚 Module loaded from DB:", modulFromDB.title);
+      console.log("[useQuizPageState] 📚 Module ID:", modulFromDB.moduleId);
       setModul(modulFromDB);
     }
   }, [modulFromDB]);
@@ -70,6 +73,12 @@ export function useQuizPageState({
         (sub) => sub.id === subMateriId,
       );
       if (foundSubMateri) {
+        console.log("[useQuizPageState] 🎯 Selected sub-materi:", foundSubMateri.title);
+        console.log("[useQuizPageState] 📊 Poin details:", foundSubMateri.poinDetails.map(p => ({
+          title: p.title,
+          isCompleted: p.isCompleted
+        })));
+        
         setSelectedSubMateri(foundSubMateri);
         setExpandedSubMateris((prev) =>
           prev.includes(foundSubMateri.id)
@@ -107,16 +116,36 @@ export function useQuizPageState({
 
   // Load progress from backend
   useEffect(() => {
-    if (!modul || !user || !modul.moduleId) return;
+    const currentModuleId = modul?.moduleId;
+    
+    console.log("[useQuizPageState] 🔍 Load progress check:", {
+      hasModul: !!modul,
+      hasUser: !!user,
+      currentModuleId,
+      loadedModuleId: loadedModuleIdRef.current,
+      needsLoad: currentModuleId !== loadedModuleIdRef.current,
+    });
+
+    // Only load if module ID changed or not loaded yet
+    if (!modul || !user || !currentModuleId || currentModuleId === loadedModuleIdRef.current) {
+      console.log("[useQuizPageState] ⏭️ Skipping progress load");
+      return;
+    }
 
     const loadProgressFromBackend = async () => {
       setIsFetchingProgress(true);
       try {
+        console.log("[useQuizPageState] 📡 Loading progress from backend...");
+        
         const progressResponse = await ProgressService.getModuleProgress(
-          modul.moduleId!,
+          currentModuleId,
         );
 
-        if (progressResponse.error || !progressResponse.data) return;
+        if (progressResponse.error || !progressResponse.data) {
+          console.log("[useQuizPageState] ⚠️ No progress data found");
+          loadedModuleIdRef.current = currentModuleId; // Mark as loaded even if no data
+          return;
+        }
 
         const backendData = progressResponse.data as {
           sub_materis?: Array<{
@@ -126,8 +155,13 @@ export function useQuizPageState({
           }>;
         };
 
-        if (!backendData.sub_materis || backendData.sub_materis.length === 0)
+        if (!backendData.sub_materis || backendData.sub_materis.length === 0) {
+          console.log("[useQuizPageState] ⚠️ No sub-materis in progress data");
+          loadedModuleIdRef.current = currentModuleId;
           return;
+        }
+
+        console.log("[useQuizPageState] 📊 Processing progress for", backendData.sub_materis.length, "sub-materis");
 
         const updatedSubMateris = await Promise.all(
           modul.subMateris.map(async (sub) => {
@@ -145,11 +179,18 @@ export function useQuizPageState({
               subMateriProgressResponse.data
             ) {
               const subMateriData = subMateriProgressResponse.data as {
-                poin_details?: Array<{ id: string; is_completed: boolean }>;
+                poin_details?: Array<{ 
+                  id: string; 
+                  is_completed: boolean;
+                  scroll_completed?: boolean; // 🔥 ADD: Include scroll completion
+                }>;
               };
+              // 🔥 FIX: Use scroll_completed to determine poin completion (same as main page)
               completedPoinIds = (subMateriData.poin_details || [])
-                .filter((p) => p.is_completed)
+                .filter((p) => p.scroll_completed || p.is_completed) // Consider both scroll and general completion
                 .map((p) => p.id);
+              
+              console.log(`[useQuizPageState] Sub-materi "${sub.title}": ${completedPoinIds.length}/${sub.poinDetails.length} poins completed`);
             }
 
             const updatedPoinDetails = sub.poinDetails.map((poin) => ({
@@ -166,16 +207,19 @@ export function useQuizPageState({
           }),
         );
 
+        console.log("[useQuizPageState] ✅ Progress loaded successfully");
         setModul({ ...modul, subMateris: updatedSubMateris });
+        loadedModuleIdRef.current = currentModuleId; // 🔥 Mark as loaded
       } catch (error) {
-        console.error("[useQuizPageState] Error loading progress:", error);
+        console.error("[useQuizPageState] ❌ Error loading progress:", error);
+        loadedModuleIdRef.current = currentModuleId; // Mark as loaded even on error to prevent retry loop
       } finally {
         setIsFetchingProgress(false);
       }
     };
 
     loadProgressFromBackend();
-  }, [modul?.moduleId, user]);
+  }, [modul?.moduleId, user]); // 🔥 Only depend on moduleId and user
 
   // Detect screen size
   useEffect(() => {
@@ -281,9 +325,9 @@ export function useQuizPageState({
                       scroll_completed?: boolean; // 🔥 ADD: Include scroll completion
                     }>;
                   };
-                  // 🔥 FIX: Use scroll_completed to determine poin completion
+                  // 🔥 FIX: Use scroll_completed to determine poin completion (same as main page)
                   completedPoinIds = (subMateriData.poin_details || [])
-                    .filter((p) => p.scroll_completed || p.is_completed)
+                    .filter((p) => p.scroll_completed || p.is_completed) // Consider both scroll and general completion
                     .map((p) => p.id);
                 }
 
@@ -384,6 +428,7 @@ export function useQuizPageState({
     isQuizActive,
     loadingModule,
     isLastSubMateri: isLastSubMateri(),
+    modulSlug, // 🔥 ADD: Return modulSlug
     handleSubMateriSelect,
     handlePoinSelect,
     toggleSidebar,

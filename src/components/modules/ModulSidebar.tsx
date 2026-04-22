@@ -216,6 +216,17 @@ export default function ModulSidebar({
                 .filter((p) => p.isCompleted)
                 .map((p) => p.id);
 
+              // 🔥 DEBUG: Log poin completion status
+              if (selectedSubMateri?.id === subMateri.id) {
+                console.log(`[ModulSidebar] Selected sub-materi: ${subMateri.title}`);
+                console.log(`[ModulSidebar] Poin details:`, subMateri.poinDetails.map(p => ({
+                  id: p.id,
+                  title: p.title,
+                  isCompleted: p.isCompleted
+                })));
+                console.log(`[ModulSidebar] Completed poin IDs:`, completedPoinsIds);
+              }
+
               // 🔥 Calculate progress percentage
               // Progress = (completed poins / total items) * 100
               // Total items = poins + (quiz ? 1 : 0)
@@ -528,56 +539,80 @@ export default function ModulSidebar({
                           })}
                           
                           {/* Quiz Point - Add after all poins if quiz exists */}
-                          {subMateri.quiz && subMateri.quiz.length > 0 && (
-                            <Link
-                              href={`/user/modul/${modulSlug}/kuis?subMateriId=${subMateri.id}`}
-                              onClick={(e) => {
-                                if (!subMateri.isUnlocked) {
-                                  e.preventDefault();
-                                  warning(
-                                    "Selesaikan terlebih dahulu materi sebelumnya untuk mengakses kuis ini",
-                                    {
-                                      title: "Materi Terkunci",
-                                      duration: 3000,
+                          {subMateri.quiz && subMateri.quiz.length > 0 && (() => {
+                            // 🔥 NEW: Check if all poins are completed before allowing quiz access
+                            const allPoinsCompleted = subMateri.poinDetails.every(poin => 
+                              completedPoinsIds.includes(poin.id)
+                            );
+                            
+                            // Quiz is locked if:
+                            // 1. Sub-materi is locked, OR
+                            // 2. Not all poins are completed
+                            const isQuizLocked = !subMateri.isUnlocked || !allPoinsCompleted;
+                            
+                            return (
+                              <Link
+                                href={isQuizLocked ? "#" : `/user/modul/${modulSlug}/kuis?subMateriId=${subMateri.id}`}
+                                onClick={(e) => {
+                                  if (isQuizLocked) {
+                                    e.preventDefault();
+                                    if (!subMateri.isUnlocked) {
+                                      warning(
+                                        "Selesaikan terlebih dahulu materi sebelumnya untuk mengakses kuis ini",
+                                        {
+                                          title: "Materi Terkunci",
+                                          duration: 3000,
+                                        }
+                                      );
+                                    } else if (!allPoinsCompleted) {
+                                      warning(
+                                        "Selesaikan semua poin bacaan terlebih dahulu sebelum mengakses kuis",
+                                        {
+                                          title: "Kuis Terkunci",
+                                          duration: 3000,
+                                        }
+                                      );
                                     }
-                                  );
+                                  }
+                                }}
+                                className={`w-full text-left p-2.5 rounded-lg text-xs transition-all block ${
+                                  quizCompleted && !isQuizLocked
+                                    ? "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
+                                    : !isQuizLocked
+                                    ? "text-gray-600 hover:bg-gray-100"
+                                    : "text-gray-400 cursor-not-allowed opacity-60"
+                                }`}
+                                title={
+                                  !subMateri.isUnlocked
+                                    ? "Selesaikan materi sebelumnya untuk mengakses kuis ini"
+                                    : !allPoinsCompleted
+                                    ? "Selesaikan semua poin bacaan terlebih dahulu"
+                                    : ""
                                 }
-                              }}
-                              className={`w-full text-left p-2.5 rounded-lg text-xs transition-all block ${
-                                quizCompleted && subMateri.isUnlocked
-                                  ? "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
-                                  : subMateri.isUnlocked
-                                  ? "text-gray-600 hover:bg-gray-100"
-                                  : "text-gray-400 hover:bg-red-50 hover:text-red-400 cursor-pointer"
-                              }`}
-                              title={
-                                !subMateri.isUnlocked
-                                  ? "Selesaikan materi sebelumnya untuk mengakses kuis ini"
-                                  : ""
-                              }
-                            >
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className={`w-1.5 h-1.5 rounded-full ${
-                                    quizCompleted && subMateri.isUnlocked
-                                      ? "bg-emerald-500"
-                                      : subMateri.isUnlocked
-                                      ? "bg-gray-300"
-                                      : "bg-gray-300"
-                                  }`}
-                                ></div>
-                                <span className="truncate font-medium flex-1">
-                                  Kuis
-                                </span>
-                                {!subMateri.isUnlocked && (
-                                  <Lock className="w-3 h-3 text-gray-400" />
-                                )}
-                                {quizCompleted && subMateri.isUnlocked && (
-                                  <CheckCircle className="w-3 h-3 text-emerald-500" />
-                                )}
-                              </div>
-                            </Link>
-                          )}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className={`w-1.5 h-1.5 rounded-full ${
+                                      quizCompleted && !isQuizLocked
+                                        ? "bg-emerald-500"
+                                        : !isQuizLocked
+                                        ? "bg-gray-300"
+                                        : "bg-gray-300"
+                                    }`}
+                                  ></div>
+                                  <span className="truncate font-medium flex-1">
+                                    Kuis
+                                    {isQuizLocked && (
+                                      <Lock className="w-3 h-3 inline-block ml-1" />
+                                    )}
+                                  </span>
+                                  {quizCompleted && !isQuizLocked && (
+                                    <CheckCircle className="w-3 h-3 text-emerald-500" />
+                                  )}
+                                </div>
+                              </Link>
+                            );
+                          })()}
                         </div>
                       )}
                   </div>

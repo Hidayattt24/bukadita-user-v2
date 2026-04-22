@@ -16,6 +16,7 @@ interface QuizPageLayoutProps {
   isFetchingProgress: boolean;
   isQuizActive?: boolean;
   isLastSubMateri?: boolean;
+  modulSlug: string; // 🔥 ADD: modulSlug for sidebar links
   toggleSidebar: () => void;
   handleSubMateriSelect: (subMateri: SubMateri) => void;
   handlePoinSelect: () => void;
@@ -32,6 +33,7 @@ export default function QuizPageLayout({
   isFetchingProgress,
   isQuizActive = false,
   isLastSubMateri = false,
+  modulSlug, // 🔥 ADD: modulSlug
   toggleSidebar,
   handleSubMateriSelect,
   handlePoinSelect,
@@ -77,6 +79,7 @@ export default function QuizPageLayout({
           handlePoinSelect={handlePoinSelect}
           toggleSubMateriExpanded={toggleSubMateriExpanded}
           isFetchingProgress={isFetchingProgress}
+          modulSlug={modulSlug} // 🔥 ADD: Pass modulSlug
           isQuizActive={isQuizActive}
         />
       </main>
