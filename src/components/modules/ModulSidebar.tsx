@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { DetailModul, SubMateri } from "@/types/modul";
 import { useToast } from "@/components/ui/toast";
-import { useBackendModuleProgress } from "@/hooks/useBackendModuleProgress";
 
 interface ModulSidebarProps {
   modul: DetailModul;
@@ -429,10 +428,19 @@ export default function ModulSidebar({
                       subMateri.poinDetails.length > 0 && (
                         <div className="mt-3 space-y-1 pl-2 border-l-2 border-[#578FCA]/20">
                           {subMateri.poinDetails.map((poin, poinIndex) => {
-                            // Check if poin is completed from localStorage
+                            // Check if poin is completed from backend
                             const isPoinCompleted = completedPoinsIds.includes(
                               poin.id
                             );
+
+                            // 🔥 NEW: Check if previous poin is completed (lock logic)
+                            const isPreviousPoinCompleted = poinIndex === 0 || 
+                              completedPoinsIds.includes(subMateri.poinDetails[poinIndex - 1].id);
+                            
+                            // Poin is locked if:
+                            // 1. Sub-materi is locked, OR
+                            // 2. Previous poin is not completed (except for first poin)
+                            const isPoinLocked = !subMateri.isUnlocked || !isPreviousPoinCompleted;
 
                             return (
                               <button
@@ -442,36 +450,52 @@ export default function ModulSidebar({
                                     handleBlockedNavigation(e);
                                     return;
                                   }
-                                  if (subMateri.isUnlocked) {
-                                    handleSubMateriSelect(subMateri);
-                                    handlePoinSelect(poinIndex);
-                                  } else {
-                                    warning(
-                                      "Selesaikan terlebih dahulu materi sebelumnya untuk mengakses poin ini",
-                                      {
-                                        title: "Materi Terkunci",
-                                        duration: 3000,
-                                      }
-                                    );
+                                  
+                                  // Check if poin is locked
+                                  if (isPoinLocked) {
+                                    if (!subMateri.isUnlocked) {
+                                      warning(
+                                        "Selesaikan terlebih dahulu materi sebelumnya untuk mengakses poin ini",
+                                        {
+                                          title: "Materi Terkunci",
+                                          duration: 3000,
+                                        }
+                                      );
+                                    } else if (!isPreviousPoinCompleted) {
+                                      warning(
+                                        "Selesaikan poin sebelumnya terlebih dahulu",
+                                        {
+                                          title: "Poin Terkunci",
+                                          duration: 3000,
+                                        }
+                                      );
+                                    }
+                                    return;
                                   }
+                                  
+                                  // Poin is unlocked, allow navigation
+                                  handleSubMateriSelect(subMateri);
+                                  handlePoinSelect(poinIndex);
                                 }}
-                                disabled={quizActive}
+                                disabled={quizActive || isPoinLocked}
                                 className={`w-full text-left p-2.5 rounded-lg text-xs transition-all ${
                                   quizActive
                                     ? "bg-gray-100 text-gray-400 cursor-not-allowed opacity-60"
                                     : selectedPoinIndex === poinIndex &&
                                       selectedSubMateri?.id === subMateri.id &&
-                                      subMateri.isUnlocked
+                                      !isPoinLocked
                                     ? "bg-[#578FCA]/10 text-[#27548A] border border-[#578FCA]/30"
-                                    : isPoinCompleted && subMateri.isUnlocked
+                                    : isPoinCompleted && !isPoinLocked
                                     ? "bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
-                                    : subMateri.isUnlocked
+                                    : !isPoinLocked
                                     ? "text-gray-600 hover:bg-gray-100"
-                                    : "text-gray-400 hover:bg-red-50 hover:text-red-400 cursor-pointer"
+                                    : "text-gray-400 cursor-not-allowed opacity-60"
                                 }`}
                                 title={
                                   !subMateri.isUnlocked
                                     ? "Selesaikan materi sebelumnya untuk mengakses poin ini"
+                                    : !isPreviousPoinCompleted
+                                    ? "Selesaikan poin sebelumnya terlebih dahulu"
                                     : ""
                                 }
                               >
@@ -480,23 +504,22 @@ export default function ModulSidebar({
                                     className={`w-1.5 h-1.5 rounded-full ${
                                       selectedPoinIndex === poinIndex &&
                                       selectedSubMateri?.id === subMateri.id &&
-                                      subMateri.isUnlocked
+                                      !isPoinLocked
                                         ? "bg-[#578FCA]"
-                                        : isPoinCompleted &&
-                                          subMateri.isUnlocked
+                                        : isPoinCompleted && !isPoinLocked
                                         ? "bg-emerald-500"
-                                        : subMateri.isUnlocked
+                                        : !isPoinLocked
                                         ? "bg-gray-300"
                                         : "bg-gray-300"
                                     }`}
                                   ></div>
                                   <span className="truncate font-medium flex-1">
                                     {poin.title}
-                                    {!subMateri.isUnlocked && (
-                                      <span className="ml-1 text-xs">🔒</span>
+                                    {isPoinLocked && (
+                                      <Lock className="w-3 h-3 inline-block ml-1" />
                                     )}
                                   </span>
-                                  {isPoinCompleted && subMateri.isUnlocked && (
+                                  {isPoinCompleted && !isPoinLocked && (
                                     <CheckCircle className="w-3 h-3 text-emerald-500" />
                                   )}
                                 </div>
